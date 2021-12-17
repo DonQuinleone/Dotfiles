@@ -29,6 +29,8 @@ alias cal="cs; ikhal; cs; clear"
 alias cs="vdirsyncer sync"
 alias con="khard"
 
+alias a2m="AXtoMP3 -e:mp3 -c --use-audible-cli-data --level 3"
+
 alias mutt="neomutt"
 alias m="neomutt"
 
