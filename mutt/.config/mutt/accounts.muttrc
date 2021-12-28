@@ -5,5 +5,4 @@ source ~/.config/mutt/accounts/qc-josh.conf
 
 # Other accounts
 macro index <F2> '<sync-mailbox><enter-command>source ~/.config/mutt/accounts/qc-josh.conf<enter><change-folder>!<enter>'
-macro index <F3> '<sync-mailbox><enter-command>source ~/.config/mutt/accounts/york.conf<enter><change-folder>!<enter>'
-macro index <F4> '<sync-mailbox><enter-command>source ~/.config/mutt/accounts/sb.conf<enter><change-folder>!<enter>'
+macro index <F3> '<sync-mailbox><enter-command>source ~/.config/mutt/accounts/sb.conf<enter><change-folder>!<enter>'
