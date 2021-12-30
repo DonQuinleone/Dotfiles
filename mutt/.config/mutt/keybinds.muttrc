@@ -4,6 +4,7 @@
 macro index i "<change-folder> +INBOX<enter>"
 macro index s "<change-folder> +Sent<enter>"   
 macro index a "<change-folder> +Archive<enter>"
+macro index A "<change-folder> +Accounts<enter>"
 macro index g "<change-folder> +[Gmail]/Sent%20Mail<enter>"
 
 # Change identity
@@ -13,6 +14,6 @@ macro compose v "<edit-from>^Uidentity\_<tab>" "Select from"
 bind index,pager g group-reply
 
 # Add sender email to Khard
-macro index,pager A \
+macro index,pager k \
   "<pipe-message>~/.local/bin/khard add-email<return>" \
   "add the sender email address to khard"
