@@ -2,6 +2,9 @@
 let g:mapleader = "\<Space>"
 
 hi Normal guibg=NONE ctermbg=NONE
+au ColorScheme * hi Normal ctermbg=none guibg=none
+au ColorScheme myspecialcolors hi Normal ctermbg=red guibg=red
+
 set hidden
 set encoding=utf-8
 set pumheight=10
