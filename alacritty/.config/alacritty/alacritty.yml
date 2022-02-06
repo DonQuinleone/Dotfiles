@@ -5,6 +5,7 @@ window:
   padding:
     x: 6
     y: 6
+  opacity: 0.7
 
   title: Alacritty
 
@@ -37,9 +38,6 @@ font:
   offset:
     x: 1
     y: 1
-
-
-background_opacity: 0.7
 
 key_bindings:
   - { key: V,        mods: Control|Shift, action: Paste            }
