@@ -4,8 +4,8 @@ tls           on
 logfile       ~/.local/share/msmtp/msmtp.log
 
 account       josh@quinlan.cloud
-host          smtp.quinlancloud.net
-port          587
+host          smtp-auth.mythic-beasts.com
+port          465
 tls_starttls  on
 from          josh@quinlan.cloud
 user          josh@quinlan.cloud
