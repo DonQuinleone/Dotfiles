@@ -34,10 +34,6 @@ alias a2m="AAXtoMP3 --chaptered -e:mp3 -c --use-audible-cli-data --level 3"
 alias mutt="neomutt"
 alias m="neomutt"
 
-# Encrypt and decrypt files with PGP
-alias enc="gpg -c --no-symkey-cache"
-alias dec="gpg --no-symkey-cache"
-
 # Secure file redirection
 set -o noclobber
 

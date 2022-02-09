@@ -1,0 +1,41 @@
+#!/bin/bash
+
+if [ -z $1 ]; then
+  echo "USAGE:"
+  echo "  enc <target dir>"
+  exit 1
+fi
+
+TARGET=$1
+
+# Check if provided directory ends in slash
+if [ ${TARGET: -1} = "/" ]; then
+  # If it does, strip the trailing slash
+  TARGET=${TARGET::-1}
+fi
+
+echo "Archiving target: $TARGET => $TARGET.zip..."
+zip -r $TARGET.zip $TARGET > /dev/null 2>&1
+
+if [ ! -f $TARGET.zip ]; then
+  echo "Creation of archive failed. Exiting..."
+  exit
+fi
+
+echo "Archive created. Removing source folder."
+rm -rf $TARGET
+
+echo "Encrypting $TARGET.zip. Please supply a password."
+gpg -c --no-symkey-cache $TARGET.zip > /dev/null 2>&1
+
+if [ ! -f $TARGET.zip.gpg ]; then
+  echo "Encryption process failed. Exiting and restoring $TARGET..."
+  unzip $TARGET.zip > /dev/null 2>&1
+  rm -rf $TARGET.zip
+  exit 1
+fi
+
+echo "Encryption successful. Removing $TARGET.zip..."
+rm -rf $TARGET.zip
+
+echo "SUCCESS! $TARGET has been encrypted."
