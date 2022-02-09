@@ -1,5 +1,10 @@
 #!/bin/bash
 
+if ! (pacman -Q unzip >/dev/null) ; then
+  echo "Please install 'unzip' to use this tool."
+  exit 1
+fi
+
 # Make sure target is provided
 if [ -z $1 ]; then
   echo "USAGE:"
