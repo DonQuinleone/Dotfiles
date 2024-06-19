@@ -4,9 +4,18 @@ tls           on
 logfile       ~/.local/share/msmtp/msmtp.log
 
 account       josh@quinlan.cloud
-host          smtp-auth.mythic-beasts.com
+host          hermes.quinlan.cloud
 port          587
 tls_starttls  on
 from          josh@quinlan.cloud
 user          josh@quinlan.cloud
 passwordeval  "pass show QCMail"
+
+account       josh.quinlan@nycgb.org.uk
+host          outlook.office365.com
+port          587
+tls_starttls  on
+from          josh.quinlan@nycgb.org.uk
+user          josh.quinlan@nycgb.org.uk
+passwordeval  "pass show NYCGBEmail"
+

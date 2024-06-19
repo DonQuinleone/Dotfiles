@@ -7,3 +7,7 @@
   from = josh@quinlan.cloud
   smtpserver = "/usr/bin/msmtp"
 	annotate = yes
+[init]
+	defaultBranch = master
+[core]
+	editor = nvim

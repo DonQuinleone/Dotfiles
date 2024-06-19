@@ -1,6 +1,0 @@
-# vim: syntax=muttrc
-
-source ~/.config/mutt/accounts.muttrc
-source ~/.config/mutt/keybinds.muttrc
-source ~/.config/mutt/settings.muttrc
-source ~/.config/mutt/colours.muttrc

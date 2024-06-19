@@ -3,9 +3,13 @@ export EDITOR=/usr/bin/nvim
 export VISUAL=/usr/bin/nvim
 export PAGER="most"
 export GPG_TTY=$(tty)
+eval $(/opt/homebrew/bin/brew shellenv)
+export XDG_CONFIG_HOME=~/.config
+export XDG_DATA_HOME=~/.local/share
 
 # Prompt
-export PS1="\[\033[38;5;11m\]\u\[$(tput sgr0)\]@\h:\[$(tput sgr0)\]\[\033[38;5;6m\][\W]\[$(tput sgr0)\]: \[$(tput sgr0)\]"
+# export PS1="\[\033[38;5;11m\]\u\[$(tput sgr0)\]@\h:\[$(tput sgr0)\]\[\033[38;5;6m\][\W]\[$(tput sgr0)\]: \[$(tput sgr0)\]"
+PS1='\[\e[38;5;198m\]\u \[\e[38;5;129m\]\W\n\[\e[97m\]\$ \[\e[0m\]'
 
 # Aliases -> navigation
 alias cp="cp -i"                               
@@ -28,11 +32,15 @@ alias c="cal"
 alias cal="cs; ikhal; cs; clear"
 alias cs="vdirsyncer sync"
 alias con="khard"
+alias python="python3"
+alias p="python3"
 
-alias a2m="AAXtoMP3 --chaptered -e:mp3 -c --use-audible-cli-data --level 3"
+alias a2m="AAXtoMP3 --chaptered -e:m4b -c --use-audible-cli-data -t '/Users/joshuaquinlan/Downloads' -s"
 
 alias mutt="neomutt"
 alias m="neomutt"
+
+alias clock="pyoklock -s"
 
 # Secure file redirection
 set -o noclobber
@@ -66,8 +74,8 @@ lfcd () {
 }
 
 # Use fzf
-source /usr/share/fzf/key-bindings.bash
-source /usr/share/fzf/completion.bash
+#source /usr/share/fzf/key-bindings.bash
+#source /usr/share/fzf/completion.bash
 
 export PATH=~/.local/bin:~/.emacs.d/bin/doom:~/.bin:$PATH
 cd
