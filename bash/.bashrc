@@ -6,9 +6,9 @@ export GPG_TTY=$(tty)
 eval $(/opt/homebrew/bin/brew shellenv)
 export XDG_CONFIG_HOME=~/.config
 export XDG_DATA_HOME=~/.local/share
+export BW_SESSION="KWLH2xrtS7c14c++0ae9mwMpvXocZ1qKQFx2v5EOik3NqZdl9mZSkPb+p8TD4l6WlFgB4FxkI0c0hFHX+GSv6w=="
 
 # Prompt
-# export PS1="\[\033[38;5;11m\]\u\[$(tput sgr0)\]@\h:\[$(tput sgr0)\]\[\033[38;5;6m\][\W]\[$(tput sgr0)\]: \[$(tput sgr0)\]"
 PS1='\[\e[38;5;198m\]\u \[\e[38;5;129m\]\W\n\[\e[97m\]\$ \[\e[0m\]'
 
 # Aliases -> navigation
@@ -28,10 +28,6 @@ if [ -f /bin/netcat ]; then
   alias termbin="nc termbin.com 9999"
 fi
 
-alias c="cal"
-alias cal="cs; ikhal; cs; clear"
-alias cs="vdirsyncer sync"
-alias con="khard"
 alias python="python3"
 alias p="python3"
 
@@ -39,8 +35,6 @@ alias a2m="AAXtoMP3 --chaptered -e:m4b -c --use-audible-cli-data -t '/Users/josh
 
 alias mutt="neomutt"
 alias m="neomutt"
-
-alias clock="pyoklock -s"
 
 # Secure file redirection
 set -o noclobber
@@ -77,5 +71,4 @@ lfcd () {
 #source /usr/share/fzf/key-bindings.bash
 #source /usr/share/fzf/completion.bash
 
-export PATH=~/.local/bin:~/.emacs.d/bin/doom:~/.bin:$PATH
 cd
