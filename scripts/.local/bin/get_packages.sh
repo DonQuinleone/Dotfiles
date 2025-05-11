@@ -34,7 +34,8 @@ brew install \
   most \
   lsd \
   hugo \
-  cyberduck
+  cyberduck \
+  tlrc
 
 echo "Cleaning up and optimising brew..."
 brew cleanup
