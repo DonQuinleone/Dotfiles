@@ -21,6 +21,7 @@ brew install --cask \
   spotify \
   clipy \
   rectangle \
+  keepingyouawake \
   hammerspoon \
   steam \
   minecraft \
