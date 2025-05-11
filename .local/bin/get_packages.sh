@@ -41,6 +41,10 @@ brew install \
     fastfetch \
     mas
 
+echo "Installing App Store packages..."
+mas install \
+    497799835 # Xcode
+
 echo "Cleaning up and optimising brew..."
 brew cleanup
 brew doctor
