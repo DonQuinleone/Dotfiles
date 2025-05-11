@@ -29,13 +29,14 @@ brew install --cask \
   clipy \
   hammerspoon \
   steam \
-  minecraft
+  minecraft \
+  keymapp \
+  hiddenbar
 
 echo "Installing non-cask packages..."
 brew install \
   neovim \
   mpv \
-  stow \
   most \
   lsd \
   hugo \
