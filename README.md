@@ -1,23 +1,41 @@
 # Don's Dotfiles
 
-My newly-refreshed dotfiles. There's not much here for now, but I'll start
-adding more of my configurations as they get to a decent state.
+These are my personal configuration files. I hope to keep adding more in the
+future; in the meantime, here's what I use to get things done.
 
-## Management
+I use GNU Stow to manage my dotfiles.
 
-I manage my Dotfiles using GNU Stow:
-https://www.gnu.org/software/stow/
 
-Simple clone down this repo, move it to your preferred location (one dir
-into your $HOME, and run `stow .`.
+## Setting up a new machine
 
-## My Environment
+These steps are assuming that you are setting up a macOS device.
 
-* Shell: Bash
-* Terminal Emulator: Ghostty
-* OS: macOS at the moment, but switching to Linux full time once I've found a
-  WM/compositor combo that has full-screen magnification and a decent FOSS DAW.
-* Editor: Neovim
-* E-mail Client: Neomutt & Thunderbird
-* DAW: Avid Pro Tools & MAGIX Sequoia
+1. Clone this repo to your home folder (I generally go with `~/.dotfiles`.
 
+   ```
+   git clone git@github.com:DonQuinleone/Dotfiles.git ~/.dotfiles
+   ```
+
+2. Once that's done, run `./setup/.local/bin/get_packages.sh`.
+   This will install Homebrew and the majority of apps I use.
+
+3. Use GNU Stow to 'install' my dotfiles.
+
+   ```
+   cd ~/.dotfiles && stow .
+   ```
+
+4. Install Packer for Neovim.
+
+   ```
+   git clone --depth 1 https://github.com/wbthomason/packer.nvim\
+ ~/.local/share/nvim/site/pack/packer/start/packer.nvim
+   ```
+
+   NB. I know that Packer is unmaintained. I will switch at some point.
+
+5. Install Neovim plugins via `:PackerInstall` in Neovim.
+
+## Contributions
+
+PRs are welcome, though I'll only merge in changes if I'm likely to use them myself.
