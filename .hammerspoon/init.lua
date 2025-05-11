@@ -1,23 +1,24 @@
-hs.hotkey.bind({"ctrl", "alt"}, "B", function()
-  hs.application.launchOrFocus("LibreWolf")
-end)
+local mods = {"ctrl", "alt"}
 
-hs.hotkey.bind({"ctrl", "alt"}, "M", function()
-  hs.application.launchOrFocus("Thunderbird")
-end)
+local appBindings = {
+  ["B"]       = "LibreWolf",
+  ["M"]       = "Thunderbird",
+  ["O"]       = "Microsoft Outlook",
+  ["T"]       = "Microsoft Teams",
+  ["return"]  = "Ghostty",
+  ["E"]       = "Ente Auth",
+  ["P"]       = "Bitwarden",
+  ["D"]       = "Discord",
+  ["S"]       = "Spotify",
+  ["."]       = "System Settings",
+  ["H"]       = "Home",
+}
 
-hs.hotkey.bind({"ctrl", "alt"}, "return", function()
-  hs.application.launchOrFocus("Ghostty")
-end)
+for key, app in pairs(appBindings) do
+  hs.hotkey.bind(mods, key, function()
+    hs.application.launchOrFocus(app)
+  end)
+end
 
-hs.hotkey.bind({"ctrl", "alt"}, "E", function()
-  hs.application.launchOrFocus("Ente Auth")
-end)
+hs.hotkey.bind(mods, "R", hs.reload)
 
-hs.hotkey.bind({"ctrl", "alt"}, "P", function()
-  hs.application.launchOrFocus("Bitwarden")
-end)
-
-hs.hotkey.bind({"ctrl", "alt"}, "R", function()
-  hs.reload()
-end)
