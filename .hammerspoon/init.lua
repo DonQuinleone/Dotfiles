@@ -1,6 +1,6 @@
 ----------- APPLICATION LAUNCHING --------------
 
-local mods = {"ctrl", "alt"}
+local mods = {"ctrl", "alt", "shift"}
 
 local appBindings = {
     -- Browsers & Internet
