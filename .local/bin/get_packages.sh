@@ -39,7 +39,8 @@ brew install \
     cyberduck \
     tlrc \
     fastfetch \
-    mas
+    mas \
+    nmap
 
 echo "Installing App Store packages..."
 mas install \
