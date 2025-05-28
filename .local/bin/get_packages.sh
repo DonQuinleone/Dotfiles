@@ -27,7 +27,9 @@ brew install --cask \
     minecraft \
     keymapp \
     hiddenbar \
-    mullvadvpn
+    mullvadvpn \
+    slack \
+    1password
 
 echo "Installing non-cask packages..."
 brew install \
