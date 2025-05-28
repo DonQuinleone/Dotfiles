@@ -1,0 +1,32 @@
+#!/bin/bash
+
+# Make sure target is provided
+if [ -z $1 ]; then
+  echo "USAGE:"
+  echo "  dec <target.zip.gpg>"
+  exit 1
+fi
+
+TARGET=$1
+NOGPG=${TARGET::-4}
+
+echo "Decrypting $TARGET. Please enter your password..."
+gpg --no-symkey-cache $TARGET > /dev/null 2>&1
+
+if [ ! -f $NOGPG ]; then
+  echo "Decryption unsuccessful. Exiting..."
+  exit 1
+fi
+
+echo "Unarchiving target..."
+unzip $NOGPG > /dev/null 2>&1
+
+if [ ! -d ${NOGPG::-4} ]; then
+  echo "Unarchiving failed. Exiting..."
+  exit 1
+fi
+
+rm -rf $TARGET
+rm -rf $NOGPG
+
+echo "SUCCESS! $TARGET has been decrypted, and can be accessed at $(pwd)/${NOGPG::-4}."
