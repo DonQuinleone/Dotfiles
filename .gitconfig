@@ -1,0 +1,16 @@
+[user]
+	email = don@donquinleone.com
+	name = DonQuinleone
+[sendemail]
+	smtpencryption = tls
+	confirm = auto
+	from = don@donquinleone.com
+	smtpserver = "/usr/bin/msmtp"
+	annotate = yes
+[init]
+	defaultBranch = master
+[core]
+	editor = nvim
+[commit]
+	gpgsign = true
+
