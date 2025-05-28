@@ -3,7 +3,7 @@ auth          on
 tls           on
 logfile       ~/.local/share/msmtp/msmtp.log
 
-account       default 
+account       josh@quinlan.cloud
 host          smtp.quinlancloud.net
 port          587
 tls_starttls  on

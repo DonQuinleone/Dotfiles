@@ -8,7 +8,7 @@ set menu_scroll
 unset markers
 set markers=no
 
-set editor="nvim +':set textwidth=0' +':set wrapmargin=0' +':set wrap'"
+set editor="nvim +':set textwidth=0' +':set wrapmargin=0' +':set wrap' +':setlocal fo+=aw'"
 ignore *                               # first, ignore all headers
 unignore from: to: cc: date: subject:  # then, show only these
 hdr_order from: to: cc: date: subject: # and in this order
@@ -20,9 +20,11 @@ set reverse_realname=no
 set include=yes
 set use_from = yes
 set envelope_from = yes
+set text_flowed = yes
 
 # New mail notifications
-set new_mail_command = "new-mail-notify-wsl &> /dev/null" # For WSL only - see ~/.bin/new-mail-notify-wsl
+#set new_mail_command = "new-mail-notify-wsl &> /dev/null" # For WSL only - see ~/.bin/new-mail-notify-wsl
+set new_mail_command = 'notify-send --urgency=critical --app-name=Neomutt --icon=mail --expire-time=10 "New mail received" && espeak "New mail received" 2&>/dev/null'
 
 # Set default downloads directory
 macro attach s <save-entry><bol>~/Downloads/
@@ -57,3 +59,4 @@ set quit
 # View HTML email with w3m
 auto_view text/html
 alternative_order text/plain text/enriched text/html
+auto_view application/pgp-encrypted
