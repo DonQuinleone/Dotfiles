@@ -11,3 +11,5 @@
 	defaultBranch = master
 [core]
 	editor = nvim
+[commit]
+	gpgsign = true
