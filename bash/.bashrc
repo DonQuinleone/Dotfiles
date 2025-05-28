@@ -22,7 +22,7 @@ alias 2..="cd ../.."
 alias 3..="cd ../../.."
 alias 4..="cd ../../../.."
 alias 5..="cd ../../../../.."
-alias ls="exa"
+alias ls="lsd"
 
 if [ -f /bin/netcat ]; then
   alias termbin="nc termbin.com 9999"
