@@ -11,7 +11,7 @@ https://www.gnu.org/software/stow/
 Simple clone down this repo, move it to your preferred location (one dir
 into your $HOME, and run `stow .`.
 
-## Programs
+## My Environment
 
 * Shell: Bash
 * Terminal Emulator: Ghostty
