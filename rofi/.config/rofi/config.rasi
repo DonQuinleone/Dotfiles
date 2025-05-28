@@ -3,6 +3,7 @@
 configuration {
   display-drun: "Apps:";
   display-window: "Windows:";
+  display-run: "Command:";
   drun-display-format: "{icon} {name}";
   modi: "window,run,drun";
   show-icons: true;
@@ -11,34 +12,48 @@ configuration {
 
 
 /* Dracula Theme */
-
 * {
+    /* Dracula theme colour palette */
+    drac-bgd: #282a36;
+    drac-cur: #44475a;
+    drac-fgd: #f8f8f2;
+    drac-cmt: #6272a4;
+    drac-cya: #8be9fd;
+    drac-grn: #50fa7b;
+    drac-ora: #ffb86c;
+    drac-pnk: #ff79c6;
+    drac-pur: #bd93f9;
+    drac-red: #ff5555;
+    drac-yel: #f1fa8c;
+
     font: "Inconsolata 26";
-    foreground: #f8f8f2;
-    background: #282a36;
-    active-background: #6272a4;
-    urgent-background: #ff5555;
+
+    foreground: @drac-fgd;
+    background: @drac-bgd;
+    active-background: @drac-pnk;
+    urgent-background: @drac-red;
+    
     selected-background: @active-background;
     selected-urgent-background: @urgent-background;
     selected-active-background: @active-background;
     separatorcolor: @active-background;
-    bordercolor: @active-background;
+    bordercolor: #6272a4;
 }
 
 window {
-    width: 70%;
+    width: 85%;
 }
 
 #window {
     background-color: @background;
-    border:           1;
+    border:           3;
     border-radius: 6;
     border-color: @bordercolor;
-    padding:          10;
+    padding:          5;
 }
 #mainbox {
     border:  0;
-    padding: 0;
+    padding: 5;
 }
 #message {
     border:       1px dash 0px 0px ;
@@ -54,11 +69,11 @@ window {
     border-color: @bordercolor;
     spacing:      2px ;
     scrollbar:    false;
-    padding:      20px 0px 0px ;
+    padding:      2px 0px 0px ;
 }
 #element {
     border:  0;
-    padding: 2px ;
+    padding: 1px ;
 }
 #element.normal.normal {
     background-color: @background;
@@ -70,11 +85,11 @@ window {
 }
 #element.normal.active {
     background-color: @active-background;
-    text-color:       @foreground;
+    text-color:       @background;
 }
 #element.selected.normal {
     background-color: @selected-background;
-    text-color:       @foreground;
+    text-color:       black;
 }
 #element.selected.urgent {
     background-color: @selected-urgent-background;
@@ -82,7 +97,7 @@ window {
 }
 #element.selected.active {
     background-color: @selected-active-background;
-    text-color:       @foreground;
+    text-color:       @background;
 }
 #element.alternate.normal {
     background-color: @background;
@@ -121,11 +136,11 @@ window {
 }
 #entry {
     spacing:    0;
-    text-color: @foreground;
+    text-color: @drac-cya;
 }
 #prompt {
     spacing:    0;
-    text-color: @foreground;
+    text-color: @drac-grn;
 }
 #inputbar {
     children:   [ prompt,textbox-prompt-colon,entry,case-indicator ];
@@ -134,5 +149,5 @@ window {
     expand:     false;
     str:        ":";
     margin:     0px 0.3em 0em 0em ;
-    text-color: @foreground;
+    text-color: @drac-grn;
 }
