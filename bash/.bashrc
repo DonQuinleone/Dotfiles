@@ -38,8 +38,7 @@ alias m="neomutt"
 set -o noclobber
 
 # Easy extractor
-ex ()
-{
+ex () {
   if [ -f $1 ] ; then
     case $1 in
       *.tar.bz2)   tar xjf $1   ;;
@@ -58,6 +57,13 @@ ex ()
   else
     echo "'$1' is not a valid file"
   fi
+}
+
+lfcd () {
+    tmp="$(mktemp)"
+    lf -last-dir-path="$tmp" "$@"
+        [ -d "$dir" ] && [ "$dir" != "$(pwd)" ] && cd "$dir"
+    fi
 }
 
 # Use fzf
