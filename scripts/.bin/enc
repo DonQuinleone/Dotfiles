@@ -1,5 +1,10 @@
 #!/bin/bash
 
+if ! (pacman -Q zip >/dev/null) ; then
+  echo "Please install 'zip' to use this tool."
+  exit 1
+fi
+
 if [ -z $1 ]; then
   echo "USAGE:"
   echo "  enc <target dir>"
