@@ -1,0 +1,11 @@
+theme = catppuccin-mocha.conf
+font-family = "Menlo"
+font-size = 32
+font-feature = -calt 
+font-feature = -liga
+font-feature = -dlig
+maximize = true
+confirm-close-surface = false
+quit-after-last-window-closed = true
+background-opacity = 0.8
+background-blur = true 

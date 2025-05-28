@@ -3,9 +3,9 @@
 	name = Josh Quinlan
 [sendemail]
 	smtpencryption = tls
-  confirm = auto
-  from = josh@quinlan.cloud
-  smtpserver = "/usr/bin/msmtp"
+	confirm = auto
+	from = josh@quinlan.cloud
+	smtpserver = "/usr/bin/msmtp"
 	annotate = yes
 [init]
 	defaultBranch = master
