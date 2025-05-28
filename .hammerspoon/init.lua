@@ -1,3 +1,5 @@
+----------- APPLICATION LAUNCHING --------------
+
 local mods = {"ctrl", "alt"}
 
 local appBindings = {
@@ -50,3 +52,73 @@ for key, app in pairs(appBindings) do
 end
 
 hs.hotkey.bind(mods, "R", hs.reload)
+
+
+
+
+---------- ADD CUT+PASTE TO FINDER ------------
+
+-- Table to store cut file paths
+local cutFiles = {}
+
+-- Function to get selected files in Finder via AppleScript
+local function getSelectedFinderItems()
+    local ok, result = hs.osascript.applescript([[
+    tell application "Finder"
+    set theItems to selection
+    set thePaths to {}
+    repeat with anItem in theItems
+        set end of thePaths to POSIX path of (anItem as text)
+    end repeat
+end tell
+return thePaths
+]])
+return ok and result or {}
+end
+
+-- Function to get target Finder window's path
+local function getFrontFinderWindowPath()
+    local ok, result = hs.osascript.applescript([[
+    tell application "Finder"
+    if (count of windows) > 0 then
+        set theTarget to (target of front window) as alias
+        return POSIX path of theTarget
+    else
+        return ""
+    end if
+end tell
+]])
+return ok and result or ""
+end
+
+-- Cut files (store paths)
+hs.hotkey.bind({"ctrl", "cmd"}, "X", function()
+    cutFiles = getSelectedFinderItems()
+    if #cutFiles > 0 then
+        hs.alert.show("Files Cut")
+    else
+        hs.alert.show("No files selected")
+    end
+end)
+
+-- Paste files (move to new location)
+hs.hotkey.bind({"ctrl", "cmd"}, "V", function()
+    if #cutFiles == 0 then
+        hs.alert.show("No files to paste")
+        return
+    end
+
+    local targetDir = getFrontFinderWindowPath()
+    if targetDir == "" then
+        hs.alert.show("No Finder window open")
+        return
+    end
+
+    for _, path in ipairs(cutFiles) do
+        local cmd = string.format('mv "%s" "%s"', path, targetDir)
+        hs.execute(cmd)
+    end
+
+    hs.alert.show("Files moved")
+    cutFiles = {}
+end)
