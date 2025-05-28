@@ -3,15 +3,17 @@
 # Use Dracula colour scheme
 source ~/.config/mutt/dracula.muttrc
 
+ignore *                               # first, ignore all headers
+unignore from: to: cc: date: subject:  # then, show only these
+hdr_order from: to: cc: date: subject: # and in this order
+
 set smart_wrap
 set menu_scroll
 unset markers
 set markers=no
-
-set editor="nvim +':set textwidth=0' +':set wrapmargin=0' +':set wrap' +':setlocal fo+=aw'"
-ignore *                               # first, ignore all headers
-unignore from: to: cc: date: subject:  # then, show only these
-hdr_order from: to: cc: date: subject: # and in this order
+bind pager k previous-line
+bind pager j next-line
+set editor='nvim'
 set fast_reply=yes
 set forward_format="Fwd: %s"
 set forward_quote
