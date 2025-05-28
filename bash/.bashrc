@@ -60,6 +60,9 @@ ex ()
   fi
 }
 
+# Use fzf
+source /usr/share/fzf/key-bindings.bash
+source /usr/share/fzf/completion.bash
+
 export PATH=~/.local/bin:~/.bin:$PATH
 cd
-
