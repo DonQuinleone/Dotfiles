@@ -16,16 +16,10 @@ These steps are assuming that you are setting up a macOS device.
    git clone git@github.com:DonQuinleone/Dotfiles.git ~/.dotfiles
    ```
 
-2. Once that's done, run `./setup/.local/bin/get_packages.sh`.
-   This will install Homebrew and the majority of apps I use.
+2. Once that's done, run `./setup/_machine.sh`.
+   This will setup everything automatically, including installing packages.
 
-3. Use GNU Stow to 'install' my dotfiles.
-
-   ```
-   cd ~/.dotfiles && stow .
-   ```
-
-4. Install Packer for Neovim.
+3. Install Packer for Neovim.
 
    ```
    git clone --depth 1 https://github.com/wbthomason/packer.nvim \
@@ -34,20 +28,13 @@ These steps are assuming that you are setting up a macOS device.
 
    NB. I know that Packer is unmaintained. I will switch at some point.
 
-5. Install Neovim plugins via `:PackerInstall` in Neovim.
-
-6. I'm not a fan of ZSH! Switch to Bash!
-
-   ```
-   chsh -s /bin/bash
-   ```
+4. Install Neovim plugins via `:PackerInstall` in Neovim.
 
 All done :-)
 
 There will be a few more programs that need to be installed manually, but this
 should be a good starter. Programs to remember:
 
-* Magnet
 * Adobe Creative Cloud
 * Avid Pro Tools
 * TakeLogger
