@@ -1,0 +1,8 @@
+[user]
+	email = josh@quinlan.cloud
+	name = Josh Quinlan
+[sendemail]
+	smtpencryption = tls
+  confirm = auto
+  from = josh@quinlan.cloud
+  smtpserver = "/usr/bin/msmtp"
