@@ -36,6 +36,28 @@ These steps are assuming that you are setting up a macOS device.
 
 5. Install Neovim plugins via `:PackerInstall` in Neovim.
 
+6. I'm not a fan of ZSH! Switch to Bash!
+
+   ```
+   chsh -s /bin/bash
+   ```
+
+All done :-)
+
+There will be a few more programs that need to be installed manually, but this
+should be a good starter. Programs to remember:
+
+* Magnet
+* Adobe Creative Cloud
+* Avid Pro Tools
+* TakeLogger
+* dbPowerAmp
+* Steinberg Dorico
+* Melodyne
+* Other audio plugins
+
+and of course any games or other tools that may be desired.
+
 ## Contributions
 
 PRs are welcome, though I'll only merge in changes if I'm likely to use them myself.
