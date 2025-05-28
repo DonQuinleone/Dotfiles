@@ -64,5 +64,5 @@ ex ()
 source /usr/share/fzf/key-bindings.bash
 source /usr/share/fzf/completion.bash
 
-export PATH=~/.local/bin:~/.bin:$PATH
+export PATH=~/.local/bin:~/.emacs.d/bin/doom:~/.bin:$PATH
 cd
