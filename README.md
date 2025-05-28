@@ -16,7 +16,7 @@ These steps are assuming that you are setting up a macOS device.
    git clone git@github.com:DonQuinleone/Dotfiles.git ~/.dotfiles
    ```
 
-2. Once that's done, run `./setup/_machine.sh`.
+2. Once that's done, run `./setup_machine.sh`.
    This will setup everything automatically, including installing packages.
 
 3. Install Packer for Neovim.
