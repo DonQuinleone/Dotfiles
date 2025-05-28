@@ -28,8 +28,8 @@ These steps are assuming that you are setting up a macOS device.
 4. Install Packer for Neovim.
 
    ```
-   git clone --depth 1 https://github.com/wbthomason/packer.nvim\
- ~/.local/share/nvim/site/pack/packer/start/packer.nvim
+   git clone --depth 1 https://github.com/wbthomason/packer.nvim \
+   ~/.local/share/nvim/site/pack/packer/start/packer.nvim
    ```
 
    NB. I know that Packer is unmaintained. I will switch at some point.
