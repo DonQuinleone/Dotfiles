@@ -63,7 +63,6 @@ lfcd () {
     tmp="$(mktemp)"
     lf -last-dir-path="$tmp" "$@"
         [ -d "$dir" ] && [ "$dir" != "$(pwd)" ] && cd "$dir"
-    fi
 }
 
 # Use fzf
