@@ -42,7 +42,8 @@ brew install \
     tlrc \
     fastfetch \
     mas \
-    nmap
+    nmap \
+    git-filter-repo
 
 echo "Installing App Store packages..."
 mas install \
