@@ -14,6 +14,6 @@ macro compose v "<edit-from>^Uidentity\_<tab>" "Select from"
 bind index,pager g group-reply
 
 # Add sender email to Khard
-macro index,pager k \
+macro index,pager K \
   "<pipe-message>~/.local/bin/khard add-email<return>" \
   "add the sender email address to khard"
