@@ -1,0 +1,3 @@
+address chat.sr.ht
+nickname antiquis/irc.libera.chat
+password-cmd pass show SourceHut
