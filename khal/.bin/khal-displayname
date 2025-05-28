@@ -1,0 +1,14 @@
+#!/bin/bash
+
+# Purpose
+# My email and WebDAV provider, Mailfence, does not allow the modification of metadata on their CardDAV server. Therefore, it is not possible to change 'displayname' within the account metadata and have it sync. This script automates the process of changing the local 'displayname' values, as added by vdirsyncer, to save me a little time.
+
+
+#Sync metadata with CardDAV server
+vdirsyncer metasync
+
+#More understandable values for 'displayname'
+echo "Personal" > ~/.local/share/vdirsyncer/calendars/Personal/events/displayname
+echo "Music" > ~/.local/share/vdirsyncer/calendars/Music/events/displayname
+echo "Server.pro" > ~/.local/share/vdirsyncer/calendars/ServerPro/events/displayname
+echo "University" > ~/.local/share/vdirsyncer/calendars/University/events/displayname

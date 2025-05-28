@@ -1,0 +1,6 @@
+#!/bin/bash
+#
+# You must have BurntToast installed in PowerShell for this to work.
+# Source: https://codelearn.me/2019/01/13/wsl-windows-toast.html
+
+/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe "New-BurntToastNotification -Text \"New Mail\", \"You\'ve got new mail!\" -Sound \"Alarm2\""

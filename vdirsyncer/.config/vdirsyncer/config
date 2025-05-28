@@ -1,0 +1,109 @@
+[general]
+status_path = "~/.local/share/vdirsyncer/status/"
+
+# CARDDAV
+[pair personal_contacts]
+a = "personal_contacts_local"
+b = "personal_contacts_remote"
+collections = ["contacts"]
+conflict_resolution = "b wins"
+
+[storage personal_contacts_local]
+type = "filesystem"
+path = "~/.local/share/vdirsyncer/contacts/Personal/"
+fileext = ".vcf"
+
+[storage personal_contacts_remote]
+type = "carddav"
+url = "https://mailfence.com/dav/JoshQuinlan/private/contacts/"
+username = "JoshQuinlan"
+password.fetch = ["command", "pass", "show", "Mailfence"]
+
+[pair serverpro_contacts]
+a = "serverpro_contacts_local"
+b = "serverpro_contacts_remote"
+collections = ["contacts"]
+conflict_resolution = "b wins"
+
+[storage serverpro_contacts_local]
+type = "filesystem"
+path = "~/.local/share/vdirsyncer/contacts/ServerPro/"
+fileext = ".vcf"
+
+[storage serverpro_contacts_remote]
+type = "carddav"
+url = "https://mailfence.com/dav/groups/JQ_Server.pro/_addbooks_/contacts/"
+username = "JoshQuinlan"
+password.fetch = ["command", "pass", "show", "Mailfence"]
+
+
+# CALDAV
+[pair personal_calendar]
+a = "personal_calendar_local"
+b = "personal_calendar_remote"
+collections = ["from a", "from b"]
+metadata = ["displayname", "color"]
+
+[storage personal_calendar_local]
+type = "filesystem"
+path = "~/.local/share/vdirsyncer/calendars/Personal/"
+fileext = ".ics"
+
+[storage personal_calendar_remote]
+type = "caldav"
+url = "https://mailfence.com/dav/JoshQuinlan/private/events"
+username = "JoshQuinlan"
+password.fetch = ["command", "pass", "show", "Mailfence"]
+
+[pair music_calendar]
+a = "music_calendar_local"
+b = "music_calendar_remote"
+collections = ["from a", "from b"]
+metadata = ["displayname", "color"]
+
+[storage music_calendar_local]
+type = "filesystem"
+path = "~/.local/share/vdirsyncer/calendars/Music/"
+fileext = ".ics"
+
+[storage music_calendar_remote]
+type = "caldav"
+url = "https://mailfence.com/dav/groups/JQ_Music/events/"
+username = "JoshQuinlan"
+password.fetch = ["command", "pass", "show", "Mailfence"]
+
+[pair serverpro_calendar]
+a = "serverpro_calendar_local"
+b = "serverpro_calendar_remote"
+collections = ["from a", "from b"]
+metadata = ["displayname", "color"]
+
+[storage serverpro_calendar_local]
+type = "filesystem"
+path = "~/.local/share/vdirsyncer/calendars/ServerPro/"
+fileext = ".ics"
+
+[storage serverpro_calendar_remote]
+type = "caldav"
+url = "https://mailfence.com/dav/groups/JQ_Server.pro/events/"
+username = "JoshQuinlan"
+password.fetch = ["command", "pass", "show", "Mailfence"]
+
+[pair university_calendar]
+a = "university_calendar_local"
+b = "university_calendar_remote"
+collections = ["from a", "from b"]
+metadata = ["displayname", "color"]
+
+[storage university_calendar_local]
+type = "filesystem"
+path = "~/.local/share/vdirsyncer/calendars/University/"
+fileext = ".ics"
+
+[storage university_calendar_remote]
+type = "caldav"
+url = "https://mailfence.com/dav/groups/JQ_University/events/"
+username = "JoshQuinlan"
+password.fetch = ["command", "pass", "show", "Mailfence"]
+
+

@@ -1,0 +1,42 @@
+[default]
+
+default_calendar	= Personal
+highlight_event_days	= True
+show_all_days		= True
+timedelta		= 3d
+
+[calendars]
+	[[personal_calendar_local]]
+	path 		= ~/.local/share/vdirsyncer/calendars/Personal/events
+	type 		= discover
+	color 		= yellow
+
+	[[music_calendar_local]]
+	path		= ~/.local/share/vdirsyncer/calendars/Music/events
+	type		= discover
+	color		= light green
+
+	[[serverpro_calendar_local]]
+	path		= ~/.local/share/vdirsyncer/calendars/ServerPro/events
+	type		= discover
+	color		= light cyan
+
+	[[university_calendar_local]]
+	path		= ~/.local/share/vdirsyncer/calendars/University/events
+	type		= discover
+	color		= light red
+
+
+[view]
+agenda_day_format	= {bold}{name} {date-long}{reset}
+agenda_event_format	= {calendar-color}{cancelled}{start-end-time-style} {title}{repeat-symbol}{reset}
+dynamic_days		= False
+
+[locale]
+timeformat 		= %H:%M
+dateformat 		= %d/%m/%Y
+longdateformat 		= %d/%m/%Y
+datetimeformat 		= %d/%m/%Y %H:%M
+longdatetimeformat 	= %d/%m/%Y %H:%M
+firstweekday		= 0
+weeknumbers		= left
