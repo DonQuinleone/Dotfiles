@@ -11,7 +11,8 @@ echo "Installing GNU Stow..."
 /opt/homebrew/bin/brew install stow
 
 echo "Stowing dotfiles..."
-cd ~/.dotfiles && /opt/homebrew/bin/stow .
+cd ~/.dotfiles
+/opt/homebrew/bin/stow .
 
 echo "Installing packages..."
 chmod +x $HOME/.local/bin/get_packages.sh && bash $HOME/.local/bin/get_packages.sh
