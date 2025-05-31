@@ -48,6 +48,7 @@ brew install \
 echo "Installing App Store packages..."
 mas install \
     497799835 # Xcode
+    937984704 # Amphetamine
 
 echo "Cleaning up and optimising brew..."
 brew cleanup
