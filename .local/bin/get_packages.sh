@@ -29,7 +29,8 @@ brew install --cask \
     hiddenbar \
     mullvadvpn \
     slack \
-    1password
+    1password \
+    appcleaner
 
 echo "Installing non-cask packages..."
 brew install \
