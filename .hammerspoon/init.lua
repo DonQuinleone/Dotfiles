@@ -125,24 +125,33 @@ end)
 
 
 
------------- EMPTY TRASH IN FINDER ------------
+------------ EMPTY BIN IN FINDER ------------
 
--- Bind Ctrl+Opt+B to prompt for Trash emptying
 hs.hotkey.bind({"ctrl", "alt"}, "B", function()
     local frontApp = hs.application.frontmostApplication()
-    if frontApp and frontApp:name() == "Finder" then
-        local button = hs.dialog.blockAlert(
-            "Empty Trash?",
-            "Are you sure you want to empty the Bin?",
-            "Yes", "Cancel", "informational"
-        )
-        if button == "Yes" then
-            hs.execute('osascript -e \'tell application "Finder" to empty the trash\'')
-            hs.alert.show("Bin emptied")
-        else
-            hs.alert.show("Cancelled")
-        end
-    else
-        hs.alert.show("Not in Finder")
+    if not (frontApp and frontApp:name() == "Finder") then return end
+
+    -- Check if Trash has any items
+    local binCheck = hs.execute('osascript -e \'tell application "Finder" to get count of items in trash\'')
+    local binCount = tonumber(binCheck)
+
+    if binCount == 0 then
+        hs.alert.show("Bin is already empty")
+        return
     end
+
+    -- Prompt user for confirmation
+    local button = hs.dialog.blockAlert(
+        "Empty Bin?",
+        "Are you sure you want to empty the Bin?",
+        "Yes", "Cancel", "informational"
+    )
+
+    if button == "Yes" then
+        hs.execute('osascript -e \'tell application "Finder" to empty the trash\'')
+        hs.alert.show("Bin emptied")
+    end
+
+    -- Refocus Finder
+    hs.application.launchOrFocus("Finder")
 end)
