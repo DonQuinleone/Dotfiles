@@ -30,7 +30,8 @@ brew install --cask \
     mullvadvpn \
     slack \
     1password \
-    appcleaner
+    appcleaner \
+    obsidian
 
 echo "Installing non-cask packages..."
 brew install \
