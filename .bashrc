@@ -72,3 +72,4 @@ lfcd () {
 #source /usr/share/fzf/completion.bash
 
 cd
+. "$HOME/.cargo/env"

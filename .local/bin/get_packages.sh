@@ -45,7 +45,8 @@ brew install \
     fastfetch \
     mas \
     nmap \
-    git-filter-repo
+    git-filter-repo \
+    tree
 
 echo "Installing App Store packages..."
 mas install \
