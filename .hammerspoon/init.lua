@@ -155,3 +155,11 @@ hs.hotkey.bind({"ctrl", "alt"}, "B", function()
     -- Refocus Finder
     hs.application.launchOrFocus("Finder")
 end)
+
+
+------------ MISC TWEAKS  ------------
+
+-- Insert phonographic rights symbol (℗) with Option+P
+hs.hotkey.bind({"alt"}, "P", function()
+    hs.eventtap.keyStrokes("℗")
+end)
