@@ -31,7 +31,8 @@ brew install --cask \
     slack \
     1password \
     appcleaner \
-    obsidian
+    obsidian \
+    whatsapp
 
 echo "Installing non-cask packages..."
 brew install \
