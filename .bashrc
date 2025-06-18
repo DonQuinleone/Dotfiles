@@ -36,6 +36,11 @@ alias a2m="AAXtoMP3 --chaptered -e:m4b -c --use-audible-cli-data -t '/Users/josh
 alias mutt="neomutt"
 alias m="neomutt"
 
+
+
+alias genean="zint -o ean13.png -b 13 -d"
+alias genupc="zint -o upc.png -b 34 -d"
+
 # Secure file redirection
 set -o noclobber
 
