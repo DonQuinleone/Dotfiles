@@ -1,17 +1,5 @@
 #!/usr/bin/env bash
 
-if ! command -v brew &> /dev/null; then
-    echo "Homebrew not found. Installing Homebrew..."
-    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" && echo "Homebrew installed."
-    # Add Homebrew to PATH if it was just installed
-    if [[ -d /opt/homebrew/bin ]]; then
-        eval "$(/opt/homebrew/bin/brew shellenv)"
-    elif [[ -d /usr/local/bin ]]; then
-        eval "$(/usr/local/bin/brew shellenv)"
-    fi
-fi
-
-
 echo "Installing cask packages..."
 brew install --cask \
     librewolf \
