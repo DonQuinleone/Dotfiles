@@ -1,28 +1,41 @@
 #!/usr/bin/env bash
 
+if ! command -v brew &> /dev/null; then
+    echo "Homebrew not found. Installing Homebrew..."
+    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" && echo "Homebrew installed."
+    # Add Homebrew to PATH if it was just installed
+    if [[ -d /opt/homebrew/bin ]]; then
+        eval "$(/opt/homebrew/bin/brew shellenv)"
+    elif [[ -d /usr/local/bin ]]; then
+        eval "$(/usr/local/bin/brew shellenv)"
+    fi
+fi
+
+
 echo "Installing cask packages..."
 brew install --cask \
     librewolf \
     bitwarden \
+    ente-auth \
     thunderbird \
+    veracrypt \
     ghostty \
+    cryptomator \
+    nextcloud \
+    gpg-suite \
+    keepingyouawake \
+    hammerspoon \
     discord \
     microsoft-teams \
     microsoft-office \
     zoom \
     loopback \
     vlc \
-    ente-auth \
-    cryptomator \
-    nextcloud \
-    gpg-suite \
     dropbox \
     openaudible \
     spotify \
     clipy \
     rectangle \
-    keepingyouawake \
-    hammerspoon \
     steam \
     minecraft \
     keymapp \
@@ -31,7 +44,6 @@ brew install --cask \
     slack \
     1password \
     appcleaner \
-    obsidian \
     whatsapp
 
 echo "Installing non-cask packages..."
@@ -42,7 +54,7 @@ brew install \
     lsd \
     hugo \
     cyberduck \
-    tlrc \
+    tlrc \          #TLDR
     fastfetch \
     mas \
     nmap \
