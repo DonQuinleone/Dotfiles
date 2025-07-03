@@ -8,6 +8,7 @@ brew install --cask \
     thunderbird \
     veracrypt \
     ghostty \
+    lulu \
     cryptomator \
     nextcloud \
     gpg-suite \
