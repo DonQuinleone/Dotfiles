@@ -45,6 +45,16 @@ should be a good starter. Programs to remember:
 
 and of course any games or other tools that may be desired.
 
+## macOS Gatekeeper
+
+Some apps may not open due to them supposedly being 'damaged'. This is caused by macOS Gatekeeper.
+
+To resolve it, run the following command:
+
+```
+xattr -cr /Applications/LibreWolf.app
+```
+
 ## Contributions
 
 PRs are welcome, though I'll only merge in changes if I'm likely to use them myself.
