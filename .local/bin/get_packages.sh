@@ -19,6 +19,7 @@ brew install --cask \
     microsoft-office \
     zoom \
     loopback \
+    qlab \
     vlc \
     dropbox \
     openaudible \
