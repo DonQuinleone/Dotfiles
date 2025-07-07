@@ -1,6 +1,6 @@
 theme = catppuccin-mocha.conf
-font-family = "Menlo"
-font-size = 32
+font-family = "Hack"
+font-size = 28
 font-feature = -calt 
 font-feature = -liga
 font-feature = -dlig
