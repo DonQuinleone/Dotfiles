@@ -11,6 +11,7 @@ brew install --cask \
     lulu \
     cryptomator \
     nextcloud \
+    joplin \
     gpg-suite \
     keepingyouawake \
     hammerspoon \

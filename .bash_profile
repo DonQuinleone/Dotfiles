@@ -5,3 +5,5 @@ if [ -f ~/.bashrc ]; then
 fi
 
 . "$HOME/.cargo/env"
+
+export PATH="$PATH:/Users/donquinleone/.local/bin"

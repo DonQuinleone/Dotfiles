@@ -6,7 +6,7 @@ export GPG_TTY=$(tty)
 eval $(/opt/homebrew/bin/brew shellenv)
 export XDG_CONFIG_HOME=~/.config
 export XDG_DATA_HOME=~/.local/share
-export BW_SESSION="KWLH2xrtS7c14c++0ae9mwMpvXocZ1qKQFx2v5EOik3NqZdl9mZSkPb+p8TD4l6WlFgB4FxkI0c0hFHX+GSv6w=="
+export PATH="$PATH:/Users/donquinleone/.local/bin"
 
 # Prompt
 PS1='\[\e[38;5;198m\]\u \[\e[38;5;129m\]\W\n\[\e[97m\]\$ \[\e[0m\]'
@@ -72,9 +72,6 @@ lfcd () {
         [ -d "$dir" ] && [ "$dir" != "$(pwd)" ] && cd "$dir"
 }
 
-# Use fzf
-#source /usr/share/fzf/key-bindings.bash
-#source /usr/share/fzf/completion.bash
-
 cd
 . "$HOME/.cargo/env"
+
