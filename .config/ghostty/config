@@ -1,0 +1,22 @@
+font-family = "Hack Nerd Font"
+font-size = 32
+font-feature = -calt 
+font-feature = -liga
+font-feature = -dlig
+confirm-close-surface = false
+quit-after-last-window-closed = true
+window-decoration = none
+
+background = 1b1b1b
+foreground = e7e7e7
+selection-background = dc6f00
+selection-foreground = 1b1b1b
+background-opacity = 0.8
+background-blur = 20
+
+cursor-style = block
+cursor-style-blink = true
+cursor-color = dc6f00
+cursor-opacity = 1
+cursor-text = cell-foreground
+shell-integration-features = no-cursor

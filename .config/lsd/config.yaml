@@ -1,0 +1,14 @@
+blocks:
+  - size
+  - date
+  - name
+
+date: "+%Y-%m-%d"
+
+color:
+  theme: custom
+
+icons:
+  when: auto
+  theme: fancy
+

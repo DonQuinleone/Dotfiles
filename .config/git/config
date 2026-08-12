@@ -1,0 +1,15 @@
+[user]
+	name = DonQuinleone
+	email = work@example.com
+	signingKey = F7CF4AF67EC68F7E
+[commit]
+	gpgSign = true
+[tag]
+	gpgSign = true
+[gpg]
+	program = gpg
+[core]
+	editor = nvim
+[init]
+	defaultBranch = master
+
