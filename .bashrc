@@ -43,6 +43,7 @@ alias cp="cp -i"
 alias df="df -h"
 alias vim="nvim"
 alias v="nvim"
+alias m="weremutt"
 
 export ANSIBLE_CONFIG="$XDG_CONFIG_HOME/ansible/ansible.cfg"
 export ANSIBLE_HOME="$XDG_DATA_HOME/ansible"
@@ -59,3 +60,6 @@ export GOPATH="$XDG_DATA_HOME/go"
 # Python
 export PYTHON_HISTORY="$XDG_STATE_HOME/python/history"
 [ -d "${PYTHON_HISTORY%/*}" ] || mkdir -p "${PYTHON_HISTORY%/*}"
+
+# w3m
+export W3M_DIR="$XDG_STATE_HOME/w3m"
