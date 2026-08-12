@@ -12,4 +12,4 @@ fi
 # the environment before launching cosmic-comp, which reads these two vars.
 # Defaults if unset: theme "default", size 24.
 export XCURSOR_THEME=Adwaita
-export XCURSOR_SIZE=32
+export XCURSOR_SIZE=48
