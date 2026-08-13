@@ -20,6 +20,10 @@ export HISTFILESIZE=100000
 export HISTCONTROL=ignoreboth
 shopt -s histappend
 
+# PackageKit's handler blocks on a D-Bus package search before the
+# shell will print "command not found".
+unset -f command_not_found_handle
+
 prompt_accent='\[\e[38;2;220;111;0m\]'
 prompt_muted='\[\e[38;2;192;192;192m\]'
 prompt_on_background='\[\e[38;2;231;231;231m\]'
