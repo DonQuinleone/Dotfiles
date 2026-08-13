@@ -19,4 +19,4 @@ cursor-style-blink = true
 cursor-color = dc6f00
 cursor-opacity = 1
 cursor-text = cell-foreground
-shell-integration-features = no-cursor
+shell-integration-features = no-cursor,ssh-env,ssh-terminfo
