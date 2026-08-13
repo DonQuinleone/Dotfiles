@@ -1,6 +1,6 @@
 (
     save_location: Clipboard,
-    choice: Rectangle,
+    choice: Output(Some("eDP-1")),
     last_rectangle: Some((
         left: 246,
         top: 50,
