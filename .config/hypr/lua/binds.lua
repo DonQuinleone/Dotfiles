@@ -27,6 +27,7 @@ local directions = {
 }
 
 local binds = {
+    { "SUPER + SHIFT + e", hl.dsp.exit() },
     { "SUPER + q", hl.dsp.window.close() },
     { "SUPER + SHIFT + f", hl.dsp.window.fullscreen() },
     { "SUPER + SHIFT + space",
