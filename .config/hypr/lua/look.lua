@@ -1,9 +1,7 @@
 local ember = {
-    bg = "1B1B1B",
-    fg = "E7E7E7",
-    accent = "DC6F00",
-    accent_soft = "F0A05A",
-    border_idle = "3A332D",
+    accent = "rgba(DC6F00ff)",
+    accent_soft = "rgba(F0A05Aff)",
+    border_idle = "rgba(3A332Dff)",
 }
 
 hl.config({
@@ -11,10 +9,13 @@ hl.config({
         gaps_in = 6,
         gaps_out = 12,
         border_size = 4,
-        ["col.active_border"] = "rgba(" .. ember.accent
-            .. "ff) rgba(" .. ember.accent_soft .. "ff) 45deg",
-        ["col.inactive_border"] = "rgba(" .. ember.border_idle
-            .. "ff)",
+        col = {
+            active_border = {
+                colors = { ember.accent, ember.accent_soft },
+                angle = 45,
+            },
+            inactive_border = ember.border_idle,
+        },
         layout = "master",
     },
     decoration = {
@@ -32,33 +33,48 @@ hl.config({
     },
     misc = {
         disable_hyprland_logo = true,
+        force_default_wallpaper = 0,
         allow_session_lock_restore = true,
-        vfr = true,
     },
     animations = {
         enabled = true,
     },
 })
 
--- Speeds are in deciseconds: frequent actions stay near
--- 150-200ms, zoom is deliberately faster than COSMIC's.
-local beziers = {
-    { "emberOut", 0.16, 1.0, 0.3, 1.0 },
-    { "emberSnap", 0.2, 0.9, 0.1, 1.0 },
+local curves = {
+    { "emberOut", { type = "bezier",
+        points = { { 0.16, 1.0 }, { 0.3, 1.0 } } } },
+    { "emberQuick", { type = "bezier",
+        points = { { 0.15, 0.0 }, { 0.1, 1.0 } } } },
+    { "emberSoft", { type = "spring", mass = 1,
+        stiffness = 238.1191, dampening = 24.21279333 } },
 }
 
+-- Speeds are in deciseconds; zoom at 1.5 is the deliberate
+-- break from COSMIC's sluggish magnifier.
 local animations = {
-    { "windows", true, 2.0, "emberOut" },
-    { "workspaces", true, 2.0, "emberOut", "slide" },
-    { "zoomFactor", true, 1.5, "emberSnap" },
-    { "fade", true, 1.5, "emberOut" },
-    { "border", true, 3.0, "emberOut" },
+    { leaf = "global", enabled = true, speed = 10,
+      bezier = "default" },
+    { leaf = "border", enabled = true, speed = 3.0,
+      bezier = "emberOut" },
+    { leaf = "windows", enabled = true, speed = 4.0,
+      spring = "emberSoft" },
+    { leaf = "windowsOut", enabled = true, speed = 1.5,
+      bezier = "emberQuick", style = "popin 87%" },
+    { leaf = "fade", enabled = true, speed = 1.8,
+      bezier = "emberQuick" },
+    { leaf = "layers", enabled = true, speed = 2.0,
+      bezier = "emberOut" },
+    { leaf = "workspaces", enabled = true, speed = 2.0,
+      bezier = "emberOut", style = "slide" },
+    { leaf = "zoomFactor", enabled = true, speed = 1.5,
+      bezier = "emberQuick" },
 }
 
-for _, b in ipairs(beziers) do
-    hl.bezier(b[1], b[2], b[3], b[4], b[5])
+for _, c in ipairs(curves) do
+    hl.curve(c[1], c[2])
 end
 
 for _, a in ipairs(animations) do
-    hl.animation(a[1], a[2], a[3], a[4], a[5])
+    hl.animation(a)
 end

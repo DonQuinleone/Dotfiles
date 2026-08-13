@@ -20,25 +20,26 @@ local apps = {
 }
 
 local directions = {
-    { key = "h", dir = "l" },
-    { key = "j", dir = "d" },
-    { key = "k", dir = "u" },
-    { key = "l", dir = "r" },
+    { key = "h", dir = "left" },
+    { key = "j", dir = "down" },
+    { key = "k", dir = "up" },
+    { key = "l", dir = "right" },
 }
 
 local binds = {
     { "SUPER + q", hl.dsp.window.close() },
-    { "SUPER SHIFT + f", hl.dsp.window.fullscreen() },
-    { "SUPER SHIFT + space", hl.dsp.window.toggle_floating() },
+    { "SUPER + SHIFT + f", hl.dsp.window.fullscreen() },
+    { "SUPER + SHIFT + space",
+      hl.dsp.window.float({ action = "toggle" }) },
     { "SUPER + comma", hl.dsp.focus({ monitor = "-1" }) },
     { "SUPER + period", hl.dsp.focus({ monitor = "+1" }) },
-    { "SUPER SHIFT + comma",
+    { "SUPER + SHIFT + comma",
       hl.dsp.window.move({ monitor = "-1" }) },
-    { "SUPER SHIFT + period",
+    { "SUPER + SHIFT + period",
       hl.dsp.window.move({ monitor = "+1" }) },
     { "SUPER + grave",
       hl.dsp.workspace.toggle_special("term") },
-    { "SUPER SHIFT + grave",
+    { "SUPER + SHIFT + grave",
       hl.dsp.workspace.toggle_special("mail") },
     { "SUPER + equal", zoom_by(ZOOM_STEP) },
     { "SUPER + minus", zoom_by(-ZOOM_STEP) },
@@ -55,14 +56,14 @@ end
 for _, d in ipairs(directions) do
     table.insert(binds, { "SUPER + " .. d.key,
         hl.dsp.focus({ direction = d.dir }) })
-    table.insert(binds, { "SUPER SHIFT + " .. d.key,
+    table.insert(binds, { "SUPER + SHIFT + " .. d.key,
         hl.dsp.window.move({ direction = d.dir }) })
 end
 
 for i = 1, 9 do
     table.insert(binds, { "SUPER + " .. i,
         hl.dsp.focus({ workspace = "r~" .. i }) })
-    table.insert(binds, { "SUPER SHIFT + " .. i,
+    table.insert(binds, { "SUPER + SHIFT + " .. i,
         hl.dsp.window.move({ workspace = "r~" .. i }) })
 end
 

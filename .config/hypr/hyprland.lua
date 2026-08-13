@@ -1,6 +1,5 @@
-local home = os.getenv("HOME")
-local conf = os.getenv("XDG_CONFIG_HOME") or (home .. "/.config")
-local root = conf .. "/hypr/lua/"
+local source = debug.getinfo(1, "S").source:sub(2)
+local root = source:match("(.*/)") .. "lua/"
 
 local modules = {
     "env.lua",
