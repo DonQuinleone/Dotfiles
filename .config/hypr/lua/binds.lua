@@ -35,7 +35,7 @@ local binds = {
 
     -- Windows
     { "SUPER",           "q",                     hl.dsp.window.close()                                  },
-    { "SUPER",           "p",                     hl.dsp.window.pin()                                    },
+    { "SUPER + ALT",     "p",                     hl.dsp.window.pin()                                    },
     { "SUPER + SHIFT",   "f",                     hl.dsp.window.fullscreen()                             },
     { "SUPER + SHIFT",   "space",                 hl.dsp.window.float({ action = "toggle" })             },
 
@@ -92,9 +92,10 @@ local binds = {
     { "",                "XF86AudioPrev",         hl.dsp.exec_cmd("playerctl previous"),                             locked },
 
     -- Screenshots
-    { "",                "Print",                 hl.dsp.exec_cmd(scripts .. "/screenshot output")       },
-    { "SHIFT",           "Print",                 hl.dsp.exec_cmd(scripts .. "/screenshot region")       },
-    { "CTRL",            "Print",                 hl.dsp.exec_cmd(scripts .. "/screenshot save")         },
+    { "SUPER",                  "p",              hl.dsp.exec_cmd(scripts .. "/screenshot output")       },
+    { "SUPER + SHIFT",          "p",              hl.dsp.exec_cmd(scripts .. "/screenshot region")       },
+    { "SUPER + CTRL",           "p",              hl.dsp.exec_cmd(scripts .. "/screenshot output save")  },
+    { "SUPER + CTRL + SHIFT",   "p",              hl.dsp.exec_cmd(scripts .. "/screenshot region save")  },
 
     -- Pointer
     { "SUPER",           "mouse:272",             hl.dsp.window.drag(),                                              mouse },
