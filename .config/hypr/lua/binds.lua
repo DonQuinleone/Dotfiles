@@ -17,6 +17,7 @@ local binds = {
     -- Applications
     { "SUPER",           "Return",                hl.dsp.exec_cmd("ghostty")                             },
     { "SUPER",           "b",                     hl.dsp.exec_cmd("firefox")                             },
+    { "SUPER",           "f",                     hl.dsp.exec_cmd("nautilus")                            },
 
     -- Scratchpads
     { "SUPER",           "d",                     hl.dsp.workspace.toggle_special("term")                },
@@ -44,7 +45,6 @@ local binds = {
     { "SUPER",           "t",                     layouts.set("master")                                  },
     { "SUPER",           "m",                     layouts.set("monocle")                                 },
     { "SUPER",           "s",                     layouts.set("scrolling")                               },
-    { "SUPER",           "f",                     layouts.set("floating")                                },
     { "SUPER",           "backslash",             layouts.cycle                                          },
 
     -- Navigation

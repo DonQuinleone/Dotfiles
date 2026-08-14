@@ -9,8 +9,6 @@ local modes = {
       label = "Monocle, one window" },
     { name = "scrolling", tiled = "scrolling",
       label = "Scrolling columns" },
-    { name = "floating", tiled = "master", floats = true,
-      label = "Floating windows" },
 }
 
 local index_of = {}
@@ -153,7 +151,7 @@ function layouts.set(name)
 end
 
 -- A workspace never switched by hand reports only its tiled
--- layout, which is the mode it is in until floating is chosen.
+-- layout, which is the mode it is already in.
 function layouts.cycle()
     local workspace = hl.get_active_workspace()
     if workspace == nil then

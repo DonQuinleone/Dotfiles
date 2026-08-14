@@ -60,6 +60,7 @@ PACKAGES=(
     jetbrains-mono-fonts-all
     lsd
     mpv
+    nautilus
     neovim
     netbird
     nmap
