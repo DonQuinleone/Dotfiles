@@ -33,6 +33,14 @@ Singleton {
         root.shown = true;
     }
 
+    function reveal(slug: string): void {
+        const found = root.panes
+            .findIndex(pane => pane.slug === slug);
+        if (found < 0) return;
+        root.current = found;
+        root.shown = true;
+    }
+
     function hide(): void {
         root.shown = false;
     }

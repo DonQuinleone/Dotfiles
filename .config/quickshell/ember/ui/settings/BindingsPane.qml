@@ -9,6 +9,10 @@ Column {
     readonly property int total: root.groups
         .reduce((count, group) => count + group.rows.length, 0)
 
+    readonly property int described: root.groups
+        .reduce((count, group) => count + group.rows
+            .filter(row => row.description !== "").length, 0)
+
     spacing: Theme.spacing.loose ?? 0
 
     SettingsCard {
@@ -25,7 +29,7 @@ Column {
                 id: search
 
                 width: parent.width
-                placeholder: qsTr("Every shortcut")
+                placeholder: qsTr("Type to filter")
             }
         }
 
@@ -33,6 +37,14 @@ Column {
             width: parent.width
             text: qsTr("%1 shortcuts, read from the running "
                 + "compositor.").arg(root.total)
+        }
+
+        SettingsNote {
+            width: parent.width
+            visible: root.described === 0
+            text: qsTr("None of them carries a description yet: "
+                + "the compositor only reports one when the "
+                + "binding is given it.")
         }
     }
 

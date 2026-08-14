@@ -29,7 +29,9 @@ Column {
     SettingsRow {
         width: parent.width
         label: qsTr("Reduce motion")
-        hint: qsTr("Stops the desktop animating at all.")
+        hint: qsTr("Separate from the speed above: the springy "
+            + "animations ignore speed, so this swaps them for "
+            + "flat ones as well as shortening the rest.")
 
         SettingsToggle {
             width: parent.width
@@ -39,11 +41,32 @@ Column {
         }
     }
 
+    SettingsRow {
+        width: parent.width
+        label: qsTr("Drifting focus border")
+        hint: qsTr("The accent border rotates slowly around the "
+            + "focused window. It redraws every frame for as long "
+            + "as the session lasts, so it costs battery.")
+
+        SettingsToggle {
+            width: parent.width
+            checked: Motion.drift
+
+            onActivated: Motion.setDrift(!Motion.drift)
+        }
+    }
+
     SettingsNote {
         width: parent.width
         warning: true
         visible: !Motion.available
         text: qsTr("The motion script is not answering, so these "
             + "choices are not being applied yet.")
+    }
+
+    SettingsNote {
+        width: parent.width
+        warning: true
+        text: Motion.message
     }
 }

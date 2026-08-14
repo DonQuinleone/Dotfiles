@@ -82,6 +82,10 @@ ShellRoot {
             Settings.show();
         }
 
+        function pane(name: string): void {
+            Settings.reveal(name);
+        }
+
         function close(): void {
             Settings.hide();
         }
