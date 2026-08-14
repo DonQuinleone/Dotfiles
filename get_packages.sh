@@ -112,6 +112,23 @@ install_nerd_font() {
     touch "$FONT_STAMP"
 }
 
+# qt6ct rewrites this file itself and demands an absolute
+# path to the palette, so it is generated here rather than
+# tracked.
+write_qt6ct_config() {
+    local config=$HOME/.config/qt6ct/qt6ct.conf
+    [ -f "$config" ] && return 0
+    say "writing qt6ct configuration"
+    mkdir -p "$(dirname "$config")"
+    cat > "$config" <<EOF
+[Appearance]
+color_scheme_path=$HOME/.config/qt6ct/colors/ember.conf
+custom_palette=true
+standard_dialogs=default
+style=Fusion
+EOF
+}
+
 install_piper() {
     pipx list --short 2>/dev/null | grep -q '^piper-tts ' &&
         return 0
@@ -132,5 +149,6 @@ sudo dnf -y install "${PACKAGES[@]}"
 
 install_nerd_font
 install_piper
+write_qt6ct_config
 
 say "done"
