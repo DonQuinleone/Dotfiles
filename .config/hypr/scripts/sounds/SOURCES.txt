@@ -1,0 +1,32 @@
+Notification sounds bundled for notify-sound.
+
+All five files are converted (ffmpeg, straight PCM re-encode, no
+edits) from the freedesktop.org sound theme shipped in Fedora's
+sound-theme-freedesktop package (/usr/share/sounds/freedesktop).
+Converting to WAV avoids depending on an Ogg Vorbis decoder at
+notification time.
+
+    message.wav   from message.oga
+    info.wav      from dialog-information.oga
+    warning.wav   from dialog-warning.oga
+    added.wav     from device-added.oga
+    critical.wav  from bell.oga
+
+Licence and authorship, per the theme's own CREDITS file:
+
+    message.wav, info.wav, warning.wav, added.wav
+        Ivica Bukvic, "Borealis" sound theme. CC-BY-SA.
+
+    critical.wav
+        Dr. Richard Boulanger et al., Berklee44 collection.
+        CC-BY 3.0 Unported.
+
+dialog-error.oga is byte-identical to dialog-warning.oga in the
+upstream theme (same MD5 sum), so only one is offered here, as
+"warning"; a separate "error" name would just be a duplicate of
+the same sound under a different label.
+
+Upstream package: sound-theme-freedesktop (GPL-2.0-only AND
+GPL-2.0-or-later AND LGPL-2.0-or-later AND CC-BY-SA-3.0 AND
+CC-BY-3.0 AND CC-BY-4.0)
+https://www.freedesktop.org/wiki/Specifications/sound-theme-spec/

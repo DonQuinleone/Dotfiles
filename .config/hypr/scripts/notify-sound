@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+sounds_dir="${HYPR_NOTIFY_SOUND_DIR:-$script_dir/sounds}"
+
+usage() {
+    echo "usage: notify-sound NAME" >&2
+    echo "available sounds:" >&2
+    local path name
+    for path in "$sounds_dir"/*.wav; do
+        [[ -e "$path" ]] || continue
+        name="$(basename -- "$path" .wav)"
+        echo "  $name" >&2
+    done
+}
+
+if [[ $# -ne 1 ]]; then
+    usage
+    exit 1
+fi
+
+name="$1"
+if [[ -z "$name" ]]; then
+    echo "notify-sound: sound name must not be empty" >&2
+    usage
+    exit 1
+fi
+
+sound_file="$sounds_dir/$name.wav"
+if [[ ! -f "$sound_file" ]]; then
+    echo "notify-sound: unknown sound '$name'" >&2
+    usage
+    exit 1
+fi
+
+if ! command -v pw-play >/dev/null 2>&1; then
+    echo "notify-sound: pw-play not found; is PipeWire installed?" >&2
+    exit 1
+fi
+
+setsid pw-play "$sound_file" >/dev/null 2>&1 &
+disown
+
+exit 0
