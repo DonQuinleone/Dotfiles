@@ -13,6 +13,8 @@ local binds = {
     -- Session
     { "SUPER + SHIFT",   "e",                     hl.dsp.exit()                                          },
     { "SUPER",           "Escape",                hl.dsp.exec_cmd(scripts .. "/power-menu")              },
+    { "SUPER + SHIFT",   "Escape",                hl.dsp.exec_cmd("loginctl lock-session")               },
+    { "SUPER + CTRL",    "Escape",                hl.dsp.exec_cmd(scripts .. "/idle-screensaver start")  },
 
     -- Applications
     { "SUPER",           "Return",                hl.dsp.exec_cmd("ghostty")                             },
