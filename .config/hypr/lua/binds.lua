@@ -26,6 +26,7 @@ local binds = {
     { "SUPER + SHIFT",   "b",                     hl.dsp.exec_cmd("qs -c ember ipc call bar toggleFocused") },
     { "SUPER",           "space",                 hl.dsp.exec_cmd("qs -c ember ipc call launcher toggle") },
     { "SUPER + SHIFT",   "t",                     hl.dsp.exec_cmd(scripts .. "/theme-menu")              },
+    { "SUPER + CTRL",    "t",                     hl.dsp.exec_cmd(scripts .. "/theme-menu accent")       },
 
     -- Windows
     { "SUPER",           "q",                     hl.dsp.window.close()                                  },
