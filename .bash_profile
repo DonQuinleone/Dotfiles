@@ -1,4 +1,5 @@
 # shellcheck shell=bash
+# shellcheck source-path=SCRIPTDIR
 
 # Get the aliases and functions
 if [ -f ~/.bashrc ]; then

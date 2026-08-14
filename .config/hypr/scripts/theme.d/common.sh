@@ -1,5 +1,4 @@
 # shellcheck shell=bash
-# shellcheck disable=SC2034
 
 readonly CONFIG_HOME="${XDG_CONFIG_HOME:-${HOME}/.config}"
 readonly STATE_DIR="${XDG_STATE_HOME:-${HOME}/.local/state}/theme"
