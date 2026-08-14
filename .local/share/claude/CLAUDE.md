@@ -51,11 +51,12 @@
 - Where a project has a test framework, new behaviour lands with a test.
 - Tests never touch the real system: gate every side-effecting call (a system opener like `open`/`xdg-open`, desktop notifications, sound or speech, network requests, spawned subprocesses) to a no-op under test, so the suite never pops a window, plays a sound, hits the network or launches a process on the machine. A test that exercises such a path asserts the decision, not the effect.
 - New shell scripts use `#!/usr/bin/env bash`, never `#!/bin/bash`.
-- Theme any tool that supports colours with Kanagawa Wave,
-  matching Neovim. Ghostty and the bash prompt are the
-  exception: they take their colours from the active COSMIC
-  theme (background `#1B1B1B`, foreground `#E7E7E7`, accent
-  `#DC6F00`), so the terminal sits flush with the desktop.
+- Every tool that supports colour follows the active desktop
+  theme, applied by `theme set`: the shell, Hyprland, Ghostty,
+  the bash and fish prompts, GTK, Qt, TeamSpeak and Neovim all
+  read the same palette, so a tool that hardcodes its own
+  colours is a bug. Ember (background `#1B1B1B`, foreground
+  `#E7E7E7`, accent `#DC6F00`) is the default of seventeen.
 - Keep `$HOME` clean: configure tools to store config, cache and state in XDG locations whenever they allow it.
 - Never leave working state inside a repository: git worktrees belong under `$XDG_STATE_HOME/<project>-worktrees/`, created with `git worktree add` and entered by path, never in a `.claude/` directory inside the checkout. Remove each one the moment its work is integrated rather than letting them accumulate, since every worktree is a full checkout. `~/.claude` must not exist: `CLAUDE_CONFIG_DIR` already points at `~/.local/share/claude`.
 - Shared dotfiles config must be portable: no hardcoded `/opt/homebrew` or `/Users/...` paths; OS-specific values live in the macos/linux stow packages.
