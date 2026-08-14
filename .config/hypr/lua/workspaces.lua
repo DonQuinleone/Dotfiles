@@ -1,24 +1,35 @@
 -- 1-9 live on the laptop panel until the dock's monitor
 -- descriptions are captured; 11-19/21-29 join then.
-for i = 1, 9 do
+for index = 1, 9 do
     hl.workspace_rule({
-        workspace = tostring(i),
+        workspace = tostring(index),
         monitor = "eDP-1",
         persistent = true,
-        default = (i == 1),
+        default = (index == 1),
     })
 end
 
+-- Ghostty only honours --class when it is a valid GTK
+-- application id and it is not folding into a running
+-- instance, and -e swallows every argument after it.
 local scratchpads = {
-    { name = "special:term",
-      spawn = "ghostty --class=scratch-term" },
-    { name = "special:mail",
-      spawn = "ghostty --class=scratch-mail -e antiphon" },
+    { workspace = "special:term",
+      class = "com.donquinleone.scratchterm" },
+    { workspace = "special:mail",
+      class = "com.donquinleone.scratchmail",
+      exec = "antiphon" },
 }
 
-for _, s in ipairs(scratchpads) do
+for _, pad in ipairs(scratchpads) do
+    local command = "ghostty --gtk-single-instance=false --class="
+        .. pad.class
+    if pad.exec then
+        command = command .. " -e " .. pad.exec
+    end
     hl.workspace_rule({
-        workspace = s.name,
-        on_created_empty = s.spawn,
+        workspace = pad.workspace,
+        on_created_empty = command,
     })
 end
+
+return scratchpads

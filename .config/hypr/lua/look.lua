@@ -30,6 +30,7 @@ hl.config({
         zoom_factor = 1.0,
         zoom_rigid = false,
         zoom_detached_camera = false,
+        hide_on_key_press = true,
     },
     misc = {
         disable_hyprland_logo = true,

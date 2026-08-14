@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+MODE=${1:-output}
+SHOTS=${XDG_PICTURES_DIR:-$HOME/Pictures}/Screenshots
+
+die() {
+    printf 'screenshot: %s\n' "$1" >&2
+    exit 1
+}
+
+for tool in grim slurp wl-copy hyprctl; do
+    command -v "$tool" >/dev/null 2>&1 ||
+        die "$tool is not installed"
+done
+
+focused_output() {
+    hyprctl -j monitors |
+        python3 -c 'import json, sys
+for monitor in json.load(sys.stdin):
+    if monitor["focused"]:
+        print(monitor["name"])
+        break'
+}
+
+case "$MODE" in
+output)
+    grim -o "$(focused_output)" - | wl-copy
+    ;;
+region)
+    region=$(slurp) || exit 0
+    grim -g "$region" - | wl-copy
+    ;;
+save)
+    mkdir -p "$SHOTS"
+    region=$(slurp) || exit 0
+    target=$SHOTS/$(date +%Y-%m-%d-%H%M%S).png
+    grim -g "$region" "$target"
+    wl-copy < "$target"
+    printf '%s\n' "$target"
+    ;;
+*)
+    die "unknown mode: $MODE"
+    ;;
+esac
