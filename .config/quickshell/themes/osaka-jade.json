@@ -4,16 +4,25 @@
     "reduceMotion": false,
     "palette": {
         "bg": "#111C18",
-        "bgAlt": "#23372B",
-        "surface": "#3B5043",
+        "bgAlt": "#1E362C",
+        "surface": "#2D5241",
         "fg": "#C1C497",
-        "fgDim": "#9AA482",
+        "fgDim": "#A1A580",
         "accent": "#509475",
         "accentSoft": "#8CD3CB",
-        "border": "#53685B",
+        "border": "#3E6B55",
         "good": "#63B07A",
         "warn": "#E5C736",
         "bad": "#FF5345"
+    },
+    "defaultAccent": "jade",
+    "accents": {
+        "jade": "#509475",
+        "mint": "#2DD5B7",
+        "seafoam": "#8CD3CB",
+        "green": "#63B07A",
+        "yellow": "#E5C736",
+        "pink": "#D2689C"
     },
     "fonts": {
         "ui": "IBM Plex Sans",

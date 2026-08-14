@@ -15,6 +15,14 @@
         "warn": "#E8B33E",
         "bad": "#F06A6A"
     },
+    "defaultAccent": "ember",
+    "accents": {
+        "ember": "#DC6F00",
+        "apricot": "#F0A05A",
+        "amber": "#E8B33E",
+        "coral": "#F06A6A",
+        "moss": "#8FBA6C"
+    },
     "fonts": {
         "ui": "IBM Plex Sans",
         "mono": "JetBrainsMono Nerd Font"

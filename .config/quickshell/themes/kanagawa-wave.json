@@ -15,6 +15,16 @@
         "warn": "#E6C384",
         "bad": "#C34043"
     },
+    "defaultAccent": "crystalBlue",
+    "accents": {
+        "crystalBlue": "#7E9CD8",
+        "oniViolet": "#957FB8",
+        "carpYellow": "#E6C384",
+        "springGreen": "#98BB6C",
+        "sakuraPink": "#D27E99",
+        "surimiOrange": "#FFA066",
+        "waveRed": "#E46876"
+    },
     "fonts": {
         "ui": "IBM Plex Sans",
         "mono": "JetBrainsMono Nerd Font"

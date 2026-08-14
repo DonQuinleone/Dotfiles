@@ -1,5 +1,6 @@
 pragma Singleton
 
+import QtQuick
 import Quickshell
 import Quickshell.Hyprland
 import Quickshell.Io
@@ -8,6 +9,7 @@ Singleton {
     id: root
 
     readonly property int answerTimeoutSeconds: 10
+    readonly property int previewSettleMillis: 160
     readonly property string gridMode: "grid"
     readonly property string chosenStatus: "ok"
     readonly property string cancelledStatus: "cancel"
@@ -18,17 +20,24 @@ Singleton {
     property string monitor: ""
     property string query: ""
     property int selected: 0
+    property string previewed: ""
     property var request: ({})
 
     readonly property string prompt: root.request.prompt ?? ""
     readonly property string current: root.request.current ?? ""
     readonly property string answerPath: root.request.answerPath ?? ""
+    readonly property string previewCommand:
+        root.request.previewCommand ?? ""
     readonly property bool grid: root.request.mode === root.gridMode
     readonly property var items: root.request.items ?? []
 
     readonly property var matches: root.rank(root.query)
 
+    readonly property string highlighted:
+        root.matches[root.selected]?.value ?? ""
+
     onQueryChanged: root.selected = 0
+    onHighlightedChanged: root.schedulePreview()
 
     function caption(item): string {
         if (item.label !== "") return item.label;
@@ -80,12 +89,33 @@ Singleton {
         }
         root.query = "";
         root.selected = root.indexOfCurrent();
+        root.previewed = root.current;
         root.monitor = Hyprland.focusedMonitor?.name ?? "";
         root.shown = true;
         return root.acceptedReply;
     }
 
+    function schedulePreview(): void {
+        if (!root.shown) return;
+        if (root.previewCommand === "") return;
+        if (root.highlighted === "") return;
+        if (root.highlighted === root.previewed) {
+            previewTimer.stop();
+            return;
+        }
+        previewTimer.restart();
+    }
+
+    function preview(): void {
+        root.previewed = root.highlighted;
+        Quickshell.execDetached([
+            "sh", "-c", `${root.previewCommand} "$1"`,
+            "sh", root.previewed
+        ]);
+    }
+
     function deliver(status: string, value: string): void {
+        previewTimer.stop();
         root.shown = false;
         if (root.answerPath === "") return;
         Quickshell.execDetached([
@@ -112,6 +142,14 @@ Singleton {
 
     function cancel(): void {
         root.deliver(root.cancelledStatus, "");
+    }
+
+    Timer {
+        id: previewTimer
+
+        interval: root.previewSettleMillis
+
+        onTriggered: root.preview()
     }
 
     FileView {

@@ -10,7 +10,14 @@ readonly THEME_JSON_DIR="${CONFIG_HOME}/quickshell/themes"
 readonly ACTIVE_JSON="${THEME_JSON_DIR}/current.json"
 readonly WALLPAPER_ROOT="${HOME}/Pictures/walls"
 readonly THEME_PROMPT="Theme"
+readonly ACCENT_PROMPT="Accent"
 readonly WALLPAPER_PROMPT="Wallpaper"
+readonly MARKER_WIDTH=2
+
+declare -rA MODES=(
+    [theme]=run_theme_flow
+    [accent]=run_accent_flow
+)
 
 die() {
     printf 'theme-menu: %s\n' "$*" >&2
@@ -22,7 +29,17 @@ require_command() {
         die "$1 is not installed but is required"
 }
 
-readonly MARKER_WIDTH=2
+announce() {
+    printf '%s\n' "$1" >&2
+    command -v notify-send >/dev/null 2>&1 || return 0
+    notify-send "${ACCENT_PROMPT}" "$1"
+}
+
+preview_command() {
+    local rendered
+    printf -v rendered '%q %s' "${THEME}" "$1"
+    printf '%s\n' "${rendered}"
+}
 
 theme_items() {
     local line slug name accent
@@ -36,15 +53,35 @@ theme_items() {
     done < <("${THEME}" list)
 }
 
+accent_items() {
+    local line name hex ratio note
+    while IFS= read -r line; do
+        read -r name hex ratio note <<<"${line:MARKER_WIDTH}"
+        [[ -n "${name}" ]] || continue
+        printf '%s\t%s\t%s\t%s contrast%s\n' \
+            "${name}" "${name}" "${hex}" \
+            "${ratio}" "${note:+, ${note}}"
+    done
+}
+
+marked_name() {
+    awk '/^\*/ { print $2 }'
+}
+
 wallpaper_items() {
     find "${WALLPAPER_ROOT}/$1" -maxdepth 1 -type f | sort
 }
 
 choose_theme() {
-    local active
-    active=$("${THEME}" current)
     theme_items |
-        "${PICK}" --prompt "${THEME_PROMPT}" --current "${active}"
+        "${PICK}" --prompt "${THEME_PROMPT}" --current "$1" \
+            --preview-cmd "$(preview_command preview)"
+}
+
+choose_accent() {
+    printf '%s\n' "$1" | accent_items |
+        "${PICK}" --prompt "${ACCENT_PROMPT}" --current "$2" \
+            --preview-cmd "$(preview_command preview-accent)"
 }
 
 choose_wallpaper() {
@@ -55,18 +92,44 @@ choose_wallpaper() {
             --current "${current}"
 }
 
+run_theme_flow() {
+    local active slug wallpaper
+    active=$("${THEME}" current)
+    if ! slug=$(choose_theme "${active}"); then
+        "${THEME}" preview "${active}"
+        return 0
+    fi
+    "${THEME}" set "${slug}"
+
+    [[ -d "${WALLPAPER_ROOT}/${slug}" ]] || return 0
+    wallpaper=$(choose_wallpaper "${slug}") || return 0
+    "${THEME}" wallpaper "${wallpaper}"
+}
+
+run_accent_flow() {
+    local listing active chosen refusal
+    listing=$("${THEME}" accent)
+    active=$(printf '%s\n' "${listing}" | marked_name)
+    if ! chosen=$(choose_accent "${listing}" "${active}"); then
+        "${THEME}" preview-accent "${active}"
+        return 0
+    fi
+    if refusal=$("${THEME}" accent "${chosen}" 2>&1 >/dev/null); then
+        [[ -z "${refusal}" ]] || announce "${refusal}"
+        return 0
+    fi
+    "${THEME}" preview-accent "${active}"
+    announce "${refusal}"
+}
+
 main() {
-    (($# == 0)) || die "takes no arguments"
+    (($# <= 1)) || die "usage: theme-menu [theme|accent]"
     require_command jq
     [[ -x "${PICK}" ]] || die "${PICK} is missing"
 
-    local slug wallpaper
-    slug=$(choose_theme) || exit 0
-    "${THEME}" set "${slug}"
-
-    [[ -d "${WALLPAPER_ROOT}/${slug}" ]] || exit 0
-    wallpaper=$(choose_wallpaper "${slug}") || exit 0
-    "${THEME}" wallpaper "${wallpaper}"
+    local handler="${MODES[${1:-theme}]:-}"
+    [[ -n "${handler}" ]] || die "unknown mode '${1:-}'"
+    "${handler}"
 }
 
 main "$@"

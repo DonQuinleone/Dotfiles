@@ -15,6 +15,15 @@
         "warn": "#FABD2F",
         "bad": "#FB4934"
     },
+    "defaultAccent": "orange",
+    "accents": {
+        "orange": "#FE8019",
+        "yellow": "#FABD2F",
+        "green": "#B8BB26",
+        "aqua": "#8EC07C",
+        "blue": "#83A598",
+        "purple": "#D3869B"
+    },
     "fonts": {
         "ui": "IBM Plex Sans",
         "mono": "JetBrainsMono Nerd Font"

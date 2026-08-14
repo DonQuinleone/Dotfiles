@@ -15,6 +15,17 @@
         "warn": "#F9E2AF",
         "bad": "#F38BA8"
     },
+    "defaultAccent": "mauve",
+    "accents": {
+        "mauve": "#CBA6F7",
+        "pink": "#F5C2E7",
+        "blue": "#89B4FA",
+        "peach": "#FAB387",
+        "green": "#A6E3A1",
+        "red": "#F38BA8",
+        "teal": "#94E2D5",
+        "lavender": "#B4BEFE"
+    },
     "fonts": {
         "ui": "IBM Plex Sans",
         "mono": "JetBrainsMono Nerd Font"

@@ -8,6 +8,7 @@ Item {
     required property int selected
 
     signal picked(int index)
+    signal hovered(int index)
 
     readonly property int naturalHeight:
         root.items.length * (Metrics.rowHeight + Metrics.rowGap)
@@ -38,6 +39,7 @@ Item {
             selected: this.index === root.selected
 
             onActivated: root.picked(this.index)
+            onEntered: root.hovered(this.index)
         }
     }
 

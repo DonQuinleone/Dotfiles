@@ -35,6 +35,8 @@ ChooserWindow {
             Picker.selected = index;
             Picker.accept();
         }
+
+        onHovered: index => Picker.selected = index
     }
 
     ChooserGrid {

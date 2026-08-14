@@ -140,6 +140,14 @@ load_palette() {
         die "$1 has no palette.accent"
 }
 
+palette_json() {
+    local key args=()
+    for key in "${!PALETTE[@]}"; do
+        args+=(--arg "${key}" "${PALETTE[${key}]}")
+    done
+    jq -n "${args[@]}" '$ARGS.named'
+}
+
 derive_colours() {
     local key
     COLOURS=()
@@ -183,5 +191,7 @@ select_theme() {
     THEME_WALLPAPER=$(resolve_wallpaper "${slug}" \
         "${THEME_SOURCE}")
     load_palette "${THEME_SOURCE}"
+    load_accents "${THEME_SOURCE}"
+    resolve_accent "${slug}"
     derive_colours
 }

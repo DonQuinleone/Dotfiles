@@ -13,6 +13,7 @@ readonly RUNTIME_DIR="${XDG_RUNTIME_DIR:-/tmp}"
 prompt=""
 current=""
 mode="${LIST_MODE}"
+preview=""
 workspace=""
 
 die() {
@@ -34,6 +35,7 @@ require_command() {
 usage() {
     cat >&2 <<'EOF'
 usage: pick [--prompt LABEL] [--current VALUE] [--grid]
+            [--preview-cmd COMMAND]
 
 Shows the items read from stdin in the Ember chooser, prints
 the chosen one to stdout, and exits 1 when the user cancels.
@@ -50,6 +52,8 @@ drawn as a swatch. subtitle is a dimmed second line.
   --prompt LABEL   Label shown beside the search field.
   --current VALUE  Mark that item as current and start on it.
   --grid           Show the values as large image thumbnails.
+  --preview-cmd C  Run "sh -c 'C "$1"' sh VALUE" once the
+                   selection settles, so hovering previews.
 EOF
     exit 1
 }
@@ -67,6 +71,11 @@ parse_arguments() {
             (($# > 0)) || usage
             current="$1"
             ;;
+        --preview-cmd)
+            shift
+            (($# > 0)) || usage
+            preview="$1"
+            ;;
         --grid) mode="${GRID_MODE}" ;;
         -h | --help) usage ;;
         *) usage ;;
@@ -80,12 +89,14 @@ write_request() {
         --arg prompt "${prompt}" \
         --arg mode "${mode}" \
         --arg current "${current}" \
+        --arg preview "${preview}" \
         --arg answer "$1" \
         --rawfile lines "$2" \
         '{
             prompt: $prompt,
             mode: $mode,
             current: $current,
+            previewCommand: $preview,
             answerPath: $answer,
             items: ($lines
                 | rtrimstr("\n")

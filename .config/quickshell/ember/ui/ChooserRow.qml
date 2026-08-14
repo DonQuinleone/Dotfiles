@@ -8,6 +8,7 @@ Rectangle {
     required property bool selected
 
     signal activated
+    signal entered
 
     readonly property color labelColour: root.selected
         ? Theme.onAccent
@@ -83,5 +84,6 @@ Rectangle {
         cursorShape: Qt.PointingHandCursor
 
         onClicked: root.activated()
+        onEntered: root.entered()
     }
 }

@@ -15,6 +15,11 @@
         "warn": "#EA9D34",
         "bad": "#B4637A"
     },
+    "defaultAccent": "iris",
+    "accents": {
+        "iris": "#907AA9",
+        "pine": "#286983"
+    },
     "fonts": {
         "ui": "IBM Plex Sans",
         "mono": "JetBrainsMono Nerd Font"

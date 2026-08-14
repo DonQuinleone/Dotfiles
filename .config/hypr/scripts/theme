@@ -9,6 +9,10 @@ readonly TEMPLATE_DIR
 
 # shellcheck source=theme.d/common.sh
 source "${MODULE_DIR}/common.sh"
+# shellcheck source=theme.d/contrast.sh
+source "${MODULE_DIR}/contrast.sh"
+# shellcheck source=theme.d/accents.sh
+source "${MODULE_DIR}/accents.sh"
 # shellcheck source=theme.d/quickshell.sh
 source "${MODULE_DIR}/quickshell.sh"
 # shellcheck source=theme.d/hyprland.sh
@@ -28,9 +32,12 @@ source "${MODULE_DIR}/shell.sh"
 
 readonly SLUG_COLUMN_WIDTH=20
 
-readonly APPLIERS=(
+readonly LIVE_APPLIERS=(
     apply_quickshell
     apply_hyprland
+)
+
+readonly DEFERRED_APPLIERS=(
     apply_ghostty
     apply_gtk
     apply_qt
@@ -43,6 +50,9 @@ declare -rA COMMANDS=(
     [list]=cmd_list
     [current]=cmd_current
     [set]=cmd_set
+    [accent]=cmd_accent
+    [preview]=cmd_preview
+    [preview-accent]=cmd_preview_accent
     [wallpaper]=cmd_wallpaper
 )
 
@@ -51,9 +61,29 @@ usage() {
 usage: theme list
        theme current
        theme set <name>
+       theme accent [name]
+       theme preview <name>
+       theme preview-accent <name>
        theme wallpaper [path]
 EOF
     exit 1
+}
+
+run_appliers() {
+    local applier
+    for applier in "$@"; do
+        "${applier}"
+    done
+}
+
+apply_live_surfaces() {
+    mkdir -p "${STATE_DIR}" "${WALLPAPER_STATE_DIR}"
+    run_appliers "${LIVE_APPLIERS[@]}"
+}
+
+apply_every_surface() {
+    apply_live_surfaces
+    run_appliers "${DEFERRED_APPLIERS[@]}"
 }
 
 cmd_list() {
@@ -81,12 +111,40 @@ cmd_current() {
 cmd_set() {
     (($# == 1)) || usage
     select_theme "$1"
-    mkdir -p "${STATE_DIR}" "${WALLPAPER_STATE_DIR}"
-    local applier
-    for applier in "${APPLIERS[@]}"; do
-        "${applier}"
-    done
+    warn_unreadable_accent
+    apply_every_surface
     printf '%s\n' "${THEME_SLUG}" >"${ACTIVE_NAME_FILE}"
+}
+
+cmd_accent() {
+    (($# <= 1)) || usage
+    local slug
+    slug=$(active_slug)
+    if (($# == 0)); then
+        select_theme "${slug}"
+        list_accents
+        return
+    fi
+    ACCENT_REQUEST="$1"
+    select_theme "${slug}"
+    [[ "${ACCENT_NAME}" == "$1" ]] ||
+        die "no '$1' accent in ${slug}; try: theme accent"
+    require_readable_accent
+    store_accent "${slug}" "${ACCENT_NAME}"
+    apply_every_surface
+}
+
+cmd_preview() {
+    (($# == 1)) || usage
+    select_theme "$1"
+    apply_live_surfaces
+}
+
+cmd_preview_accent() {
+    (($# == 1)) || usage
+    ACCENT_REQUEST="$1"
+    select_theme "$(active_slug)"
+    apply_live_surfaces
 }
 
 random_wallpaper() {

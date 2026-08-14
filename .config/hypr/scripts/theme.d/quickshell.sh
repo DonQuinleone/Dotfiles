@@ -2,7 +2,10 @@
 
 apply_quickshell() {
     mkdir -p "${THEME_JSON_DIR}"
+    local staged="${ACTIVE_JSON}.new"
     jq --arg wallpaper "${THEME_WALLPAPER}" \
-        '.wallpaper = $wallpaper' \
-        "${THEME_SOURCE}" >"${ACTIVE_JSON}"
+        --argjson palette "$(palette_json)" \
+        '.wallpaper = $wallpaper | .palette = $palette' \
+        "${THEME_SOURCE}" >"${staged}"
+    mv "${staged}" "${ACTIVE_JSON}"
 }
