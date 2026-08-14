@@ -57,6 +57,7 @@
   theme (background `#1B1B1B`, foreground `#E7E7E7`, accent
   `#DC6F00`), so the terminal sits flush with the desktop.
 - Keep `$HOME` clean: configure tools to store config, cache and state in XDG locations whenever they allow it.
+- Never leave working state inside a repository: git worktrees belong under `$XDG_STATE_HOME/<project>-worktrees/`, created with `git worktree add` and entered by path, never in a `.claude/` directory inside the checkout. Remove each one the moment its work is integrated rather than letting them accumulate, since every worktree is a full checkout. `~/.claude` must not exist: `CLAUDE_CONFIG_DIR` already points at `~/.local/share/claude`.
 - Shared dotfiles config must be portable: no hardcoded `/opt/homebrew` or `/Users/...` paths; OS-specific values live in the macos/linux stow packages.
 - When a new CLI tool is adopted, add it to `get_packages.sh` (and the README's Linux tool list) as part of the same piece of work.
 
