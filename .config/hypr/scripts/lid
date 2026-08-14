@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ACTION=${1:-}
+PANEL=eDP-1
+
+die() {
+    printf 'lid: %s\n' "$1" >&2
+    exit 1
+}
+
+command -v hyprctl >/dev/null 2>&1 || die "hyprctl is not installed"
+
+enabled_outputs() {
+    hyprctl -j monitors | python3 -c 'import json, sys
+print(len(json.load(sys.stdin)))'
+}
+
+case "$ACTION" in
+close)
+    # Blanking the only display would leave the session with
+    # nowhere to draw, so the panel stays lit unless another
+    # monitor is already carrying the desktop.
+    [ "$(enabled_outputs)" -gt 1 ] || exit 0
+    hyprctl eval \
+        "hl.monitor({ output = \"$PANEL\", disabled = true })"
+    ;;
+open)
+    hyprctl eval "hl.monitor({ output = \"$PANEL\",
+        mode = \"preferred\", position = \"auto\",
+        scale = 1.0 })"
+    ;;
+*)
+    die "usage: lid close|open"
+    ;;
+esac

@@ -11,6 +11,7 @@ local modules = {
     "workspaces",
     "rules",
     "binds",
+    "switches",
     "autostart",
 }
 
