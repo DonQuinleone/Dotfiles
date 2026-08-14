@@ -23,6 +23,13 @@ PopupWindow {
 
     onVisibleChanged: if (root.visible) root.shownMonth = root.today
 
+    PopoverGrab {
+        surface: root
+        shown: root.visible
+
+        onDismissed: root.visible = false
+    }
+
     function startOfGrid(month: date): date {
         const first =
             new Date(month.getFullYear(), month.getMonth(), 1);

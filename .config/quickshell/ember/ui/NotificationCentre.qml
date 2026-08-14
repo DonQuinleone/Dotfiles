@@ -12,7 +12,7 @@ PanelWindow {
     readonly property real widthFactor: 1.5
     readonly property int panelWidth:
         (Theme.sizes.menuWidth ?? 0) * root.widthFactor
-    readonly property int edge: Theme.spacing.normal ?? 0
+    readonly property int edge: Theme.spacing.section ?? 0
     readonly property int padding: Theme.sizes.popupPadding ?? 0
 
     readonly property bool focused:
@@ -66,6 +66,13 @@ PanelWindow {
         interval: Theme.duration("normal")
     }
 
+    PopoverGrab {
+        surface: root
+        shown: root.active
+
+        onDismissed: Notifications.closeCentre()
+    }
+
     Rectangle {
         id: frame
 
@@ -77,7 +84,7 @@ PanelWindow {
         border.color: Theme.palette.border ?? "transparent"
         opacity: root.active ? (Theme.opacities.full ?? 1) : 0
 
-        Keys.onEscapePressed: Notifications.centreOpen = false
+        Keys.onEscapePressed: Notifications.closeCentre()
 
         transform: Translate {
             x: root.active ? 0 : root.panelWidth

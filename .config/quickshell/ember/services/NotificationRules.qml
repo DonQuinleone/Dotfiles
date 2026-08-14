@@ -27,16 +27,27 @@ Singleton {
         [NotificationUrgency.Critical]: "critical"
     })
 
+    readonly property var placeholders: ({
+        "{summary}": "summary",
+        "{body}": "body",
+        "{app}": "appName"
+    })
+
     property var data: ({})
 
     readonly property var defaults: root.data.defaults ?? ({})
     readonly property var applications: root.data.applications ?? ({})
 
-    function ruleFor(appName: string, desktopEntry: string): var {
+    function plain(value: var): string {
+        if (value === undefined || value === null) return "";
+        return `${value}`;
+    }
+
+    function ruleFor(appName: var, desktopEntry: var): var {
         const apps = root.applications;
         const exact = apps[desktopEntry] ?? apps[appName];
         if (exact) return exact;
-        const wanted = (appName ?? "").toLowerCase();
+        const wanted = root.plain(appName).toLowerCase();
         const key = Object.keys(apps)
             .find(name => name.toLowerCase() === wanted);
         return key ? apps[key] : ({});
@@ -50,20 +61,32 @@ Singleton {
         return rule[name] !== undefined ? rule[name] : fallback[name];
     }
 
-    function fill(template: string, notification: var): string {
-        return template
-            .replace(/{summary}/g, notification.summary ?? "")
-            .replace(/{body}/g, notification.body ?? "")
-            .replace(/{app}/g, notification.appName ?? "");
+    function valueOf(notification: var, token: string): string {
+        return root.plain(notification[root.placeholders[token]]);
     }
 
-    function playSound(name: string): void {
-        if (!name) return;
-        Quickshell.execDetached([root.soundScript, name]);
+    function fill(template: var, notification: var): string {
+        return Object.keys(root.placeholders).reduce(
+            (text, token) => text.split(token)
+                .join(root.valueOf(notification, token)),
+            root.plain(template));
     }
 
-    function speak(template: string, notification: var): void {
-        if (!template) return;
+    function unresolved(template: var, notification: var): bool {
+        const text = root.plain(template);
+        return Object.keys(root.placeholders).some(
+            token => text.indexOf(token) >= 0
+                && !root.valueOf(notification, token));
+    }
+
+    function playSound(name: var): void {
+        const sound = root.plain(name);
+        if (!sound) return;
+        Quickshell.execDetached([root.soundScript, sound]);
+    }
+
+    function speak(template: var, notification: var): void {
+        if (root.unresolved(template, notification)) return;
         const text = root.fill(template, notification).trim();
         if (!text) return;
         Quickshell.execDetached([root.speakScript, text]);

@@ -28,6 +28,7 @@ Column {
 
             Text {
                 anchors.verticalCenter: parent.verticalCenter
+                visible: root.modelData.app !== ""
                 text: root.modelData.app
                 color: Theme.palette.fg ?? "white"
                 font.family: Theme.fonts.ui ?? ""

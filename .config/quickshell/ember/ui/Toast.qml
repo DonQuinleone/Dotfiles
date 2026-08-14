@@ -5,17 +5,13 @@ import qs.services
 Item {
     id: root
 
-    required property var modelData
+    required property var toast
 
-    readonly property var entry: root.modelData
-    readonly property var notification: root.entry.notification
+    readonly property var entry: root.toast.entry
 
-    readonly property color tint:
-        Notifications.tint(root.notification.urgency)
+    readonly property color tint: Notifications.tint(root.entry.urgency)
     readonly property string urgencyLabel:
-        Notifications.label(root.notification.urgency)
-    readonly property string iconSource:
-        Notifications.iconFor(root.notification)
+        Notifications.label(root.entry.urgency)
 
     readonly property int thumbnailFactor: 2
     readonly property int progressFactor: 3
@@ -27,7 +23,9 @@ Item {
     readonly property int progressHeight:
         (Theme.sizes.borderWidth ?? 0) * root.progressFactor
 
-    implicitHeight: card.implicitHeight
+    property real reveal: 0
+
+    implicitHeight: (card.implicitHeight + root.gap) * root.reveal
     clip: true
     opacity: 0
 
@@ -38,13 +36,15 @@ Item {
     HoverHandler {
         id: hover
 
-        onHoveredChanged: root.entry.paused = hover.hovered
+        onHoveredChanged: root.toast.paused = hover.hovered
     }
 
     Rectangle {
         id: card
 
-        anchors.fill: parent
+        anchors.top: parent.top
+        anchors.left: parent.left
+        anchors.right: parent.right
         implicitHeight: content.implicitHeight + root.padding * 2
             + root.progressHeight + root.gap
         radius: Theme.radii.large ?? 0
@@ -68,8 +68,8 @@ Item {
             cursorShape: Qt.PointingHandCursor
 
             onClicked: mouse => mouse.button === Qt.MiddleButton
-                ? Notifications.dismiss(root.entry)
-                : Notifications.activate(root.entry)
+                ? Notifications.dismiss(root.toast)
+                : Notifications.activate(root.toast)
         }
 
         Column {
@@ -83,10 +83,9 @@ Item {
 
             ToastHeader {
                 width: parent.width
-                entry: root.entry
+                toast: root.toast
                 tint: root.tint
                 label: root.urgencyLabel
-                iconSource: root.iconSource
             }
 
             Row {
@@ -98,13 +97,13 @@ Item {
 
                     width: root.thumbnailSize
                     height: root.thumbnailSize
-                    visible: root.notification.image !== ""
+                    visible: root.entry.image !== ""
                     radius: Theme.radii.normal ?? 0
                     color: Theme.palette.bg ?? "transparent"
 
                     Image {
                         anchors.fill: parent
-                        source: root.notification.image
+                        source: root.entry.image
                         fillMode: Image.PreserveAspectCrop
                         asynchronous: true
                     }
@@ -117,7 +116,8 @@ Item {
 
                     Text {
                         width: parent.width
-                        text: root.notification.summary
+                        visible: root.entry.summary !== ""
+                        text: root.entry.summary
                         color: Theme.palette.fg ?? "white"
                         font.family: Theme.fonts.ui ?? ""
                         font.pixelSize: Theme.fontSizes.large ?? 0
@@ -129,8 +129,8 @@ Item {
 
                     Text {
                         width: parent.width
-                        visible: root.notification.body !== ""
-                        text: root.notification.body
+                        visible: root.entry.body !== ""
+                        text: root.entry.body
                         textFormat: Text.StyledText
                         color: Theme.palette.fg ?? "white"
                         font.family: Theme.fonts.ui ?? ""
@@ -143,10 +143,10 @@ Item {
                     Flow {
                         width: parent.width
                         spacing: root.gap
-                        visible: root.notification.actions.length > 0
+                        visible: root.entry.actions.length > 0
 
                         Repeater {
-                            model: root.notification.actions
+                            model: root.entry.actions
 
                             NotificationButton {
                                 required property var modelData
@@ -155,7 +155,8 @@ Item {
                                 tint: root.tint
 
                                 onActivated: Notifications.invoke(
-                                    root.entry, this.modelData)
+                                    root.toast,
+                                    this.modelData.identifier)
                             }
                         }
                     }
@@ -176,7 +177,7 @@ Item {
                 Theme.opacities.edge ?? 0)
 
             Rectangle {
-                width: parent.width * root.entry.progress
+                width: parent.width * root.toast.progress
                 height: parent.height
                 radius: parent.radius
                 color: root.tint
@@ -186,6 +187,15 @@ Item {
 
     ParallelAnimation {
         running: true
+
+        NumberAnimation {
+            target: root
+            property: "reveal"
+            from: 0
+            to: 1
+            duration: Theme.duration("slow")
+            easing.type: Theme.easing("standard")
+        }
 
         NumberAnimation {
             target: root
@@ -207,7 +217,15 @@ Item {
     }
 
     ParallelAnimation {
-        running: root.entry.closing
+        running: root.toast.closing
+
+        NumberAnimation {
+            target: root
+            property: "reveal"
+            to: 0
+            duration: Theme.duration("normal")
+            easing.type: Theme.easing("standard")
+        }
 
         NumberAnimation {
             target: root
@@ -221,14 +239,6 @@ Item {
             target: slide
             property: "x"
             to: root.width
-            duration: Theme.duration("normal")
-            easing.type: Theme.easing("standard")
-        }
-
-        NumberAnimation {
-            target: root
-            property: "height"
-            to: 0
             duration: Theme.duration("normal")
             easing.type: Theme.easing("standard")
         }

@@ -12,13 +12,13 @@ PanelWindow {
     readonly property real widthFactor: 1.3
     readonly property int toastWidth:
         (Theme.sizes.menuWidth ?? 0) * root.widthFactor
-    readonly property int edge: Theme.spacing.normal ?? 0
+    readonly property int edge: Theme.spacing.section ?? 0
 
     readonly property bool focused:
         Hyprland.focusedMonitor?.name === root.modelData.name
 
     screen: root.modelData
-    visible: root.focused && Notifications.toasts.length > 0
+    visible: root.focused && Notifications.toasts.count > 0
     color: Qt.alpha(Theme.palette.bg ?? "black", 0)
     exclusionMode: ExclusionMode.Normal
     exclusiveZone: 0
@@ -41,7 +41,6 @@ PanelWindow {
         id: stack
 
         width: root.toastWidth
-        spacing: Theme.spacing.tight ?? 0
 
         Repeater {
             model: Notifications.toasts

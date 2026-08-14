@@ -20,6 +20,13 @@ PopupWindow {
         menu: root.handle
     }
 
+    PopoverGrab {
+        surface: root
+        shown: root.visible
+
+        onDismissed: root.visible = false
+    }
+
     Rectangle {
         id: frame
 

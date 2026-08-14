@@ -5,17 +5,17 @@ BarPill {
     id: root
 
     readonly property bool silenced: NotificationStore.doNotDisturb
-    readonly property int unread: NotificationStore.unread
+    readonly property int pending: NotificationStore.pending
 
     readonly property string glyph: {
         if (root.silenced) return "󰂛";
-        if (root.unread > 0) return "󰂞";
+        if (root.pending > 0) return "󰂞";
         return "󰂚";
     }
 
     readonly property color tint: {
         if (root.silenced) return Theme.palette.warn ?? "white";
-        if (root.unread > 0) return Theme.palette.accent ?? "white";
+        if (root.pending > 0) return Theme.palette.accent ?? "white";
         return Theme.palette.fg ?? "white";
     }
 
@@ -30,8 +30,8 @@ BarPill {
             font.pixelSize: Theme.sizes.iconNormal ?? 0
         },
         PillText {
-            text: `${root.unread}`
-            visible: root.unread > 0
+            text: `${root.pending}`
+            visible: root.pending > 0
             color: root.tint
         },
         PillText {
