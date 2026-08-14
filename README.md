@@ -119,6 +119,23 @@ accordion, so a workspace of ten windows still reads as a list.
 Any single window can be floated on top wherever it sits, which
 is what a floating mode would have been for.
 
+Motion is treated as information rather than decoration. The
+focused window's border is a gradient that turns once every ten
+seconds, a second always-on signal of where focus sits; switching
+workspace slides the way the eye expects, and a scratchpad drops
+over the workspace instead of sliding beside it. Every shell
+surface enters from the edge it lives on. All of it answers one
+control, which the shell drives too:
+
+    motion get
+    motion set scale 0.5
+    motion set drift off
+    motion reduced on
+
+`reduced` collapses the whole scheme to around forty
+milliseconds without switching it off, so direction is still
+readable when a full-speed desktop is too much.
+
 Idle behaviour follows the dock. Docked, the screen dims at five
 minutes, the lava lamp takes over at eight and the screens go off
 at twelve, and the machine never suspends itself; the lamp is a
