@@ -27,6 +27,7 @@ readonly ACCENT_DARK_BLEND=55
 
 declare -A PALETTE=()
 declare -A COLOURS=()
+declare -A FONTS=()
 
 THEME_SLUG=""
 THEME_SOURCE=""
@@ -148,6 +149,17 @@ load_palette() {
         die "$1 has no palette.accent"
 }
 
+load_fonts() {
+    local key value
+    FONTS=()
+    while IFS=$'\t' read -r key value; do
+        FONTS["${key}"]="${value}"
+    done < <(jq -r '.fonts | to_entries[] |
+        [.key, .value] | @tsv' "$1")
+    [[ -n "${FONTS[ui]:-}" && -n "${FONTS[mono]:-}" ]] ||
+        die "$1 must name both fonts.ui and fonts.mono"
+}
+
 palette_json() {
     local key args=()
     for key in "${!PALETTE[@]}"; do
@@ -221,6 +233,7 @@ select_theme() {
     THEME_WALLPAPER=$(resolve_wallpaper "${slug}" \
         "${THEME_SOURCE}")
     load_palette "${THEME_SOURCE}"
+    load_fonts "${THEME_SOURCE}"
     load_accents "${THEME_SOURCE}"
     resolve_accent "${slug}"
     derive_colours

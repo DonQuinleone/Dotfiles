@@ -4,6 +4,7 @@ readonly GHOSTTY_THEME_FILE="${CONFIG_HOME}/ghostty/theme.conf"
 
 write_ghostty_theme() {
     cat >"${GHOSTTY_THEME_FILE}" <<EOF
+font-family = "${FONTS[mono]}"
 background = $(bare_hex "${COLOURS[bg]}")
 foreground = $(bare_hex "${COLOURS[fg]}")
 selection-background = $(bare_hex "${COLOURS[accent]}")
