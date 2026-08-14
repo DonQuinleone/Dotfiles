@@ -122,6 +122,27 @@ function actions.resize(dx, dy)
     end
 end
 
+local group_steps = {
+    down = hl.dsp.group.next,
+    up = hl.dsp.group.prev,
+}
+
+-- A grouped window covers its siblings, so nothing lies in the
+-- direction asked for and stepping the group is the only way to
+-- reach them.
+function actions.focus_step(direction)
+    local step = group_steps[direction]
+    return function()
+        local window = hl.get_active_window()
+        if step ~= nil and window ~= nil
+            and window.group ~= nil then
+            hl.dispatch(step())
+            return
+        end
+        hl.dispatch(hl.dsp.focus({ direction = direction }))
+    end
+end
+
 actions.ZOOM_STEP = ZOOM_STEP
 actions.notify = notify
 

@@ -1,5 +1,11 @@
 local MASTER_AREA_FRACTION = 0.6
 local SCROLLING_COLUMN_FRACTION = 0.5
+local GROUPBAR_HEIGHT = 34
+local GROUPBAR_TEXT_PADDING = 12
+local GROUPBAR_ROUNDING = 8
+local GROUPBAR_TAB_GAP = 2
+local GROUPBAR_WINDOW_GAP = 6
+local GROUPBAR_INDICATOR_HEIGHT = 0
 
 local state = os.getenv("XDG_STATE_HOME")
     or (os.getenv("HOME") .. "/.local/state")
@@ -19,6 +25,18 @@ hl.config({
     scrolling = {
         fullscreen_on_one_column = true,
         column_width = SCROLLING_COLUMN_FRACTION,
+    },
+    group = {
+        groupbar = {
+            stacked = true,
+            gradients = true,
+            height = GROUPBAR_HEIGHT,
+            text_padding = GROUPBAR_TEXT_PADDING,
+            rounding = GROUPBAR_ROUNDING,
+            gaps_in = GROUPBAR_TAB_GAP,
+            gaps_out = GROUPBAR_WINDOW_GAP,
+            indicator_height = GROUPBAR_INDICATOR_HEIGHT,
+        },
     },
     decoration = {
         rounding = 10,

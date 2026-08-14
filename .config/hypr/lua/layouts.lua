@@ -5,7 +5,7 @@ local FLOAT_RULE_PREFIX = "float-workspace-"
 local modes = {
     { name = "master", tiled = "master",
       label = "Master stack" },
-    { name = "monocle", tiled = "monocle",
+    { name = "monocle", tiled = "monocle", stacked = true,
       label = "Monocle, one window" },
     { name = "scrolling", tiled = "scrolling",
       label = "Scrolling columns" },
@@ -44,17 +44,102 @@ local function float_windows(workspace, floating)
     end
 end
 
+local function selector(window)
+    return "address:" .. window.address
+end
+
+local function tiled_windows(workspace)
+    local tiled = {}
+    for _, window in ipairs(hl.get_workspace_windows(workspace)) do
+        if not window.floating then
+            table.insert(tiled, window)
+        end
+    end
+    return tiled
+end
+
+local function gather(workspace)
+    local windows = tiled_windows(workspace)
+    local anchor = windows[1]
+    if anchor == nil then
+        return
+    end
+    if anchor.group == nil then
+        hl.dispatch(hl.dsp.group.toggle({
+            window = selector(anchor),
+        }))
+        anchor = hl.get_window(selector(anchor))
+    end
+    if anchor == nil or anchor.group == nil then
+        return
+    end
+    for index = 2, #windows do
+        if windows[index].group == nil then
+            anchor.group:add(windows[index])
+        end
+    end
+end
+
+-- Toggling any member dissolves its whole group, so each window
+-- is re-read before deciding whether one is still left to undo.
+local function scatter(workspace)
+    for _, window in ipairs(hl.get_workspace_windows(workspace)) do
+        local current = hl.get_window(selector(window))
+        if current ~= nil and current.group ~= nil then
+            hl.dispatch(hl.dsp.group.toggle({
+                window = selector(current),
+            }))
+        end
+    end
+end
+
+local function stack_windows(workspace, stacked)
+    if stacked then
+        gather(workspace)
+        return
+    end
+    scatter(workspace)
+end
+
 local function apply(workspace, mode)
     hl.workspace_rule({
         workspace = workspace,
         layout = mode.tiled,
     })
     float_windows(workspace, mode.floats == true)
+    stack_windows(workspace, mode.stacked == true)
     chosen[workspace] = mode.name
     actions.notify("Layout: " .. mode.label)
 end
 
+local function chosen_layout(workspace)
+    return chosen[workspace.name] or workspace.tiled_layout
+end
+
+local function stacks(workspace)
+    local mode = modes[index_of[chosen_layout(workspace)] or 0]
+    return mode ~= nil and mode.stacked == true
+end
+
 local layouts = {}
+
+-- A group travels as one tile, so the window leaves its stack
+-- before the move and is folded into whatever the workspace it
+-- lands on asks for.
+function layouts.send_to_workspace(workspace)
+    return function()
+        local window = hl.get_active_window()
+        if window ~= nil and window.group ~= nil then
+            window.group:remove(window)
+        end
+        hl.dispatch(hl.dsp.window.move({ workspace = workspace }))
+        local landed = hl.get_active_workspace()
+        if landed == nil then
+            return
+        end
+        stack_windows(landed.name, stacks(landed))
+    end
+end
 
 function layouts.set(name)
     local mode = modes[index_of[name]]
@@ -74,7 +159,7 @@ function layouts.cycle()
     if workspace == nil then
         return
     end
-    local name = chosen[workspace.name] or workspace.tiled_layout
+    local name = chosen_layout(workspace)
     apply(workspace.name,
         modes[(index_of[name] or 0) % #modes + 1])
 end

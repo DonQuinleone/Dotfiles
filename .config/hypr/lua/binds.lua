@@ -48,8 +48,8 @@ local binds = {
 
     -- Navigation
     { "SUPER",           "h",                     hl.dsp.focus({ direction = "left" })                   },
-    { "SUPER",           "j",                     hl.dsp.focus({ direction = "down" })                   },
-    { "SUPER",           "k",                     hl.dsp.focus({ direction = "up" })                     },
+    { "SUPER",           "j",                     actions.focus_step("down")                             },
+    { "SUPER",           "k",                     actions.focus_step("up")                               },
     { "SUPER",           "l",                     hl.dsp.focus({ direction = "right" })                  },
     { "SUPER + SHIFT",   "h",                     hl.dsp.window.move({ direction = "left" })             },
     { "SUPER + SHIFT",   "j",                     hl.dsp.window.move({ direction = "down" })             },
@@ -114,7 +114,7 @@ local binds = {
 for index = 1, 9 do
     local workspace = "r~" .. index
     table.insert(binds, { "SUPER",         index, hl.dsp.focus({ workspace = workspace })      })
-    table.insert(binds, { "SUPER + SHIFT", index, hl.dsp.window.move({ workspace = workspace }) })
+    table.insert(binds, { "SUPER + SHIFT", index, layouts.send_to_workspace(workspace)          })
 end
 
 for _, bind in ipairs(binds) do
