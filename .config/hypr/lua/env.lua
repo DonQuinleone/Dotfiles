@@ -2,7 +2,10 @@ local envs = {
     { "XCURSOR_THEME", "Adwaita" },
     { "XCURSOR_SIZE", "48" },
     { "HYPRCURSOR_SIZE", "48" },
-    { "QT_QPA_PLATFORM", "wayland" },
+    -- Applications shipping their own Qt, TeamSpeak among
+    -- them, abort outright when their bundled Wayland plugin
+    -- fails to initialise, so leave XWayland as the fallback.
+    { "QT_QPA_PLATFORM", "wayland;xcb" },
     { "QT_QPA_PLATFORMTHEME", "qt6ct" },
     { "QT_WAYLAND_DISABLE_WINDOWDECORATION", "1" },
     { "MOZ_ENABLE_WAYLAND", "1" },
