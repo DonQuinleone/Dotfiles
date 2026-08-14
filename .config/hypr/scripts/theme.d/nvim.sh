@@ -1,62 +1,66 @@
 # shellcheck shell=bash
 
 readonly NVIM_STATE_FILE="${STATE_DIR}/nvim.lua"
-readonly NVIM_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
-readonly NVIM_APPLY_EXPR="luaeval('require(\"donquinleone.theme\").apply()')"
+readonly NVIM_CONTRAST_STEP=6
+readonly NVIM_CONTRAST_TRIES=24
 
-declare -rA NVIM_COLOURSCHEMES=(
-    [ember]="ember"
-    [kanagawa-wave]="kanagawa-wave"
-    [catppuccin-mocha]="catppuccin-mocha"
-    [dracula]="dracula"
-    [solarised-dark]="solarized"
-    [solarised-light]="solarized"
-    [tokyo-night]="tokyonight-night"
-    [tokyo-night-storm]="tokyonight-storm"
-    [rose-pine]="rose-pine-main"
-    [rose-pine-moon]="rose-pine-moon"
-    [rose-pine-dawn]="rose-pine-dawn"
-    [gruvbox-dark]="gruvbox"
-    [gruvbox-light]="gruvbox"
-    [osaka-jade]="bamboo-vulgaris"
+readonly NVIM_UI_KEYS=(
+    accent accentDim bg bgAlt border borderStrong onAccent surface
 )
 
-nvim_colourscheme() {
-    local slug="$1"
-    while [[ -z "${NVIM_COLOURSCHEMES[${slug}]:-}" ]]; do
-        [[ "${slug}" == *-* ]] || return 1
-        slug="${slug%-*}"
+readonly NVIM_TEXT_KEYS=(accent bad fg fgDim good warn)
+
+away_from_background() {
+    if theme_is_dark; then
+        lighten "$1" "${NVIM_CONTRAST_STEP}"
+        return
+    fi
+    darken "$1" "${NVIM_CONTRAST_STEP}"
+}
+
+# Text colours only ever move away from the background, so a
+# palette that already clears AA, as the high-contrast variants
+# do, is emitted untouched.
+raise_to_readable() {
+    local colour="$1" tries=0
+    until contrast_passes \
+        "$(contrast_centis "${colour}" "${COLOURS[bg]}")"; do
+        ((tries < NVIM_CONTRAST_TRIES)) || break
+        colour=$(away_from_background "${colour}")
+        tries=$((tries + 1))
     done
-    printf '%s\n' "${NVIM_COLOURSCHEMES[${slug}]}"
+    printf '%s\n' "${colour}"
+}
+
+nvim_ui_entries() {
+    local key
+    for key in "${NVIM_UI_KEYS[@]}"; do
+        printf '        %s = "%s",\n' \
+            "${key}" "${COLOURS[${key}]}"
+    done
+}
+
+nvim_text_entries() {
+    local key readable
+    for key in "${NVIM_TEXT_KEYS[@]}"; do
+        readable=$(raise_to_readable "${COLOURS[${key}]}")
+        printf '        %s = "%s",\n' "${key}" "${readable}"
+    done
 }
 
 write_nvim_state() {
-    local colourscheme
-    colourscheme=$(nvim_colourscheme "${THEME_SLUG}") || true
-    if [[ -z "${colourscheme}" ]]; then
-        warn "no Neovim colourscheme mapped for ${THEME_SLUG}"
-        return 1
-    fi
-    cat >"${NVIM_STATE_FILE}" <<EOF
-return {
-    colourscheme = "${colourscheme}",
-    background = "$(light_or_dark)",
-}
-EOF
-}
-
-reload_running_nvim() {
-    local socket
-    for socket in "${NVIM_RUNTIME_DIR}"/nvim.*; do
-        [[ -S "${socket}" ]] || continue
-        nvim --server "${socket}" \
-            --remote-expr "${NVIM_APPLY_EXPR}" \
-            >/dev/null 2>&1 || true
-    done
+    {
+        printf 'return {\n'
+        printf '    background = "%s",\n' "$(light_or_dark)"
+        printf '    ui = {\n'
+        nvim_ui_entries
+        printf '    },\n    text = {\n'
+        nvim_text_entries
+        printf '    },\n}\n'
+    } >"${NVIM_STATE_FILE}"
 }
 
 apply_nvim() {
     mkdir -p "${STATE_DIR}"
-    write_nvim_state || return 0
-    reload_running_nvim
+    write_nvim_state
 }

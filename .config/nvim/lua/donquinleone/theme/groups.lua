@@ -1,0 +1,200 @@
+local NONE = "NONE"
+
+local M = {}
+
+local LINKS = {
+    ["@boolean"] = "Boolean",
+    ["@character"] = "Character",
+    ["@comment.error"] = "ErrorMsg",
+    ["@comment.note"] = "Todo",
+    ["@comment.todo"] = "Todo",
+    ["@comment.warning"] = "WarningMsg",
+    ["@diff.delta"] = "DiffChange",
+    ["@diff.minus"] = "DiffDelete",
+    ["@diff.plus"] = "DiffAdd",
+    ["@function.method"] = "Function",
+    ["@keyword.import"] = "PreProc",
+    ["@lsp.type.comment"] = "Comment",
+    ["@markup.raw"] = "String",
+    ["@number"] = "Number",
+    ["@punctuation.bracket"] = "Delimiter",
+    ["@punctuation.delimiter"] = "Delimiter",
+    ["@punctuation.special"] = "Special",
+    ["@string.escape"] = "Special",
+    ["@string.special"] = "Special",
+    ["@tag.delimiter"] = "Delimiter",
+    ["@variable.member"] = "Identifier",
+    ["@variable.parameter"] = "Identifier",
+    Added = "DiffAdd",
+    Boolean = "Constant",
+    Changed = "DiffChange",
+    Character = "String",
+    Conditional = "Keyword",
+    CurSearch = "IncSearch",
+    CursorColumn = "CursorLine",
+    Debug = "Special",
+    Define = "PreProc",
+    DiagnosticFloatingError = "DiagnosticError",
+    DiagnosticFloatingHint = "DiagnosticHint",
+    DiagnosticFloatingInfo = "DiagnosticInfo",
+    DiagnosticFloatingWarn = "DiagnosticWarn",
+    DiagnosticSignError = "DiagnosticError",
+    DiagnosticSignHint = "DiagnosticHint",
+    DiagnosticSignInfo = "DiagnosticInfo",
+    DiagnosticSignWarn = "DiagnosticWarn",
+    DiagnosticVirtualTextError = "DiagnosticError",
+    DiagnosticVirtualTextHint = "DiagnosticHint",
+    DiagnosticVirtualTextInfo = "DiagnosticInfo",
+    DiagnosticVirtualTextWarn = "DiagnosticWarn",
+    Exception = "Keyword",
+    Float = "Number",
+    Include = "PreProc",
+    Label = "Keyword",
+    LineNrAbove = "LineNr",
+    LineNrBelow = "LineNr",
+    Macro = "PreProc",
+    NormalNC = "Normal",
+    Number = "Constant",
+    Operator = "Identifier",
+    PmenuExtra = "Pmenu",
+    PmenuExtraSel = "PmenuSel",
+    PmenuKind = "Pmenu",
+    PmenuKindSel = "PmenuSel",
+    PreCondit = "PreProc",
+    Removed = "DiffDelete",
+    Repeat = "Keyword",
+    SpecialChar = "Special",
+    SpecialComment = "Special",
+    Statement = "Keyword",
+    StorageClass = "Type",
+    Structure = "Type",
+    Substitute = "IncSearch",
+    Tag = "Type",
+    Typedef = "Type",
+    VertSplit = "WinSeparator",
+    WildMenu = "PmenuSel",
+    lCursor = "Cursor",
+}
+
+-- Every text colour is generated to clear WCAG AA against ui.bg,
+-- so any fill that pairs one as a background with ui.bg as its
+-- foreground is legible on every theme without further checking.
+local function coloured(ui, text)
+    return {
+        Comment = { fg = text.fgDim },
+        Constant = { fg = text.bad },
+        Cursor = { fg = ui.bg, bg = text.accent },
+        CursorLine = { bg = ui.bgAlt },
+        CursorLineNr = { fg = text.accent, bold = true },
+        ColorColumn = { bg = ui.surface },
+        Conceal = { fg = text.fgDim },
+        DiffAdd = { fg = text.good },
+        DiffChange = { fg = text.warn },
+        DiffDelete = { fg = text.bad },
+        DiffText = { fg = text.warn, bold = true, underline = true },
+        Directory = { fg = text.accent, bold = true },
+        EndOfBuffer = { fg = ui.border },
+        Error = { fg = text.bad, bold = true },
+        ErrorMsg = { fg = text.bad, bold = true },
+        FloatBorder = { fg = ui.borderStrong, bg = ui.bgAlt },
+        FloatTitle = { fg = text.accent, bg = ui.bgAlt, bold = true },
+        FoldColumn = { fg = text.fgDim },
+        Folded = { fg = text.fgDim, bg = ui.bgAlt },
+        Function = { fg = text.fg, bold = true },
+        Identifier = { fg = text.fg },
+        Ignore = { fg = ui.border },
+        IncSearch = { fg = ui.bg, bg = text.accent, bold = true },
+        Keyword = { fg = text.accent, bold = true },
+        LineNr = { fg = text.fgDim },
+        MatchParen = { fg = text.accent, bold = true, underline = true },
+        ModeMsg = { fg = text.fg, bold = true },
+        MoreMsg = { fg = text.good },
+        MsgSeparator = { fg = ui.borderStrong },
+        NonText = { fg = ui.borderStrong },
+        Normal = { fg = text.fg, bg = NONE },
+        NormalFloat = { fg = text.fg, bg = ui.bgAlt },
+        Pmenu = { fg = text.fg, bg = ui.bgAlt },
+        PmenuSbar = { bg = ui.surface },
+        PmenuSel = { fg = ui.bg, bg = text.accent, bold = true },
+        PmenuThumb = { bg = ui.borderStrong },
+        PreProc = { fg = text.accent },
+        Question = { fg = text.good },
+        QuickFixLine = { bg = ui.surface, bold = true },
+        Search = { fg = ui.bg, bg = text.warn },
+        SignColumn = { fg = text.fgDim },
+        Special = { fg = text.warn },
+        SpecialKey = { fg = text.fgDim },
+        SpellBad = { undercurl = true, sp = text.bad },
+        SpellCap = { undercurl = true, sp = text.warn },
+        SpellLocal = { undercurl = true, sp = text.good },
+        SpellRare = { undercurl = true, sp = text.accent },
+        StatusLine = { fg = text.fg, bg = ui.surface },
+        String = { fg = text.good },
+        StatusLineNC = { fg = text.fgDim, bg = ui.bgAlt },
+        TabLine = { fg = text.fgDim, bg = ui.bgAlt },
+        TabLineFill = { bg = ui.bgAlt },
+        TabLineSel = { fg = ui.bg, bg = text.accent, bold = true },
+        TermCursor = { fg = ui.bg, bg = text.accent },
+        Title = { fg = text.accent, bold = true },
+        Todo = { fg = ui.bg, bg = text.warn, bold = true },
+        Type = { fg = text.warn },
+        Underlined = { underline = true },
+        Visual = { fg = ui.onAccent, bg = ui.accent },
+        WarningMsg = { fg = text.warn, bold = true },
+        Whitespace = { fg = ui.border },
+        WinBar = { fg = text.fg, bold = true },
+        WinBarNC = { fg = text.fgDim },
+        WinSeparator = { fg = ui.borderStrong },
+        DiagnosticError = { fg = text.bad },
+        DiagnosticHint = { fg = text.good },
+        DiagnosticInfo = { fg = text.accent },
+        DiagnosticOk = { fg = text.good },
+        DiagnosticWarn = { fg = text.warn },
+        DiagnosticUnderlineError = { undercurl = true, sp = text.bad },
+        DiagnosticUnderlineHint = { undercurl = true, sp = text.good },
+        DiagnosticUnderlineInfo = { undercurl = true, sp = text.accent },
+        DiagnosticUnderlineWarn = { undercurl = true, sp = text.warn },
+        ["@attribute"] = { fg = text.accent },
+        ["@constructor"] = { fg = text.warn },
+        ["@function.builtin"] = { fg = text.fg, bold = true },
+        ["@markup.heading"] = { fg = text.accent, bold = true },
+        ["@markup.italic"] = { italic = true },
+        ["@markup.link"] = { fg = text.good, underline = true },
+        ["@markup.list"] = { fg = text.accent },
+        ["@markup.strong"] = { bold = true },
+        ["@module"] = { fg = text.warn },
+        ["@property"] = { fg = text.fg },
+        ["@tag"] = { fg = text.accent },
+        ["@tag.attribute"] = { fg = text.warn },
+        ["@variable"] = { fg = text.fg },
+        Delimiter = { fg = text.fgDim },
+    }
+end
+
+function M.build(ui, text)
+    local groups = coloured(ui, text)
+    for name, target in pairs(LINKS) do
+        groups[name] = { link = target }
+    end
+    return groups
+end
+
+-- Four palette hues have to cover sixteen terminal slots, so the
+-- bright half repeats the normal half rather than inventing
+-- colours the desktop palette never defined.
+function M.terminal(ui, text)
+    local half = {
+        ui.bg, text.bad, text.good, text.warn,
+        text.accent, text.bad, text.good, text.fg,
+    }
+    local slots = {}
+    for index, colour in ipairs(half) do
+        slots[index - 1] = colour
+        slots[index + #half - 1] = colour
+    end
+    slots[#half] = text.fgDim
+    slots[#half * 2 - 1] = text.fg
+    return slots
+end
+
+return M
