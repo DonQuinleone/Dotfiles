@@ -8,6 +8,7 @@ local commands = {
     "qs -c ember",
     config .. "/hypr/scripts/theme-daemon",
     config .. "/hypr/scripts/idle-profile",
+    config .. "/hypr/scripts/night-shift-daemon",
 }
 
 hl.on("hyprland.start", function()

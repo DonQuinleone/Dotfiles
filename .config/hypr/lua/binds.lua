@@ -80,6 +80,7 @@ local binds = {
     { "SUPER",           "z",                     actions.zoom_follow_toggle                             },
     { "SUPER + SHIFT",   "z",                     actions.caret_follow_toggle                            },
     { "SUPER + CTRL",    "m",                     hl.dsp.exec_cmd(scripts .. "/motion reduced toggle")   },
+    { "SUPER + SHIFT",   "w",                     hl.dsp.exec_cmd(scripts .. "/night-shift toggle")     },
     { "SUPER",           "mouse_up",              actions.zoom(step)                                     },
     { "SUPER",           "mouse_down",            actions.zoom(-step)                                    },
 
