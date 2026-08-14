@@ -46,6 +46,22 @@ ShellRoot {
         NotificationCentre {}
     }
 
+    Variants {
+        id: flashes
+
+        model: Quickshell.screens
+
+        FlashOverlay {}
+    }
+
+    IpcHandler {
+        target: "screenshot"
+
+        function flash(): void {
+            for (const window of flashes.instances) window.flash();
+        }
+    }
+
     IpcHandler {
         target: "bar"
 

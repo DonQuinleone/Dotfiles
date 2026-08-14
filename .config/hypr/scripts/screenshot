@@ -37,12 +37,19 @@ region)
     ;;
 esac
 
+flash() {
+    qs -c ember ipc call screenshot flash >/dev/null 2>&1 || true
+    "$(dirname "$0")/notify-sound" shutter >/dev/null 2>&1 || true
+}
+
 if [ "$TARGET" = "save" ]; then
     mkdir -p "$SHOTS"
     shot=$SHOTS/$(date +%Y-%m-%d-%H%M%S).png
+    flash
     grim "${capture[@]}" "$shot"
     wl-copy < "$shot"
     printf '%s\n' "$shot"
 else
+    flash
     grim "${capture[@]}" - | wl-copy
 fi

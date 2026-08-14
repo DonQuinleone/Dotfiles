@@ -52,6 +52,7 @@ PACKAGES=(
     golang
     grim
     htop
+    inotify-tools
     hypridle
     hyprland
     hyprland-guiutils

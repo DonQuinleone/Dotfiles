@@ -6,6 +6,7 @@ local commands = {
         .. "toolkit-accessibility true",
     config .. "/hypr/scripts/caret-follow",
     "qs -c ember",
+    config .. "/hypr/scripts/theme-daemon",
     config .. "/hypr/scripts/idle-profile",
 }
 

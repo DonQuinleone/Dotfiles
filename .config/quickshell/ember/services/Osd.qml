@@ -45,8 +45,10 @@ Singleton {
         root.muted = root.sinkMuted;
         root.announce("volume", root.volume, root.sinkMuted);
     }
+    // Brightness changes are visible by definition, so a
+    // sound for them is noise.
     onBrightnessChanged: root.announce("brightness",
-        root.brightness, false)
+        root.brightness, true)
 
     Timer {
         running: true
