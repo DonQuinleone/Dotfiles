@@ -14,6 +14,20 @@ local function zoom_reset()
     hl.config({ cursor = { zoom_factor = ZOOM_MIN } })
 end
 
+-- A detached camera holds still until the pointer reaches the
+-- edge of the zoomed view; attached, the view tracks the
+-- pointer continuously.
+local function zoom_follow_toggle()
+    local detached = hl.get_config("cursor.zoom_detached_camera")
+    hl.config({ cursor = { zoom_detached_camera = not detached } })
+    hl.notification.create({
+        text = detached and "Zoom follows cursor"
+            or "Zoom camera fixed",
+        timeout = 1500,
+        font_size = 22,
+    })
+end
+
 local apps = {
     { key = "Return", cmd = "ghostty" },
     { key = "b", cmd = "firefox" },
@@ -45,6 +59,7 @@ local binds = {
     { "SUPER + equal", zoom_by(ZOOM_STEP) },
     { "SUPER + minus", zoom_by(-ZOOM_STEP) },
     { "SUPER + 0", zoom_reset },
+    { "SUPER + z", zoom_follow_toggle },
     { "SUPER + mouse_up", zoom_by(ZOOM_STEP) },
     { "SUPER + mouse_down", zoom_by(-ZOOM_STEP) },
 }

@@ -11,3 +11,27 @@ hl.config({
         },
     },
 })
+
+local devices = {
+    { name = "elan0683:00-04f3:320b-touchpad", sensitivity = 0.5 },
+}
+
+for _, d in ipairs(devices) do
+    hl.device(d)
+end
+
+-- Touchpads emit smooth scroll axes rather than the discrete
+-- wheel clicks SUPER + mouse_up/down needs, so pinch is the
+-- magnifier's touchpad entry point.
+hl.gesture({
+    fingers = 2,
+    direction = "pinch",
+    action = "cursorZoom",
+    mode = "live",
+})
+
+hl.gesture({
+    fingers = 3,
+    direction = "horizontal",
+    action = "workspace",
+})
