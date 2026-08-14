@@ -124,6 +124,14 @@ theme_is_dark() {
     (($(luminance "${PALETTE[bg]}") < LUMA_MIDPOINT))
 }
 
+light_or_dark() {
+    if theme_is_dark; then
+        printf 'dark\n'
+        return
+    fi
+    printf 'light\n'
+}
+
 bare_hex() {
     local hex="${1#\#}"
     printf '%s\n' "${hex,,}"
@@ -163,6 +171,20 @@ derive_colours() {
         "${PALETTE[bg]}" "${ACCENT_DIM_BLEND}")
     COLOURS[accentDark]=$(mix "${PALETTE[accent]}" \
         "${PALETTE[bg]}" "${ACCENT_DARK_BLEND}")
+}
+
+render_template() {
+    local template="$1" target="$2" key pair args=()
+    shift 2
+    [[ -f "${template}" ]] ||
+        die "missing template ${template}"
+    for key in "${!COLOURS[@]}"; do
+        args+=(-e "s|@${key}@|${COLOURS[${key}]}|g")
+    done
+    for pair in "$@"; do
+        args+=(-e "s|@${pair%%=*}@|${pair#*=}|g")
+    done
+    sed "${args[@]}" "${template}" >"${target}"
 }
 
 wallpaper_override_file() {

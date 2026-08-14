@@ -21,14 +21,6 @@ declare -rA NVIM_COLOURSCHEMES=(
     [osaka-jade]="bamboo-vulgaris"
 )
 
-nvim_background() {
-    if theme_is_dark; then
-        printf 'dark\n'
-        return
-    fi
-    printf 'light\n'
-}
-
 nvim_colourscheme() {
     local slug="$1"
     while [[ -z "${NVIM_COLOURSCHEMES[${slug}]:-}" ]]; do
@@ -48,7 +40,7 @@ write_nvim_state() {
     cat >"${NVIM_STATE_FILE}" <<EOF
 return {
     colourscheme = "${colourscheme}",
-    background = "$(nvim_background)",
+    background = "$(light_or_dark)",
 }
 EOF
 }
