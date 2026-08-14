@@ -24,13 +24,48 @@ shopt -s histappend
 # shell will print "command not found".
 unset -f command_not_found_handle
 
-prompt_accent='\[\e[38;2;220;111;0m\]'
-prompt_muted='\[\e[38;2;192;192;192m\]'
-prompt_on_background='\[\e[38;2;231;231;231m\]'
-prompt_reset='\[\e[0m\]'
-PS1="${prompt_accent}\u ${prompt_muted}\W\n"
-PS1+="${prompt_on_background}\\$ ${prompt_reset}"
-unset prompt_accent prompt_muted prompt_on_background prompt_reset
+prompt_supports_truecolor() {
+    case "${COLORTERM:-}" in
+        truecolor | 24bit) return 0 ;;
+    esac
+    return 1
+}
+
+prompt_hex_rgb() {
+    local hex="${1#\#}"
+    printf '%d %d %d' \
+        "$((16#${hex:0:2}))" "$((16#${hex:2:2}))" "$((16#${hex:4:2}))"
+}
+
+prompt_build_ps1() {
+    local theme_file="${XDG_STATE_HOME}/theme/shell-colours.sh"
+    local accent=DC6F00 muted=C0C0C0 on_background=E7E7E7
+
+    if [[ -r "${theme_file}" ]]; then
+        local THEME_ACCENT='' THEME_FG_DIM='' THEME_FG=''
+        # shellcheck disable=SC1090
+        source "${theme_file}"
+        accent="${THEME_ACCENT:-${accent}}"
+        muted="${THEME_FG_DIM:-${muted}}"
+        on_background="${THEME_FG:-${on_background}}"
+    fi
+
+    if ! prompt_supports_truecolor; then
+        PS1='\u \W\n\$ '
+        return
+    fi
+
+    local -a accent_rgb muted_rgb on_background_rgb
+    read -r -a accent_rgb <<<"$(prompt_hex_rgb "${accent}")"
+    read -r -a muted_rgb <<<"$(prompt_hex_rgb "${muted}")"
+    read -r -a on_background_rgb <<<"$(prompt_hex_rgb "${on_background}")"
+
+    PS1="\[\e[38;2;${accent_rgb[0]};${accent_rgb[1]};${accent_rgb[2]}m\]\u "
+    PS1+="\[\e[38;2;${muted_rgb[0]};${muted_rgb[1]};${muted_rgb[2]}m\]\W\n"
+    PS1+="\[\e[38;2;${on_background_rgb[0]};${on_background_rgb[1]};${on_background_rgb[2]}m\]\\$ \[\e[0m\]"
+}
+
+PROMPT_COMMAND=prompt_build_ps1
 
 alias ..="cd .."
 alias 2..="cd ../.."

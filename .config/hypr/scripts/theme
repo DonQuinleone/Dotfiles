@@ -23,6 +23,8 @@ source "${MODULE_DIR}/qt.sh"
 source "${MODULE_DIR}/teamspeak.sh"
 # shellcheck source=theme.d/nvim.sh
 source "${MODULE_DIR}/nvim.sh"
+# shellcheck source=theme.d/shell.sh
+source "${MODULE_DIR}/shell.sh"
 
 readonly SLUG_COLUMN_WIDTH=20
 
@@ -34,6 +36,7 @@ readonly APPLIERS=(
     apply_qt
     apply_teamspeak
     apply_nvim
+    apply_shell
 )
 
 declare -rA COMMANDS=(

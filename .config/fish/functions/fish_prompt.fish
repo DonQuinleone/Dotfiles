@@ -3,6 +3,17 @@ function fish_prompt --description 'User, working directory, prompt sign'
     set -l muted C0C0C0
     set -l on_background E7E7E7
 
+    set -l theme_file "$XDG_STATE_HOME/theme/shell-colours.fish"
+    test -r $theme_file
+    and source $theme_file
+
+    set -q THEME_ACCENT
+    and set accent $THEME_ACCENT
+    set -q THEME_FG_DIM
+    and set muted $THEME_FG_DIM
+    set -q THEME_FG
+    and set on_background $THEME_FG
+
     set -l working_directory (path basename $PWD)
     test $PWD = $HOME
     and set working_directory '~'
