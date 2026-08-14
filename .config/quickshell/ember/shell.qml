@@ -37,6 +37,12 @@ ShellRoot {
     Variants {
         model: Quickshell.screens
 
+        OsdWindow {}
+    }
+
+    Variants {
+        model: Quickshell.screens
+
         NotificationCentre {}
     }
 
