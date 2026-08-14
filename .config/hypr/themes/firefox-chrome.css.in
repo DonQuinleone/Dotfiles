@@ -1,0 +1,97 @@
+:root {
+    color-scheme: @scheme@ !important;
+
+    --background-color-canvas: @bg@ !important;
+    --background-color-box: @bgAlt@ !important;
+    --text-color: @fg@ !important;
+    --text-color-deemphasized: @fgDim@ !important;
+    --border-color: @border@ !important;
+    --border-color-deemphasized: @border@ !important;
+    --border-color-interactive: @borderStrong@ !important;
+    --border-color-selected: @accent@ !important;
+    --focus-outline-color: @accent@ !important;
+
+    --color-accent-primary: @accent@ !important;
+    --color-accent-primary-hover: @accentSoft@ !important;
+    --color-accent-primary-active: @accentDark@ !important;
+    --color-accent-primary-selected: @accent@ !important;
+    --color-accent-attention: @accent@ !important;
+    --text-color-accent-primary-selected: @onAccent@ !important;
+    --button-text-color-primary: @onAccent@ !important;
+    --table-header-text-color: @onAccent@ !important;
+
+    --link-color: @accent@ !important;
+    --link-color-hover: @accentSoft@ !important;
+    --link-color-active: @accentDark@ !important;
+
+    --input-text-background-color: @surface@ !important;
+    --input-text-color: @fg@ !important;
+
+    --toolbox-background-color: @bg@ !important;
+    --toolbox-background-color-inactive: @bg@ !important;
+    --toolbox-text-color: @fg@ !important;
+    --toolbox-text-color-inactive: @fgDim@ !important;
+
+    --toolbar-background-color: @bgAlt@ !important;
+    --toolbar-text-color: @fg@ !important;
+    --toolbarbutton-icon-fill: @fg@ !important;
+    --toolbarbutton-icon-fill-attention: @accent@ !important;
+    --toolbarbutton-icon-fill-attention-text: @onAccent@ !important;
+
+    --tab-background-color-selected: @bgAlt@ !important;
+    --tab-attention-dot-color: @accent@ !important;
+    --tab-selected-outline-color: @accent@ !important;
+    --tabs-navbar-separator-color: @border@ !important;
+    --chrome-content-separator-color: @border@ !important;
+    --lwt-tab-line-color: @accent@ !important;
+
+    --toolbar-field-background-color: @surface@ !important;
+    --toolbar-field-text-color: @fg@ !important;
+    --toolbar-field-border-color: @border@ !important;
+    --toolbar-field-background-color-focus: @bg@ !important;
+    --toolbar-field-text-color-focus: @fg@ !important;
+    --toolbar-field-border-color-focus: @accent@ !important;
+    --toolbar-field-focus-color: @fg@ !important;
+    --lwt-toolbar-field-highlight: @accent@ !important;
+    --lwt-toolbar-field-highlight-text: @onAccent@ !important;
+
+    --urlbarview-background-color-selected: @accent@ !important;
+    --urlbarview-text-color-selected: @onAccent@ !important;
+    --urlbarview-background-color-hover: @surface@ !important;
+    --urlbarview-text-color-action: @accent@ !important;
+    --urlbarview-separator-color: @border@ !important;
+    --urlbarView-separator-color: @border@ !important;
+    --urlbarView-secondary-text-color: @fgDim@ !important;
+
+    --panel-background-color: @bgAlt@ !important;
+    --panel-text-color: @fg@ !important;
+    --panel-border-color: @border@ !important;
+    --panel-separator-color: @border@ !important;
+
+    --sidebar-background-color: @bgAlt@ !important;
+    --sidebar-text-color: @fg@ !important;
+    --sidebar-border-color: @border@ !important;
+    --lwt-sidebar-highlight-background-color: @accent@ !important;
+    --lwt-sidebar-highlight-text-color: @onAccent@ !important;
+}
+
+panel,
+menupopup {
+    color-scheme: @scheme@ !important;
+    --panel-background-color: @bgAlt@ !important;
+    --panel-text-color: @fg@ !important;
+    --panel-border-color: @border@ !important;
+}
+
+menupopup > menuitem[_moz-menuactive]:not([disabled]),
+menupopup > menu[_moz-menuactive]:not([disabled]) {
+    background-color: @accent@ !important;
+    color: @onAccent@ !important;
+}
+
+#urlbar-input::selection,
+#urlbar-input:focus::selection,
+.searchbar-textbox input::selection {
+    background-color: @accent@ !important;
+    color: @onAccent@ !important;
+}

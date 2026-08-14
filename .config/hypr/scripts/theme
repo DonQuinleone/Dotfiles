@@ -25,6 +25,8 @@ source "${MODULE_DIR}/gtk.sh"
 source "${MODULE_DIR}/qt.sh"
 # shellcheck source=theme.d/teamspeak.sh
 source "${MODULE_DIR}/teamspeak.sh"
+# shellcheck source=theme.d/firefox.sh
+source "${MODULE_DIR}/firefox.sh"
 # shellcheck source=theme.d/nvim.sh
 source "${MODULE_DIR}/nvim.sh"
 # shellcheck source=theme.d/shell.sh
@@ -42,6 +44,7 @@ readonly DEFERRED_APPLIERS=(
     apply_gtk
     apply_qt
     apply_teamspeak
+    apply_firefox
     apply_nvim
     apply_shell
 )
