@@ -1,0 +1,78 @@
+{
+    "name": "Tokyo Night Storm",
+    "wallpaper": "/home/user/Pictures/walls/tokyo-night-storm/architecture-dark.png",
+    "reduceMotion": false,
+    "palette": {
+        "bg": "#24283B",
+        "bgAlt": "#1F2335",
+        "surface": "#292E42",
+        "fg": "#C0CAF5",
+        "fgDim": "#A9B1D6",
+        "accent": "#7AA2F7",
+        "accentSoft": "#7DCFFF",
+        "border": "#565F89",
+        "good": "#9ECE6A",
+        "warn": "#E0AF68",
+        "bad": "#F7768E"
+    },
+    "fonts": {
+        "ui": "IBM Plex Sans",
+        "mono": "JetBrainsMono Nerd Font"
+    },
+    "fontSizes": {
+        "small": 15,
+        "normal": 17,
+        "large": 20,
+        "display": 25
+    },
+    "fontWeights": {
+        "regular": 400,
+        "medium": 500,
+        "bold": 700
+    },
+    "radii": {
+        "small": 4,
+        "normal": 8,
+        "large": 14,
+        "round": 999
+    },
+    "spacing": {
+        "hair": 3,
+        "tight": 6,
+        "normal": 10,
+        "loose": 16,
+        "section": 24
+    },
+    "sizes": {
+        "barHeight": 48,
+        "barPadding": 10,
+        "focusEdge": 1,
+        "focusGlow": 18,
+        "borderWidth": 2,
+        "iconNormal": 22,
+        "hitTarget": 40,
+        "calendarCell": 46,
+        "popupPadding": 16,
+        "menuWidth": 320,
+        "trayIcon": 24
+    },
+    "opacities": {
+        "edge": 0.4,
+        "dim": 0.62,
+        "muted": 0.8,
+        "full": 1.0
+    },
+    "animation": {
+        "durations": {
+            "quick": 150,
+            "normal": 175,
+            "slow": 200,
+            "flash": 450
+        },
+        "easings": {
+            "standard": "OutCubic",
+            "emphasised": "OutBack",
+            "linear": "Linear"
+        }
+    }
+}
