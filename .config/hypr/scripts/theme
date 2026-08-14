@@ -25,6 +25,8 @@ source "${MODULE_DIR}/gtk.sh"
 source "${MODULE_DIR}/qt.sh"
 # shellcheck source=theme.d/teamspeak.sh
 source "${MODULE_DIR}/teamspeak.sh"
+# shellcheck source=theme.d/mozilla.sh
+source "${MODULE_DIR}/mozilla.sh"
 # shellcheck source=theme.d/firefox.sh
 source "${MODULE_DIR}/firefox.sh"
 # shellcheck source=theme.d/nvim.sh
