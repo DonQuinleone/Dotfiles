@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+readonly LOCK_NOTIFY_URGENCY="critical"
+
+# Hook point for the bespoke locker (a later milestone). Until
+# it exists, fall back to hyprlock if present, otherwise warn
+# rather than blank the screen with no way to unlock it.
+if command -v hyprlock >/dev/null 2>&1; then
+    exec sh -c 'pidof hyprlock || hyprlock'
+fi
+
+if command -v notify-send >/dev/null 2>&1; then
+    notify-send --urgency="${LOCK_NOTIFY_URGENCY}" \
+        "No lock screen installed" \
+        "hypridle tried to lock the session, but no locker \
+is configured yet. Leaving the screen unlocked rather than \
+blanking it with no way back."
+fi

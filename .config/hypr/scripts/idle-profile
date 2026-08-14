@@ -1,0 +1,135 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+readonly LAPTOP_PANEL_NAME="eDP-1"
+readonly DOCKED_CONFIG="${HOME}/.config/hypr/hypridle.conf"
+readonly UNDOCKED_CONFIG="${HOME}/.config/hypr/hypridle-undocked.conf"
+readonly STATE_DIR="${XDG_STATE_HOME:-${HOME}/.local/state}/hypridle"
+readonly HYPRIDLE_LOG="${STATE_DIR}/hypridle.log"
+readonly PID_EXIT_POLL_INTERVAL_SECONDS="0.1"
+readonly PID_EXIT_MAX_POLLS=50
+
+usage() {
+    echo "usage: idle-profile" >&2
+    exit 1
+}
+
+# External monitors mean docked (burn-in risk on the OLED);
+# their absence is the only thing that matters for choosing a
+# profile, since a dock without a monitor attached carries no
+# burn-in risk either. Mains power is not authoritative for
+# that decision and is used only as a fallback below, for when
+# hyprctl/jq cannot be reached at all.
+external_monitor_count() {
+    command -v hyprctl >/dev/null 2>&1 || return 1
+    command -v jq >/dev/null 2>&1 || return 1
+    hyprctl -j monitors 2>/dev/null \
+        | jq "[.[] | select(.name != \"${LAPTOP_PANEL_NAME}\")] \
+| length" 2>/dev/null
+}
+
+on_mains_power() {
+    local supply type online
+    for supply in /sys/class/power_supply/*/; do
+        type=$(cat "${supply}type" 2>/dev/null) || continue
+        [[ "${type}" == "Mains" ]] || continue
+        online=$(cat "${supply}online" 2>/dev/null) || continue
+        [[ "${online}" == "1" ]] && return 0
+    done
+    return 1
+}
+
+detect_profile() {
+    local external_count
+    if external_count=$(external_monitor_count); then
+        if [[ "${external_count}" -gt 0 ]]; then
+            echo "docked"
+        else
+            echo "undocked"
+        fi
+        return
+    fi
+
+    echo "idle-profile: hyprctl/jq unavailable, falling back" \
+        "to the mains-power heuristic" >&2
+    if on_mains_power; then
+        echo "docked"
+    else
+        echo "undocked"
+    fi
+}
+
+running_hypridle_pid() {
+    pgrep -o -x hypridle || true
+}
+
+running_hypridle_config() {
+    local pid="$1" arg expect_config=""
+    [[ -r "/proc/${pid}/cmdline" ]] || return 1
+    while IFS= read -r -d '' arg; do
+        if [[ "${expect_config}" == "yes" ]]; then
+            printf '%s' "${arg}"
+            return 0
+        fi
+        [[ "${arg}" == "-c" ]] && expect_config="yes"
+    done < "/proc/${pid}/cmdline"
+    return 1
+}
+
+wait_for_exit() {
+    local pid="$1" i
+    for ((i = 0; i < PID_EXIT_MAX_POLLS; i++)); do
+        kill -0 "${pid}" 2>/dev/null || return 0
+        sleep "${PID_EXIT_POLL_INTERVAL_SECONDS}"
+    done
+    kill -KILL "${pid}" 2>/dev/null || true
+}
+
+start_hypridle() {
+    local config="$1"
+    mkdir -p "${STATE_DIR}"
+    setsid hypridle -c "${config}" >>"${HYPRIDLE_LOG}" 2>&1 \
+        < /dev/null &
+    disown
+}
+
+main() {
+    [[ $# -eq 0 ]] || usage
+    command -v hypridle >/dev/null 2>&1 || {
+        echo "error: hypridle is not installed" >&2
+        exit 1
+    }
+
+    local profile config pid current
+    profile=$(detect_profile)
+    case "${profile}" in
+        docked) config="${DOCKED_CONFIG}" ;;
+        undocked) config="${UNDOCKED_CONFIG}" ;;
+        *)
+            echo "error: unknown profile '${profile}'" >&2
+            exit 1
+            ;;
+    esac
+    [[ -r "${config}" ]] || {
+        echo "error: missing config ${config}" >&2
+        exit 1
+    }
+
+    pid=$(running_hypridle_pid)
+    if [[ -n "${pid}" ]]; then
+        current=$(running_hypridle_config "${pid}") || current=""
+        if [[ "$(readlink -f "${current}" 2>/dev/null)" \
+            == "$(readlink -f "${config}")" ]]; then
+            echo "idle-profile: ${profile} already active" \
+                "(pid ${pid})"
+            return 0
+        fi
+        kill "${pid}"
+        wait_for_exit "${pid}"
+    fi
+
+    start_hypridle "${config}"
+    echo "idle-profile: switched to ${profile} (${config})"
+}
+
+main "$@"
