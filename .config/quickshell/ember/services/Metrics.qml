@@ -49,6 +49,46 @@ Singleton {
     readonly property int gridHeight:
         root.cellHeight * root.visibleGridRows
 
+    readonly property real settingsAspect: 0.72
+    readonly property real settingsTitleScale: 1.4
+    readonly property real settingsThumbnailScale: 0.5
+    readonly property int settingsListRows: 5
+    readonly property int settingsGridRows: 2
+
+    readonly property int settingsTitleSize: Math.round(
+        (Theme.fontSizes.display ?? 0) * root.settingsTitleScale)
+
+    readonly property int settingsNavWidth: Theme.sizes.menuWidth ?? 0
+
+    readonly property int settingsWidth:
+        root.settingsNavWidth + root.surfaceWidth
+
+    readonly property int settingsHeight:
+        Math.round(root.settingsWidth * root.settingsAspect)
+
+    readonly property int settingsMinimumWidth: root.surfaceWidth
+
+    readonly property int settingsMinimumHeight:
+        Math.round(root.settingsMinimumWidth * root.settingsAspect)
+
+    readonly property int settingsListHeight:
+        (root.rowHeight + root.rowGap) * root.settingsListRows
+
+    readonly property int settingsThumbnailWidth: Math.round(
+        root.thumbnailWidth * root.settingsThumbnailScale)
+
+    readonly property int settingsThumbnailHeight: Math.round(
+        root.settingsThumbnailWidth / root.thumbnailAspect)
+
+    readonly property int settingsCellWidth:
+        root.settingsThumbnailWidth + root.gutter * 2
+
+    readonly property int settingsCellHeight:
+        root.settingsThumbnailHeight + root.rowHeight
+
+    readonly property int settingsGridHeight:
+        root.settingsCellHeight * root.settingsGridRows
+
     readonly property real lockClockScale: 3.6
     readonly property real lockPromptScale: 1.6
     readonly property real lockEntryScale: 1.4
