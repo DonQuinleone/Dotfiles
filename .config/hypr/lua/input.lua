@@ -15,24 +15,25 @@ hl.config({
 
 local devices = {
     { name = "elan0683:00-04f3:320b-touchpad", sensitivity = 0.5 },
+    { name = "apple-inc.-magic-trackpad", sensitivity = 0.95 },
 }
 
-for _, d in ipairs(devices) do
-    hl.device(d)
+for _, device in ipairs(devices) do
+    hl.device(device)
 end
 
--- Touchpads emit smooth scroll axes rather than the discrete
--- wheel clicks SUPER + mouse_up/down needs, so pinch is the
--- magnifier's touchpad entry point.
-hl.gesture({
-    fingers = 2,
-    direction = "pinch",
-    action = "cursorZoom",
-    mode = "live",
-})
+-- Two-finger pinch belongs to the browser and everything else
+-- that zooms its own content, so the magnifier takes four
+-- fingers, and workspace swipes answer to either hand shape.
+local gestures = {
+    { fingers = 4, direction = "pinch", action = "cursorZoom",
+      mode = "live" },
+    { fingers = 3, direction = "horizontal",
+      action = "workspace" },
+    { fingers = 4, direction = "horizontal",
+      action = "workspace" },
+}
 
-hl.gesture({
-    fingers = 3,
-    direction = "horizontal",
-    action = "workspace",
-})
+for _, gesture in ipairs(gestures) do
+    hl.gesture(gesture)
+end
