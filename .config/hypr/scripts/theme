@@ -29,6 +29,8 @@ source "${MODULE_DIR}/teamspeak.sh"
 source "${MODULE_DIR}/mozilla.sh"
 # shellcheck source=theme.d/firefox.sh
 source "${MODULE_DIR}/firefox.sh"
+# shellcheck source=theme.d/thunderbird.sh
+source "${MODULE_DIR}/thunderbird.sh"
 # shellcheck source=theme.d/nvim.sh
 source "${MODULE_DIR}/nvim.sh"
 # shellcheck source=theme.d/shell.sh
@@ -47,6 +49,7 @@ readonly DEFERRED_APPLIERS=(
     apply_qt
     apply_teamspeak
     apply_firefox
+    apply_thunderbird
     apply_nvim
     apply_shell
 )
