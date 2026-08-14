@@ -1,3 +1,6 @@
+local MASTER_AREA_FRACTION = 0.6
+local SCROLLING_COLUMN_FRACTION = 0.5
+
 local ember = {
     accent = "rgba(DC6F00ff)",
     accent_soft = "rgba(F0A05Aff)",
@@ -17,6 +20,15 @@ hl.config({
             inactive_border = ember.border_idle,
         },
         layout = "master",
+    },
+    master = {
+        new_status = "master",
+        new_on_top = true,
+        mfact = MASTER_AREA_FRACTION,
+    },
+    scrolling = {
+        fullscreen_on_one_column = true,
+        column_width = SCROLLING_COLUMN_FRACTION,
     },
     decoration = {
         rounding = 10,

@@ -1,4 +1,5 @@
 local actions = require("actions")
+local layouts = require("layouts")
 
 local scripts = "$HOME/.config/hypr/scripts"
 local step = actions.ZOOM_STEP
@@ -28,6 +29,13 @@ local binds = {
     { "SUPER",           "p",                     hl.dsp.window.pin()                                    },
     { "SUPER + SHIFT",   "f",                     hl.dsp.window.fullscreen()                             },
     { "SUPER + SHIFT",   "space",                 hl.dsp.window.float({ action = "toggle" })             },
+
+    -- Layouts
+    { "SUPER",           "t",                     layouts.set("master")                                  },
+    { "SUPER",           "m",                     layouts.set("monocle")                                 },
+    { "SUPER",           "s",                     layouts.set("scrolling")                               },
+    { "SUPER",           "f",                     layouts.set("floating")                                },
+    { "SUPER",           "backslash",             layouts.cycle                                          },
 
     -- Navigation
     { "SUPER",           "h",                     hl.dsp.focus({ direction = "left" })                   },

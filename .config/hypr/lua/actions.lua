@@ -125,5 +125,6 @@ function actions.resize(dx, dy)
 end
 
 actions.ZOOM_STEP = ZOOM_STEP
+actions.notify = notify
 
 return actions
