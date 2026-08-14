@@ -7,7 +7,11 @@ FocusScope {
     readonly property int padding: Theme.sizes.popupPadding ?? 0
 
     readonly property var pages: ({
-        "magnifier": magnifier
+        "appearance": appearance,
+        "magnifier": magnifier,
+        "notifications": notifications,
+        "devices": devices,
+        "bindings": bindings
     })
 
     Column {
@@ -49,8 +53,32 @@ FocusScope {
     }
 
     Component {
+        id: appearance
+
+        AppearancePane {}
+    }
+
+    Component {
         id: magnifier
 
         MagnifierPane {}
+    }
+
+    Component {
+        id: notifications
+
+        NotificationsPane {}
+    }
+
+    Component {
+        id: devices
+
+        DevicesPane {}
+    }
+
+    Component {
+        id: bindings
+
+        BindingsPane {}
     }
 }

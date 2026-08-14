@@ -5,6 +5,8 @@ local scratchpads = require("workspaces")
 -- underneath it. Sizing against the free height keeps the
 -- window clear of the panel while staying centred.
 local PANEL_HEIGHT = 48
+local SETTINGS_WIDTH_FRACTION = 0.55
+local SETTINGS_HEIGHT_FRACTION = 0.85
 
 for _, pad in ipairs(scratchpads) do
     hl.window_rule({
@@ -23,6 +25,17 @@ hl.window_rule({
     match = { title = "Picture-in-Picture" },
     float = true,
     pin = true,
+})
+
+hl.window_rule({
+    match = { class = "org.quickshell", title = "Ember settings" },
+    float = true,
+    size = {
+        "(monitor_w*" .. SETTINGS_WIDTH_FRACTION .. ")",
+        "((monitor_h-" .. PANEL_HEIGHT .. ")*"
+            .. SETTINGS_HEIGHT_FRACTION .. ")",
+    },
+    center = true,
 })
 
 -- Each surface enters from the edge it lives on, so the motion

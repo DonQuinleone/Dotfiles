@@ -32,6 +32,14 @@ FocusScope {
         root.highlighted(root.items[bounded].value);
     }
 
+    function locate(wanted: var): void {
+        if (!root.items) return;
+        const found = root.items
+            .findIndex(item => item.value === wanted);
+        if (found < 0) return;
+        root.index = found;
+    }
+
     function accept(): void {
         const item = root.items[root.index];
         if (!item) return;
@@ -80,7 +88,6 @@ FocusScope {
             onActivated: {
                 root.forceActiveFocus();
                 root.select(this.index);
-                root.chosen(this.modelData.value);
             }
         }
     }
