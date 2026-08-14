@@ -112,6 +112,7 @@ Singleton {
             image: notification.image,
             urgency: notification.urgency,
             time: Date.now(),
+            transient: notification.transient,
             actions: root.actionsOf(notification),
             live: notification
         };
@@ -136,14 +137,23 @@ Singleton {
         NotificationStore.discard(entry);
     }
 
-    function accept(notification: var): void {
-        notification.tracked = true;
-        const entry = root.describe(notification);
+    function keep(notification: var, entry: var): void {
         NotificationStore.record(entry);
         notification.closed.connect(
             reason => root.closed(entry, reason));
+    }
+
+    function silence(entry: var): void {
+        if (entry.transient) return;
+        NotificationStore.release(entry);
+    }
+
+    function accept(notification: var): void {
+        notification.tracked = true;
+        const entry = root.describe(notification);
+        if (!entry.transient) root.keep(notification, entry);
         if (root.suppressed(notification)) {
-            NotificationStore.release(entry);
+            root.silence(entry);
             return;
         }
         NotificationRules.announce(notification);

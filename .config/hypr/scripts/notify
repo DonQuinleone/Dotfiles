@@ -38,8 +38,20 @@ names_itself() {
     return 1
 }
 
-if [[ $# -eq 0 ]]; then
-    echo "usage: notify [notify-send option]... SUMMARY [BODY]" >&2
+passed=()
+hints=()
+
+for argument in "$@"; do
+    if [[ "$argument" == "--transient" ]]; then
+        hints=(--hint=boolean:transient:true)
+        continue
+    fi
+    passed+=("$argument")
+done
+
+if (( ${#passed[@]} == 0 )); then
+    echo "usage: notify [--transient]" \
+        "[notify-send option]... SUMMARY [BODY]" >&2
     exit 1
 fi
 
@@ -48,12 +60,12 @@ if ! command -v notify-send >/dev/null 2>&1; then
     exit 1
 fi
 
-if names_itself "$@"; then
-    exec notify-send "$@"
+if names_itself "${passed[@]}"; then
+    exec notify-send "${hints[@]}" "${passed[@]}"
 fi
 
 sender="$(caller_name)"
 sender="${sender%$'\n'}"
 [[ -n "$sender" ]] || sender="notify"
 
-exec notify-send --app-name "$sender" "$@"
+exec notify-send --app-name "$sender" "${hints[@]}" "${passed[@]}"

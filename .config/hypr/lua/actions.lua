@@ -7,14 +7,16 @@ local EDGE_TOLERANCE = 40
 local state_dir = (os.getenv("XDG_STATE_HOME")
     or (os.getenv("HOME") .. "/.local/state")) .. "/hypr"
 local caret_flag = state_dir .. "/caret-follow.on"
+local notify_script = "$HOME/.config/hypr/scripts/notify"
 
 local actions = {}
 
+-- The desktop's own confirmations are worth a toast but not a
+-- place in the history the user reviews later.
 local function notify(text)
     hl.exec_cmd(string.format(
-        "command -v notify-send >/dev/null 2>&1 && "
-        .. "notify-send -a Hyprland -u low -t %d -- %q",
-        NOTIFY_MS, text))
+        "%s --transient -a Hyprland -u low -t %d -- %q",
+        notify_script, NOTIFY_MS, text))
 end
 
 function actions.zoom(delta)
