@@ -56,6 +56,7 @@ PACKAGES=(
     hypridle
     hyprland
     hyprland-guiutils
+    hyprsunset
     ibm-plex-sans-fonts
     jetbrains-mono-fonts-all
     lsd
