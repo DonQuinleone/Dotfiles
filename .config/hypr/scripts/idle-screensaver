@@ -1,9 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Hook point for the milestone 9 Quickshell lava-lamp
-# screensaver. Fill start/stop in here once it exists;
-# hypridle.conf need not change again.
+readonly SHELL_CONFIG="ember"
+
 case "${1:-}" in
     start | stop) ;;
     *)
@@ -11,3 +10,8 @@ case "${1:-}" in
         exit 1
         ;;
 esac
+
+# hypridle fires this on every idle edge, including ones where
+# the shell has gone away; a missing shell is not an error.
+qs -c "${SHELL_CONFIG}" ipc call screensaver "$1" >/dev/null 2>&1 \
+    || true

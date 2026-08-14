@@ -87,9 +87,21 @@ size; every value comes from the active theme.
 | Notifications | Own daemon, history, sounds, speech |
 | Display | Volume and brightness, foot of the screen |
 | Wallpaper | Per-theme, crossfaded |
+| Lock | PAM or fingerprint, on every monitor |
+| Screensaver | Themed lava lamp, docked only |
 
 Layouts are per workspace: master stack, monocle, scrolling and
 floating, each remembered by the workspace it belongs to.
+
+Idle behaviour follows the dock. Docked, the screen dims at five
+minutes, the lava lamp takes over at eight and the screens go off
+at twelve, and the machine never suspends itself; the lamp is a
+metaball shader coloured from the active palette, kept dim and
+always moving because the primary display is an OLED. Undocked it
+dims at two, locks at three, blanks at four and suspends at
+fifteen. `loginctl lock-session` reaches the same locker, which
+authenticates against PAM, so an enrolled fingerprint unlocks as
+readily as a typed password.
 
 ## Themes
 

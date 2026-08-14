@@ -1,19 +1,22 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+readonly SHELL_CONFIG="ember"
 readonly LOCK_NOTIFY_URGENCY="critical"
 
-# Hook point for the bespoke locker (a later milestone). Until
-# it exists, fall back to hyprlock if present, otherwise warn
-# rather than blank the screen with no way to unlock it.
+if qs -c "${SHELL_CONFIG}" ipc call lock lock >/dev/null 2>&1; then
+    exit 0
+fi
+
+# Without the shell there is no locker, so the screen must be
+# left alone rather than blanked with no way back.
 if command -v hyprlock >/dev/null 2>&1; then
     exec sh -c 'pidof hyprlock || hyprlock'
 fi
 
 if command -v notify-send >/dev/null 2>&1; then
     notify-send --urgency="${LOCK_NOTIFY_URGENCY}" \
-        "No lock screen installed" \
-        "hypridle tried to lock the session, but no locker \
-is configured yet. Leaving the screen unlocked rather than \
-blanking it with no way back."
+        "No lock screen available" \
+        "The Ember shell is not running, so the session was \
+left unlocked rather than blanked with no way back."
 fi

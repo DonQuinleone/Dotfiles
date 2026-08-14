@@ -60,6 +60,38 @@ ShellRoot {
         FlashOverlay {}
     }
 
+    Variants {
+        model: Quickshell.screens
+
+        ScreensaverWindow {}
+    }
+
+    LockScreen {}
+
+    IpcHandler {
+        target: "lock"
+
+        function lock(): void {
+            Lock.lock();
+        }
+
+        function unlock(): void {
+            Lock.unlock();
+        }
+    }
+
+    IpcHandler {
+        target: "screensaver"
+
+        function start(): void {
+            Screensaver.start();
+        }
+
+        function stop(): void {
+            Screensaver.stop();
+        }
+    }
+
     IpcHandler {
         target: "screenshot"
 
