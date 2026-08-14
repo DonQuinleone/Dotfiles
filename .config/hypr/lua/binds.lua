@@ -28,6 +28,11 @@ local binds = {
     { "SUPER + SHIFT",   "t",                     hl.dsp.exec_cmd(scripts .. "/theme-menu")              },
     { "SUPER + CTRL",    "t",                     hl.dsp.exec_cmd(scripts .. "/theme-menu accent")       },
 
+    -- Notifications
+    { "SUPER",           "n",                     hl.dsp.exec_cmd("qs -c ember ipc call notifications toggleCentre") },
+    { "SUPER + SHIFT",   "n",                     hl.dsp.exec_cmd("qs -c ember ipc call notifications toggleDnd")    },
+    { "SUPER + CTRL",    "n",                     hl.dsp.exec_cmd("qs -c ember ipc call notifications dismissAll")   },
+
     -- Windows
     { "SUPER",           "q",                     hl.dsp.window.close()                                  },
     { "SUPER",           "p",                     hl.dsp.window.pin()                                    },

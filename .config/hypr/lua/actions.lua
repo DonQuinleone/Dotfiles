@@ -2,7 +2,6 @@ local ZOOM_STEP = 1.0
 local ZOOM_MIN = 1.0
 local ZOOM_MAX = 8.0
 local NOTIFY_MS = 1500
-local NOTIFY_FONT = 22
 local EDGE_TOLERANCE = 40
 
 local state_dir = (os.getenv("XDG_STATE_HOME")
@@ -12,11 +11,10 @@ local caret_flag = state_dir .. "/caret-follow.on"
 local actions = {}
 
 local function notify(text)
-    hl.notification.create({
-        text = text,
-        timeout = NOTIFY_MS,
-        font_size = NOTIFY_FONT,
-    })
+    hl.exec_cmd(string.format(
+        "command -v notify-send >/dev/null 2>&1 && "
+        .. "notify-send -a Hyprland -u low -t %d -- %q",
+        NOTIFY_MS, text))
 end
 
 function actions.zoom(delta)
