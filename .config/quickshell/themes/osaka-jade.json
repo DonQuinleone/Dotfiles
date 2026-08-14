@@ -1,6 +1,6 @@
 {
     "name": "Osaka Jade",
-    "wallpaper": "/home/user/Pictures/walls/osaka-jade/forest-moss.png",
+    "wallpaper": "~/Pictures/walls/osaka-jade/forest-moss.png",
     "reduceMotion": false,
     "palette": {
         "bg": "#111C18",

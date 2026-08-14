@@ -1,6 +1,6 @@
 {
     "name": "Dracula",
-    "wallpaper": "/home/user/Pictures/walls/dracula/leaves-bd93f9.png",
+    "wallpaper": "~/Pictures/walls/dracula/leaves-bd93f9.png",
     "reduceMotion": false,
     "palette": {
         "bg": "#282A36",

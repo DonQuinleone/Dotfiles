@@ -1,6 +1,6 @@
 {
     "name": "Solarised Dark (High Contrast)",
-    "wallpaper": "/home/user/Pictures/walls/solarised-dark/solarized-02.jpg",
+    "wallpaper": "~/Pictures/walls/solarised-dark/solarized-02.jpg",
     "reduceMotion": false,
     "palette": {
         "bg": "#00181F",

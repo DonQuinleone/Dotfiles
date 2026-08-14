@@ -1,6 +1,6 @@
 {
     "name": "Ros\u00e9 Pine Dawn",
-    "wallpaper": "/home/user/Pictures/walls/rose-pine-dawn/arch-mountain-dawn.png",
+    "wallpaper": "~/Pictures/walls/rose-pine-dawn/arch-mountain-dawn.png",
     "reduceMotion": false,
     "palette": {
         "bg": "#FAF4ED",

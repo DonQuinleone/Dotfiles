@@ -1,4 +1,5 @@
 # shellcheck shell=bash
+# shellcheck disable=SC2034
 
 readonly CONFIG_HOME="${XDG_CONFIG_HOME:-${HOME}/.config}"
 readonly STATE_DIR="${XDG_STATE_HOME:-${HOME}/.local/state}/theme"
@@ -191,14 +192,22 @@ wallpaper_override_file() {
     printf '%s/%s\n' "${WALLPAPER_STATE_DIR}" "$1"
 }
 
+expand_home() {
+    # shellcheck disable=SC2088
+    case "$1" in
+    "~/"*) printf '%s/%s\n' "${HOME}" "${1:2}" ;;
+    *) printf '%s\n' "$1" ;;
+    esac
+}
+
 resolve_wallpaper() {
     local override
     override=$(wallpaper_override_file "$1")
     if [[ -r "${override}" ]]; then
-        head -n 1 "${override}"
+        expand_home "$(head -n 1 "${override}")"
         return
     fi
-    jq -r '.wallpaper // ""' "$2"
+    expand_home "$(jq -r '.wallpaper // ""' "$2")"
 }
 
 select_theme() {

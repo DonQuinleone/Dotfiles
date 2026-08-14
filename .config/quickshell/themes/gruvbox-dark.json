@@ -1,6 +1,6 @@
 {
     "name": "Gruvbox Dark",
-    "wallpaper": "/home/user/Pictures/walls/gruvbox-dark/artists-garden-eragny.png",
+    "wallpaper": "~/Pictures/walls/gruvbox-dark/artists-garden-eragny.png",
     "reduceMotion": false,
     "palette": {
         "bg": "#282828",

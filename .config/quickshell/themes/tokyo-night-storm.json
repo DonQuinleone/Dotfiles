@@ -1,6 +1,6 @@
 {
     "name": "Tokyo Night Storm",
-    "wallpaper": "/home/user/Pictures/walls/tokyo-night-storm/architecture-dark.png",
+    "wallpaper": "~/Pictures/walls/tokyo-night-storm/architecture-dark.png",
     "reduceMotion": false,
     "palette": {
         "bg": "#24283B",

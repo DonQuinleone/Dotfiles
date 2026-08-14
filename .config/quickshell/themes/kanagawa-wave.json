@@ -1,6 +1,6 @@
 {
     "name": "Kanagawa Wave",
-    "wallpaper": "/home/user/Pictures/walls/kanagawa-wave/omarchy-kanagawa.jpg",
+    "wallpaper": "~/Pictures/walls/kanagawa-wave/omarchy-kanagawa.jpg",
     "reduceMotion": false,
     "palette": {
         "bg": "#1F1F28",

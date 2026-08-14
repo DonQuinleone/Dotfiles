@@ -1,6 +1,6 @@
 {
     "name": "Solarised Light",
-    "wallpaper": "/home/user/Pictures/walls/solarised-light/cat-coffee.png",
+    "wallpaper": "~/Pictures/walls/solarised-light/cat-coffee.png",
     "reduceMotion": false,
     "palette": {
         "bg": "#FDF6E3",

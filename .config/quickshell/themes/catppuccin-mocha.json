@@ -1,6 +1,6 @@
 {
     "name": "Catppuccin Mocha",
-    "wallpaper": "/home/user/Pictures/walls/catppuccin-mocha/space.png",
+    "wallpaper": "~/Pictures/walls/catppuccin-mocha/space.png",
     "reduceMotion": false,
     "palette": {
         "bg": "#1E1E2E",

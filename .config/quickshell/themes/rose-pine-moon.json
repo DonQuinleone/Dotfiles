@@ -1,6 +1,6 @@
 {
     "name": "Ros\u00e9 Pine Moon",
-    "wallpaper": "/home/user/Pictures/walls/rose-pine-moon/arch-mountain-moon.png",
+    "wallpaper": "~/Pictures/walls/rose-pine-moon/arch-mountain-moon.png",
     "reduceMotion": false,
     "palette": {
         "bg": "#232136",

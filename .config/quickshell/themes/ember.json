@@ -1,6 +1,6 @@
 {
     "name": "Ember",
-    "wallpaper": "/home/user/Pictures/walls/ember/orange-nebula.png",
+    "wallpaper": "~/Pictures/walls/ember/orange-nebula.png",
     "reduceMotion": false,
     "palette": {
         "bg": "#1B1B1B",

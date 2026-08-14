@@ -1,6 +1,6 @@
 {
     "name": "Gruvbox Light",
-    "wallpaper": "/home/user/Pictures/walls/gruvbox-light/harmony.png",
+    "wallpaper": "~/Pictures/walls/gruvbox-light/harmony.png",
     "reduceMotion": false,
     "palette": {
         "bg": "#FBF1C7",

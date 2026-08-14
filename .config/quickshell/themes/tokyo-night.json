@@ -1,6 +1,6 @@
 {
     "name": "Tokyo Night",
-    "wallpaper": "/home/user/Pictures/walls/tokyo-night/oma-cityscape.jpg",
+    "wallpaper": "~/Pictures/walls/tokyo-night/oma-cityscape.jpg",
     "reduceMotion": false,
     "palette": {
         "bg": "#1A1B26",
