@@ -28,6 +28,18 @@ ShellRoot {
         PickerWindow {}
     }
 
+    Variants {
+        model: Quickshell.screens
+
+        ToastLayer {}
+    }
+
+    Variants {
+        model: Quickshell.screens
+
+        NotificationCentre {}
+    }
+
     IpcHandler {
         target: "bar"
 
@@ -61,6 +73,22 @@ ShellRoot {
 
         function open(request: string): string {
             return Picker.present(request);
+        }
+    }
+
+    IpcHandler {
+        target: "notifications"
+
+        function toggleCentre(): void {
+            Notifications.toggleCentre();
+        }
+
+        function toggleDnd(): void {
+            NotificationStore.toggleDoNotDisturb();
+        }
+
+        function dismissAll(): void {
+            Notifications.dismissAll();
         }
     }
 }

@@ -129,6 +129,8 @@ PanelWindow {
 
             TrayRow {}
 
+            NotificationPill {}
+
             VolumeIndicator {}
 
             BatteryIndicator {}

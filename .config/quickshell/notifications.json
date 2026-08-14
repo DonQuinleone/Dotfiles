@@ -1,0 +1,13 @@
+{
+  "defaults": {
+    "low": { "sound": null },
+    "normal": { "sound": "info" },
+    "critical": { "sound": "critical" }
+  },
+  "applications": {
+    "Thunderbird": {
+      "sound": "message",
+      "speak": "New e-mail from {summary}"
+    }
+  }
+}
