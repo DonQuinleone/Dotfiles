@@ -1,0 +1,134 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+readonly SHELL_CONFIG=ember
+readonly IPC_TARGET=pick
+readonly GRID_MODE=grid
+readonly LIST_MODE=list
+readonly ACCEPTED_REPLY=ok
+readonly CHOSEN_STATUS=ok
+readonly CANCELLED_EXIT=1
+readonly RUNTIME_DIR="${XDG_RUNTIME_DIR:-/tmp}"
+
+prompt=""
+current=""
+mode="${LIST_MODE}"
+workspace=""
+
+die() {
+    printf 'pick: %s\n' "$*" >&2
+    exit 1
+}
+
+cleanup() {
+    if [[ -n "${workspace}" ]]; then
+        rm -rf "${workspace}"
+    fi
+}
+
+require_command() {
+    command -v "$1" >/dev/null 2>&1 ||
+        die "$1 is not installed but is required"
+}
+
+usage() {
+    cat >&2 <<'EOF'
+usage: pick [--prompt LABEL] [--current VALUE] [--grid]
+
+Shows the items read from stdin in the Ember chooser, prints
+the chosen one to stdout, and exits 1 when the user cancels.
+
+Every line is one item, split on tabs:
+
+    value <TAB> label <TAB> icon <TAB> subtitle
+
+Only value is required, and it is what gets printed. label
+defaults to value, or to the file name in grid mode. icon is
+an icon name, an absolute image path, or a #RRGGBB colour
+drawn as a swatch. subtitle is a dimmed second line.
+
+  --prompt LABEL   Label shown beside the search field.
+  --current VALUE  Mark that item as current and start on it.
+  --grid           Show the values as large image thumbnails.
+EOF
+    exit 1
+}
+
+parse_arguments() {
+    while (($# > 0)); do
+        case "$1" in
+        --prompt)
+            shift
+            (($# > 0)) || usage
+            prompt="$1"
+            ;;
+        --current)
+            shift
+            (($# > 0)) || usage
+            current="$1"
+            ;;
+        --grid) mode="${GRID_MODE}" ;;
+        -h | --help) usage ;;
+        *) usage ;;
+        esac
+        shift
+    done
+}
+
+write_request() {
+    jq -n \
+        --arg prompt "${prompt}" \
+        --arg mode "${mode}" \
+        --arg current "${current}" \
+        --arg answer "$1" \
+        --rawfile lines "$2" \
+        '{
+            prompt: $prompt,
+            mode: $mode,
+            current: $current,
+            answerPath: $answer,
+            items: ($lines
+                | rtrimstr("\n")
+                | split("\n")
+                | map(select(length > 0))
+                | map(split("\t"))
+                | map({
+                    value: .[0],
+                    label: (.[1] // ""),
+                    icon: (.[2] // ""),
+                    subtitle: (.[3] // "")
+                }))
+        }'
+}
+
+main() {
+    require_command jq
+    require_command qs
+    parse_arguments "$@"
+
+    trap cleanup EXIT
+    workspace=$(mktemp -d "${RUNTIME_DIR}/pick.XXXXXXXX")
+
+    local items="${workspace}/items"
+    local request="${workspace}/request.json"
+    local answer="${workspace}/answer"
+
+    cat >"${items}"
+    [[ -s "${items}" ]] || die "no items on stdin"
+    mkfifo "${answer}"
+    write_request "${answer}" "${items}" >"${request}"
+
+    local reply
+    reply=$(qs -c "${SHELL_CONFIG}" ipc call "${IPC_TARGET}" \
+        open "${request}")
+    [[ "${reply}" == "${ACCEPTED_REPLY}" ]] ||
+        die "the shell would not show the picker (${reply})"
+
+    local -a answered=()
+    mapfile -t answered <"${answer}"
+    [[ "${answered[0]:-}" == "${CHOSEN_STATUS}" ]] ||
+        exit "${CANCELLED_EXIT}"
+    printf '%s\n' "${answered[1]:-}"
+}
+
+main "$@"

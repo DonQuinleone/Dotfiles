@@ -40,6 +40,13 @@ Singleton {
 
     readonly property bool reduceMotion: root.data.reduceMotion ?? false
 
+    readonly property real lumaRedWeight: 0.299
+    readonly property real lumaGreenWeight: 0.587
+    readonly property real lumaBlueWeight: 0.114
+
+    readonly property color onAccent:
+        root.readableOn(root.palette.accent ?? "black")
+
     readonly property url wallpaper: root.data.wallpaper
         ? `file://${root.expandHome(root.data.wallpaper)}`
         : ""
@@ -64,6 +71,23 @@ Singleton {
 
     function easing(role: string): int {
         return root.easingCurves[root.easings[role]] ?? Easing.Linear;
+    }
+
+    function luminance(shade: color): real {
+        return shade.r * root.lumaRedWeight
+            + shade.g * root.lumaGreenWeight
+            + shade.b * root.lumaBlueWeight;
+    }
+
+    function readableOn(shade: color): color {
+        const background = root.palette.bg ?? "black";
+        const foreground = root.palette.fg ?? "white";
+        const subject = root.luminance(shade);
+        const toBackground =
+            Math.abs(subject - root.luminance(background));
+        const toForeground =
+            Math.abs(subject - root.luminance(foreground));
+        return toBackground >= toForeground ? background : foreground;
     }
 
     function expandHome(target: string): string {

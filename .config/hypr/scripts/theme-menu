@@ -1,0 +1,72 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_DIR=$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")
+readonly SCRIPT_DIR
+readonly THEME="${SCRIPT_DIR}/theme"
+readonly PICK="${SCRIPT_DIR}/pick"
+readonly CONFIG_HOME="${XDG_CONFIG_HOME:-${HOME}/.config}"
+readonly THEME_JSON_DIR="${CONFIG_HOME}/quickshell/themes"
+readonly ACTIVE_JSON="${THEME_JSON_DIR}/current.json"
+readonly WALLPAPER_ROOT="${HOME}/Pictures/walls"
+readonly THEME_PROMPT="Theme"
+readonly WALLPAPER_PROMPT="Wallpaper"
+
+die() {
+    printf 'theme-menu: %s\n' "$*" >&2
+    exit 1
+}
+
+require_command() {
+    command -v "$1" >/dev/null 2>&1 ||
+        die "$1 is not installed but is required"
+}
+
+readonly MARKER_WIDTH=2
+
+theme_items() {
+    local line slug name accent
+    while IFS= read -r line; do
+        read -r slug name <<<"${line:MARKER_WIDTH}"
+        [[ -n "${slug}" ]] || continue
+        accent=$(jq -r '.palette.accent // ""' \
+            "${THEME_JSON_DIR}/${slug}.json")
+        printf '%s\t%s\t%s\t%s\n' \
+            "${slug}" "${name:-${slug}}" "${accent}" "${slug}"
+    done < <("${THEME}" list)
+}
+
+wallpaper_items() {
+    find "${WALLPAPER_ROOT}/$1" -maxdepth 1 -type f | sort
+}
+
+choose_theme() {
+    local active
+    active=$("${THEME}" current)
+    theme_items |
+        "${PICK}" --prompt "${THEME_PROMPT}" --current "${active}"
+}
+
+choose_wallpaper() {
+    local slug="$1" current
+    current=$(jq -r '.wallpaper // ""' "${ACTIVE_JSON}")
+    wallpaper_items "${slug}" |
+        "${PICK}" --grid --prompt "${WALLPAPER_PROMPT}" \
+            --current "${current}"
+}
+
+main() {
+    (($# == 0)) || die "takes no arguments"
+    require_command jq
+    [[ -x "${PICK}" ]] || die "${PICK} is missing"
+
+    local slug wallpaper
+    slug=$(choose_theme) || exit 0
+    "${THEME}" set "${slug}"
+
+    [[ -d "${WALLPAPER_ROOT}/${slug}" ]] || exit 0
+    wallpaper=$(choose_wallpaper "${slug}") || exit 0
+    "${THEME}" wallpaper "${wallpaper}"
+}
+
+main "$@"

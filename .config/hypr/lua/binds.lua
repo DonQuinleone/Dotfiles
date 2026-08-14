@@ -12,6 +12,7 @@ local mouse = { mouse = true }
 local binds = {
     -- Session
     { "SUPER + SHIFT",   "e",                     hl.dsp.exit()                                          },
+    { "SUPER",           "Escape",                hl.dsp.exec_cmd(scripts .. "/power-menu")              },
 
     -- Applications
     { "SUPER",           "Return",                hl.dsp.exec_cmd("ghostty")                             },
@@ -23,6 +24,8 @@ local binds = {
 
     -- Shell
     { "SUPER + SHIFT",   "b",                     hl.dsp.exec_cmd("qs -c ember ipc call bar toggleFocused") },
+    { "SUPER",           "space",                 hl.dsp.exec_cmd("qs -c ember ipc call launcher toggle") },
+    { "SUPER + SHIFT",   "t",                     hl.dsp.exec_cmd(scripts .. "/theme-menu")              },
 
     -- Windows
     { "SUPER",           "q",                     hl.dsp.window.close()                                  },

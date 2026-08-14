@@ -16,6 +16,18 @@ ShellRoot {
         Bar {}
     }
 
+    Variants {
+        model: Quickshell.screens
+
+        LauncherWindow {}
+    }
+
+    Variants {
+        model: Quickshell.screens
+
+        PickerWindow {}
+    }
+
     IpcHandler {
         target: "bar"
 
@@ -25,6 +37,30 @@ ShellRoot {
 
         function toggleFocused(): void {
             BarVisibility.toggleFocused();
+        }
+    }
+
+    IpcHandler {
+        target: "launcher"
+
+        function toggle(): void {
+            Launcher.toggle();
+        }
+
+        function open(): void {
+            Launcher.show();
+        }
+
+        function close(): void {
+            Launcher.hide();
+        }
+    }
+
+    IpcHandler {
+        target: "pick"
+
+        function open(request: string): string {
+            return Picker.present(request);
         }
     }
 }
