@@ -8,6 +8,7 @@ Singleton {
     id: root
 
     readonly property int maxToasts: 5
+    readonly property int motionMs: Theme.duration("flash")
     readonly property int grabSettleMs: 250
     readonly property string unnamedApp: "Notification"
     readonly property string defaultAction: "default"

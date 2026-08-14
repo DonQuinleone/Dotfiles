@@ -23,15 +23,31 @@ Item {
     readonly property int progressHeight:
         (Theme.sizes.borderWidth ?? 0) * root.progressFactor
 
-    property real reveal: 0
+    property bool settled: false
 
-    implicitHeight: (card.implicitHeight + root.gap) * root.reveal
+    readonly property bool open: root.settled && !root.toast.closing
+
+    implicitHeight: root.open ? card.implicitHeight + root.gap : 0
+    opacity: root.open ? (Theme.opacities.full ?? 1) : 0
     clip: true
-    opacity: 0
 
     transform: Translate {
-        id: slide
+        x: root.open ? 0 : root.width
+
+        Behavior on x {
+            ToastMotion {}
+        }
     }
+
+    Behavior on implicitHeight {
+        ToastMotion {}
+    }
+
+    Behavior on opacity {
+        ToastMotion {}
+    }
+
+    Component.onCompleted: root.settled = true
 
     HoverHandler {
         id: hover
@@ -182,65 +198,6 @@ Item {
                 radius: parent.radius
                 color: root.tint
             }
-        }
-    }
-
-    ParallelAnimation {
-        running: true
-
-        NumberAnimation {
-            target: root
-            property: "reveal"
-            from: 0
-            to: 1
-            duration: Theme.duration("slow")
-            easing.type: Theme.easing("standard")
-        }
-
-        NumberAnimation {
-            target: root
-            property: "opacity"
-            from: 0
-            to: Theme.opacities.full ?? 1
-            duration: Theme.duration("slow")
-            easing.type: Theme.easing("standard")
-        }
-
-        NumberAnimation {
-            target: slide
-            property: "x"
-            from: root.width
-            to: 0
-            duration: Theme.duration("slow")
-            easing.type: Theme.easing("emphasised")
-        }
-    }
-
-    ParallelAnimation {
-        running: root.toast.closing
-
-        NumberAnimation {
-            target: root
-            property: "reveal"
-            to: 0
-            duration: Theme.duration("normal")
-            easing.type: Theme.easing("standard")
-        }
-
-        NumberAnimation {
-            target: root
-            property: "opacity"
-            to: 0
-            duration: Theme.duration("normal")
-            easing.type: Theme.easing("standard")
-        }
-
-        NumberAnimation {
-            target: slide
-            property: "x"
-            to: root.width
-            duration: Theme.duration("normal")
-            easing.type: Theme.easing("standard")
         }
     }
 }

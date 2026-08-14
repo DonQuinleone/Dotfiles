@@ -18,28 +18,34 @@ PanelWindow {
         Hyprland.focusedMonitor?.name === root.modelData.name
 
     screen: root.modelData
-    visible: root.focused && Notifications.toasts.count > 0
+    visible: root.focused
     color: Qt.alpha(Theme.palette.bg ?? "black", 0)
     exclusionMode: ExclusionMode.Normal
     exclusiveZone: 0
-    implicitWidth: root.toastWidth
-    implicitHeight: stack.implicitHeight
+    implicitWidth: root.toastWidth + root.edge
     WlrLayershell.layer: WlrLayer.Overlay
     WlrLayershell.namespace: "ember-toasts"
+
+    mask: Region {
+        item: stack
+    }
 
     anchors {
         top: true
         right: true
+        bottom: true
     }
 
     margins {
         top: root.edge
-        right: root.edge
+        bottom: root.edge
     }
 
     Column {
         id: stack
 
+        anchors.right: parent.right
+        anchors.rightMargin: root.edge
         width: root.toastWidth
 
         Repeater {

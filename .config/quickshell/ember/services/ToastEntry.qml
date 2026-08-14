@@ -32,7 +32,7 @@ QtObject {
 
     readonly property Timer exit: Timer {
         running: root.closing
-        interval: Theme.duration("normal")
+        interval: Notifications.motionMs
 
         onTriggered: Notifications.finish(root)
     }
