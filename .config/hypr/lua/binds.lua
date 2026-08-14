@@ -19,8 +19,8 @@ local binds = {
     { "SUPER",           "b",                     hl.dsp.exec_cmd("firefox")                             },
 
     -- Scratchpads
-    { "SUPER",           "backslash",             hl.dsp.workspace.toggle_special("term")                },
-    { "SUPER",           "m",                     hl.dsp.workspace.toggle_special("mail")                },
+    { "SUPER",           "d",                     hl.dsp.workspace.toggle_special("term")                },
+    { "SUPER",           "e",                     hl.dsp.workspace.toggle_special("mail")                },
 
     -- Shell
     { "SUPER + SHIFT",   "b",                     hl.dsp.exec_cmd("qs -c ember ipc call bar toggleFocused") },
@@ -40,11 +40,11 @@ local binds = {
     { "SUPER + SHIFT",   "space",                 hl.dsp.window.float({ action = "toggle" })             },
 
     -- Layouts
-    { "SUPER + ALT",     "t",                     layouts.set("master")                                  },
-    { "SUPER + ALT",     "m",                     layouts.set("monocle")                                 },
-    { "SUPER + ALT",     "s",                     layouts.set("scrolling")                               },
-    { "SUPER + ALT",     "f",                     layouts.set("floating")                                },
-    { "SUPER + ALT",     "backslash",             layouts.cycle                                          },
+    { "SUPER",           "t",                     layouts.set("master")                                  },
+    { "SUPER",           "m",                     layouts.set("monocle")                                 },
+    { "SUPER",           "s",                     layouts.set("scrolling")                               },
+    { "SUPER",           "f",                     layouts.set("floating")                                },
+    { "SUPER",           "backslash",             layouts.cycle                                          },
 
     -- Navigation
     { "SUPER",           "h",                     hl.dsp.focus({ direction = "left" })                   },
@@ -78,6 +78,11 @@ local binds = {
     { "SUPER",           "mouse_down",            actions.zoom(-step)                                    },
 
     -- Volume and brightness
+    { "SUPER + ALT",     "k",                     hl.dsp.exec_cmd("wpctl set-volume -l 1 @DEFAULT_AUDIO_SINK@ 5%+"), held },
+    { "SUPER + ALT",     "j",                     hl.dsp.exec_cmd("wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-"),      held },
+    { "SUPER + ALT",     "m",                     hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"),     locked },
+    { "SUPER + ALT",     "l",                     hl.dsp.exec_cmd("brightnessctl -e4 -n2 set 5%+"),                  held },
+    { "SUPER + ALT",     "h",                     hl.dsp.exec_cmd("brightnessctl -e4 -n2 set 5%-"),                  held },
     { "",                "XF86AudioRaiseVolume",  hl.dsp.exec_cmd("wpctl set-volume -l 1 @DEFAULT_AUDIO_SINK@ 5%+"), held },
     { "",                "XF86AudioLowerVolume",  hl.dsp.exec_cmd("wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-"),      held },
     { "",                "XF86AudioMute",         hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"),     locked },
@@ -96,6 +101,10 @@ local binds = {
     { "SUPER + SHIFT",          "p",              hl.dsp.exec_cmd(scripts .. "/screenshot region")       },
     { "SUPER + CTRL",           "p",              hl.dsp.exec_cmd(scripts .. "/screenshot output save")  },
     { "SUPER + CTRL + SHIFT",   "p",              hl.dsp.exec_cmd(scripts .. "/screenshot region save")  },
+    { "",                       "Print",          hl.dsp.exec_cmd(scripts .. "/screenshot output")       },
+    { "SHIFT",                  "Print",          hl.dsp.exec_cmd(scripts .. "/screenshot region")       },
+    { "CTRL",                   "Print",          hl.dsp.exec_cmd(scripts .. "/screenshot output save")  },
+    { "CTRL + SHIFT",           "Print",          hl.dsp.exec_cmd(scripts .. "/screenshot region save")  },
 
     -- Pointer
     { "SUPER",           "mouse:272",             hl.dsp.window.drag(),                                              mouse },
