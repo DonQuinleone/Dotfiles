@@ -27,6 +27,32 @@ EOF
 command -v hyprctl >/dev/null 2>&1 || die "hyprctl not found"
 command -v python3 >/dev/null 2>&1 || die "python3 not found"
 
+# A Lua config makes hyprctl eval the only way in, and it answers
+# "ok" before reporting a Lua error on the next line, so the exit
+# status alone would call a broken call a success.
+eval_lua() {
+    local call="$1" what="$2" dry_run="$3" output
+    if [[ "${dry_run}" == "true" ]]; then
+        printf '[dry-run] hyprctl eval %q\n' "${call}"
+        return 0
+    fi
+    output=$(hyprctl eval "${call}" 2>&1) ||
+        die "${what}: hyprctl eval could not be reached"
+    case "${output}" in
+    *error:*) die "${what}: ${output}" ;;
+    esac
+}
+
+move_workspace() {
+    local workspace_id="$1" connector="$2" dry_run="$3" call
+    call="hl.dispatch(hl.dsp.workspace.move({"
+    call+=" workspace = \"${workspace_id}\","
+    call+=" monitor = \"${connector}\" }))"
+    eval_lua "${call}" \
+        "moving workspace ${workspace_id} to ${connector}" \
+        "${dry_run}"
+}
+
 # A RETURN trap set inside a function stays armed after that
 # function returns, so per-function traps would fire again
 # (against variables no longer in scope) once an outer caller
@@ -149,28 +175,15 @@ apply_plan() {
         monitor_call+=", scale = ${scale}"
         monitor_call+=", transform = ${transform} })"
 
-        if [[ "${dry_run}" == "true" ]]; then
-            printf '[dry-run] hyprctl eval %q\n' \
-                "${monitor_call}"
-        else
-            hyprctl eval "${monitor_call}" || die \
-                "failed to configure ${connector}"
-        fi
+        eval_lua "${monitor_call}" \
+            "configuring ${connector}" "${dry_run}"
 
         local ws_ids=() workspace_id
         IFS=',' read -ra ws_ids <<<"${workspaces}"
         for workspace_id in "${ws_ids[@]}"; do
             [[ -n "${workspace_id}" ]] || continue
-            local target="${workspace_id} ${connector}"
-            if [[ "${dry_run}" == "true" ]]; then
-                printf '[dry-run] hyprctl dispatch %s %q\n' \
-                    "moveworkspacetomonitor" "${target}"
-            else
-                hyprctl dispatch moveworkspacetomonitor \
-                    "${target}" || die \
-                    "failed to move workspace" \
-                    "${workspace_id} to ${connector}"
-            fi
+            move_workspace "${workspace_id}" "${connector}" \
+                "${dry_run}"
         done
     done <<<"${plan}"
 }
@@ -347,16 +360,8 @@ PY
     local workspace_id
     while IFS= read -r workspace_id; do
         [[ -n "${workspace_id}" ]] || continue
-        local target="${workspace_id} ${PANEL_OUTPUT}"
-        if [[ "${dry_run}" == "true" ]]; then
-            printf '[dry-run] hyprctl dispatch %s %q\n' \
-                "moveworkspacetomonitor" "${target}"
-        else
-            hyprctl dispatch moveworkspacetomonitor \
-                "${target}" || die \
-                "failed to move workspace" \
-                "${workspace_id} to ${PANEL_OUTPUT}"
-        fi
+        move_workspace "${workspace_id}" "${PANEL_OUTPUT}" \
+            "${dry_run}"
     done <<<"${strays}"
 
     echo "monitor-profile: rehomed stray workspace(s) to" \
