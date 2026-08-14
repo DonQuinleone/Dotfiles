@@ -65,9 +65,11 @@ PACKAGES=(
     obs-studio
     pipx
     playerctl
+    kvantum
     qt6-qtimageformats
     qt6-qtmultimedia
     qt6-qtsvg
+    qt6ct
     quickshell-git
     rbw
     slurp
