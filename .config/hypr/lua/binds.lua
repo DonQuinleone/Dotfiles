@@ -1,4 +1,5 @@
 local actions = require("actions")
+local gaps = require("gaps")
 local layouts = require("layouts")
 
 local scripts = "$HOME/.config/hypr/scripts"
@@ -48,6 +49,7 @@ local binds = {
     { "SUPER",           "m",                     layouts.set("monocle")                                 },
     { "SUPER",           "s",                     layouts.set("scrolling")                               },
     { "SUPER",           "backslash",             layouts.cycle                                          },
+    { "SUPER",           "g",                     gaps.toggle                                            },
 
     -- Navigation
     { "SUPER",           "h",                     hl.dsp.focus({ direction = "left" })                   },
