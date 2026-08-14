@@ -5,6 +5,7 @@ Rectangle {
     id: root
 
     property alias content: layout.data
+    property bool highlighted: false
 
     implicitWidth: layout.implicitWidth
         + (Theme.sizes.barPadding ?? 0) * 2
@@ -12,7 +13,16 @@ Rectangle {
     radius: Theme.radii.normal ?? 0
     color: Theme.palette.surface ?? "transparent"
     border.width: Theme.sizes.borderWidth ?? 0
-    border.color: Theme.palette.border ?? "transparent"
+    border.color: root.highlighted
+        ? (Theme.palette.accent ?? "transparent")
+        : (Theme.palette.border ?? "transparent")
+
+    Behavior on border.color {
+        ColorAnimation {
+            duration: Theme.duration("quick")
+            easing.type: Theme.easing("standard")
+        }
+    }
 
     Row {
         id: layout

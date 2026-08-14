@@ -53,12 +53,12 @@ BarPill {
         objects: [Pipewire.defaultAudioSink]
     }
 
+    // Clicks belong to the vitals cluster underneath, which
+    // opens quick settings; only the wheel is claimed here.
     MouseArea {
         anchors.fill: parent
-        cursorShape: Qt.PointingHandCursor
+        acceptedButtons: Qt.NoButton
 
-        onClicked: if (root.sink?.audio)
-            root.sink.audio.muted = !root.muted
         onWheel: wheel => root.nudge(wheel.angleDelta.y > 0
             ? root.step : -root.step)
     }

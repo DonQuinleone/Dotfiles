@@ -27,8 +27,34 @@ Singleton {
 
     readonly property real brightness:
         root.ceiling > 0 ? root.raw / root.ceiling : 0
+    readonly property int brightnessPercent:
+        Math.round(root.brightness * 100)
 
     readonly property bool visible: root.kind !== ""
+
+    readonly property real minimumLevel: 0.0
+    readonly property real maximumLevel: 1.0
+    readonly property real darkestUsable: 0.05
+
+    function setVolume(level: real): void {
+        if (!root.sink?.audio) return;
+        root.sink.audio.volume = Math.max(root.minimumLevel,
+            Math.min(root.maximumLevel, level));
+    }
+
+    function toggleMute(): void {
+        if (!root.sink?.audio) return;
+        root.sink.audio.muted = !root.sinkMuted;
+    }
+
+    function setBrightness(level: real): void {
+        const wanted = Math.max(root.darkestUsable,
+            Math.min(root.maximumLevel, level));
+        const percent = Math.round(wanted * 100);
+        if (percent === root.brightnessPercent) return;
+        Quickshell.execDetached(
+            ["brightnessctl", "--quiet", "set", `${percent}%`]);
+    }
 
     // A fresh shell reads both devices immediately, and neither
     // reading is something the user just did.

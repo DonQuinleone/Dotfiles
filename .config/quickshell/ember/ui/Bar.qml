@@ -131,9 +131,7 @@ PanelWindow {
 
             NotificationPill {}
 
-            VolumeIndicator {}
-
-            BatteryIndicator {}
+            VitalsCluster {}
         }
     }
 

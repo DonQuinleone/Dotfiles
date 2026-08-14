@@ -19,9 +19,7 @@ BarPill {
         return Theme.palette.fg ?? "white";
     }
 
-    border.color: Notifications.centreOpen
-        ? root.tint
-        : (Theme.palette.border ?? "transparent")
+    highlighted: Notifications.centreOpen
 
     content: [
         PillText {

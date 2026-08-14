@@ -33,6 +33,7 @@ Singleton {
     readonly property var spacing: root.data.spacing ?? ({})
     readonly property var sizes: root.data.sizes ?? ({})
     readonly property var opacities: root.data.opacities ?? ({})
+    readonly property var accents: root.data.accents ?? ({})
 
     readonly property var animation: root.data.animation ?? ({})
     readonly property var durations: root.animation.durations ?? ({})
@@ -90,6 +91,12 @@ Singleton {
         return toBackground >= toForeground ? background : foreground;
     }
 
+    function applyAccent(name: string): void {
+        accentSwitch.command = [
+            `${root.configHome}/hypr/scripts/theme`, "accent", name];
+        accentSwitch.running = true;
+    }
+
     function expandHome(target: string): string {
         if (!target.startsWith("~/")) return target;
         return `${Quickshell.env("HOME")}${target.substring(1)}`;
@@ -105,6 +112,10 @@ Singleton {
     }
 
     Component.onCompleted: root.reparse()
+
+    Process {
+        id: accentSwitch
+    }
 
     FileView {
         id: file
