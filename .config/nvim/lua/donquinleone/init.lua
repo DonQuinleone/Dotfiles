@@ -1,5 +1,4 @@
 require("donquinleone.remap")
-require("donquinleone.lazy")
 require("donquinleone.set")
 local theme = require("donquinleone.theme")
 theme.apply()
