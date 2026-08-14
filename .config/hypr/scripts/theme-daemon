@@ -6,6 +6,11 @@ THEME=$CONFIG/hypr/scripts/theme
 THEMES=$CONFIG/quickshell/themes
 SETTLE_SECONDS=1
 
+# A session restart runs autostart again while the previous
+# daemons are still alive, so the lock keeps one of each.
+exec 9>"${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/theme-daemon.lock"
+flock -n 9 || exit 0
+
 die() {
     printf 'theme-daemon: %s\n' "$1" >&2
     exit 1
