@@ -106,7 +106,9 @@ local function coloured(ui, text)
         IncSearch = { fg = ui.bg, bg = text.accent, bold = true },
         Keyword = { fg = text.accent, bold = true },
         LineNr = { fg = text.fgDim },
-        MatchParen = { fg = text.accent, bold = true, underline = true },
+        MatchParen = {
+            fg = text.accent, bold = true, underline = true,
+        },
         ModeMsg = { fg = text.fg, bold = true },
         MoreMsg = { fg = text.good },
         MsgSeparator = { fg = ui.borderStrong },
@@ -152,7 +154,9 @@ local function coloured(ui, text)
         DiagnosticWarn = { fg = text.warn },
         DiagnosticUnderlineError = { undercurl = true, sp = text.bad },
         DiagnosticUnderlineHint = { undercurl = true, sp = text.good },
-        DiagnosticUnderlineInfo = { undercurl = true, sp = text.accent },
+        DiagnosticUnderlineInfo = {
+            undercurl = true, sp = text.accent,
+        },
         DiagnosticUnderlineWarn = { undercurl = true, sp = text.warn },
         ["@attribute"] = { fg = text.accent },
         ["@constructor"] = { fg = text.warn },
