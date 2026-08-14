@@ -1,12 +1,13 @@
 local state_dir = (os.getenv("XDG_STATE_HOME")
     or (os.getenv("HOME") .. "/.local/state")) .. "/hypr"
-local profile_file = state_dir .. "/motion"
+local state_file = state_dir .. "/motion"
 
-local DEFAULT_PROFILE = "full"
+local DEFAULT_SCALE = 1.0
+local MINIMUM_SPEED_DS = 0.2
+local MAXIMUM_SPEED_DS = 100
 local POPIN_STYLE = "popin 87%"
 local SPECIAL_STYLE = "slidefadevert 15%"
-local INSTANT_SPEED_DS = 0.4
-local INSTANT_CURVE = "linear"
+local SCALED_CURVE = "emberOut"
 
 -- Deciseconds for one full turn of the focused window's border
 -- gradient, at the slowest Hyprland will accept. Looping an angle
@@ -51,53 +52,72 @@ local animations = {
     { leaf = "zoomFactor", speed = 1.5, bezier = "emberQuick" },
 }
 
-local profiles = {
-    full = { drift = true },
-    reduced = { drift = false, speed = INSTANT_SPEED_DS,
-        bezier = INSTANT_CURVE },
-}
-
-local function leaf_spec(row, profile)
-    local spec = {
-        leaf = row.leaf,
-        enabled = not row.loops or profile.drift,
-        speed = profile.speed or row.speed,
-        style = row.style,
-    }
-    if profile.bezier ~= nil then
-        spec.bezier = profile.bezier
-        return spec
+-- The drift is ambient rather than responsive, so the scale
+-- leaves its period alone and the switch alone governs it.
+local function speed_for(row, scale)
+    if row.loops then
+        return row.speed
     end
-    spec.bezier = row.bezier
-    spec.spring = row.spring
-    return spec
+    return math.max(MINIMUM_SPEED_DS,
+        math.min(MAXIMUM_SPEED_DS, row.speed * scale))
+end
+
+-- A spring ignores speed, so a scaled scheme has to trade it for
+-- a bezier or window motion would be the one thing that never
+-- answered the slider.
+local function curve_for(row, scale)
+    if row.spring == nil then
+        return { bezier = row.bezier }
+    end
+    if scale == DEFAULT_SCALE then
+        return { spring = row.spring }
+    end
+    return { bezier = SCALED_CURVE }
+end
+
+local function leaf_spec(row, scale, drift)
+    local curve = curve_for(row, scale)
+    return {
+        leaf = row.leaf,
+        enabled = not row.loops or drift,
+        speed = speed_for(row, scale),
+        style = row.style,
+        bezier = curve.bezier,
+        spring = curve.spring,
+    }
+end
+
+local function stored_values()
+    local file = io.open(state_file, "r")
+    if file == nil then
+        return {}
+    end
+    local values = {}
+    for line in file:lines() do
+        local key, value = line:match("^(%a+)=(%S+)$")
+        if key ~= nil then
+            values[key] = value
+        end
+    end
+    file:close()
+    return values
 end
 
 local motion = {}
 
-motion.DEFAULT_PROFILE = DEFAULT_PROFILE
-
-function motion.apply(name)
-    local profile = profiles[name] or profiles[DEFAULT_PROFILE]
+function motion.apply(scale, drift)
     for _, curve in ipairs(curves) do
         hl.curve(curve[1], curve[2])
     end
     for _, row in ipairs(animations) do
-        hl.animation(leaf_spec(row, profile))
+        hl.animation(leaf_spec(row, scale, drift))
     end
 end
 
-function motion.profile()
-    local file = io.open(profile_file, "r")
-    if file == nil then
-        return DEFAULT_PROFILE
-    end
-    local name = file:read("*l")
-    file:close()
-    if profiles[name] == nil then
-        return DEFAULT_PROFILE
-    end
-    return name
+function motion.stored()
+    local values = stored_values()
+    return tonumber(values.scale) or DEFAULT_SCALE,
+        values.drift ~= "off"
 end
 
 return motion

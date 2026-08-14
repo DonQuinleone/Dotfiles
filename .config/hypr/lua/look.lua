@@ -63,7 +63,7 @@ hl.config({
     },
 })
 
-motion.apply(motion.profile())
+motion.apply(motion.stored())
 
 -- Palette-driven colours are written by the theme script and
 -- are absent until it has run once, so Hyprland's own defaults
