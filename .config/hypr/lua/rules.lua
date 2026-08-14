@@ -37,7 +37,7 @@ local layers = {
       animation = "slide right" },
     { namespace = "^ember-quick-settings$",
       animation = "slide right" },
-    { namespace = "^ember-osd$", animation = "popin 90%" },
+    { namespace = "^ember-osd$", animation = "slide bottom" },
     { namespace = "^ember-chooser$", animation = "popin 92%" },
     { namespace = "^ember-screensaver$", animation = "fade" },
     { namespace = "^ember-wallpaper$", no_anim = true },
