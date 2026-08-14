@@ -19,13 +19,17 @@ usage() {
 # profile, since a dock without a monitor attached carries no
 # burn-in risk either. Mains power is not authoritative for
 # that decision and is used only as a fallback below, for when
-# hyprctl/jq cannot be reached at all.
+# hyprctl cannot be reached at all.
 external_monitor_count() {
     command -v hyprctl >/dev/null 2>&1 || return 1
-    command -v jq >/dev/null 2>&1 || return 1
-    hyprctl -j monitors 2>/dev/null \
-        | jq "[.[] | select(.name != \"${LAPTOP_PANEL_NAME}\")] \
-| length" 2>/dev/null
+    hyprctl -j monitors 2>/dev/null | python3 -c '
+import json
+import sys
+
+panel = sys.argv[1]
+monitors = json.load(sys.stdin)
+print(len([m for m in monitors if m["name"] != panel]))
+' "${LAPTOP_PANEL_NAME}" 2>/dev/null
 }
 
 on_mains_power() {
