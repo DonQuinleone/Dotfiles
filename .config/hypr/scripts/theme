@@ -1,0 +1,124 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_DIR=$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")
+readonly SCRIPT_DIR
+readonly MODULE_DIR="${SCRIPT_DIR}/theme.d"
+TEMPLATE_DIR=$(dirname "${SCRIPT_DIR}")/themes
+readonly TEMPLATE_DIR
+
+# shellcheck source=theme.d/common.sh
+source "${MODULE_DIR}/common.sh"
+# shellcheck source=theme.d/quickshell.sh
+source "${MODULE_DIR}/quickshell.sh"
+# shellcheck source=theme.d/hyprland.sh
+source "${MODULE_DIR}/hyprland.sh"
+# shellcheck source=theme.d/ghostty.sh
+source "${MODULE_DIR}/ghostty.sh"
+# shellcheck source=theme.d/gtk.sh
+source "${MODULE_DIR}/gtk.sh"
+# shellcheck source=theme.d/qt.sh
+source "${MODULE_DIR}/qt.sh"
+# shellcheck source=theme.d/teamspeak.sh
+source "${MODULE_DIR}/teamspeak.sh"
+# shellcheck source=theme.d/nvim.sh
+source "${MODULE_DIR}/nvim.sh"
+
+readonly SLUG_COLUMN_WIDTH=20
+
+readonly APPLIERS=(
+    apply_quickshell
+    apply_hyprland
+    apply_ghostty
+    apply_gtk
+    apply_qt
+    apply_teamspeak
+    apply_nvim
+)
+
+declare -rA COMMANDS=(
+    [list]=cmd_list
+    [current]=cmd_current
+    [set]=cmd_set
+    [wallpaper]=cmd_wallpaper
+)
+
+usage() {
+    cat >&2 <<'EOF'
+usage: theme list
+       theme current
+       theme set <name>
+       theme wallpaper [path]
+EOF
+    exit 1
+}
+
+cmd_list() {
+    (($# == 0)) || usage
+    local active slug marker name slugs=()
+    active=$(active_slug)
+    mapfile -t slugs < <(theme_slugs)
+    ((${#slugs[@]} > 0)) ||
+        die "no theme files in ${THEME_JSON_DIR}"
+    for slug in "${slugs[@]}"; do
+        marker=" "
+        [[ "${slug}" == "${active}" ]] && marker="*"
+        name=$(jq -r '.name // ""' \
+            "${THEME_JSON_DIR}/${slug}.json")
+        printf "%s %-${SLUG_COLUMN_WIDTH}s %s\n" \
+            "${marker}" "${slug}" "${name}"
+    done
+}
+
+cmd_current() {
+    (($# == 0)) || usage
+    active_slug
+}
+
+cmd_set() {
+    (($# == 1)) || usage
+    select_theme "$1"
+    mkdir -p "${STATE_DIR}" "${WALLPAPER_STATE_DIR}"
+    local applier
+    for applier in "${APPLIERS[@]}"; do
+        "${applier}"
+    done
+    printf '%s\n' "${THEME_SLUG}" >"${ACTIVE_NAME_FILE}"
+}
+
+random_wallpaper() {
+    local directory="${WALLPAPER_ROOT}/$1" choice
+    [[ -d "${directory}" ]] ||
+        die "no wallpaper directory ${directory}"
+    choice=$(find "${directory}" -maxdepth 1 -type f -print0 |
+        shuf -z -n 1 | tr -d '\0')
+    [[ -n "${choice}" ]] ||
+        die "no wallpapers in ${directory}"
+    printf '%s\n' "${choice}"
+}
+
+cmd_wallpaper() {
+    (($# <= 1)) || usage
+    local slug chosen
+    slug=$(active_slug)
+    chosen="${1:-$(random_wallpaper "${slug}")}"
+    [[ -f "${chosen}" ]] ||
+        die "no such wallpaper: ${chosen}"
+    mkdir -p "${WALLPAPER_STATE_DIR}"
+    printf '%s\n' "${chosen}" \
+        >"$(wallpaper_override_file "${slug}")"
+    select_theme "${slug}"
+    apply_quickshell
+}
+
+main() {
+    require_command jq
+    (($# >= 1)) || usage
+    local command="$1" handler
+    shift
+    handler="${COMMANDS[${command}]:-}"
+    [[ -n "${handler}" ]] || usage
+    "${handler}" "$@"
+}
+
+main "$@"

@@ -7,11 +7,18 @@ import Quickshell.Io
 Singleton {
     id: root
 
-    readonly property string themeName: "ember"
+    readonly property string activeTheme: "current"
+    readonly property string fallbackTheme: "ember"
+
+    property bool usingFallback: false
 
     readonly property string configHome:
         Quickshell.env("XDG_CONFIG_HOME")
         ?? `${Quickshell.env("HOME")}/.config`
+
+    readonly property string themeName: root.usingFallback
+        ? root.fallbackTheme
+        : root.activeTheme
 
     readonly property string path:
         `${root.configHome}/quickshell/themes/${root.themeName}.json`
@@ -84,8 +91,14 @@ Singleton {
 
         onFileChanged: this.reload()
         onLoaded: root.reparse()
-        onLoadFailed: error => console.error(
-            `ember: cannot read ${root.path}:`,
-            FileViewError.toString(error))
+        onLoadFailed: error => {
+            if (!root.usingFallback) {
+                root.usingFallback = true;
+                return;
+            }
+            console.error(
+                `ember: cannot read ${root.path}:`,
+                FileViewError.toString(error));
+        }
     }
 }

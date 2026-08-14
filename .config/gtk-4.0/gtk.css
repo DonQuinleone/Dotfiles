@@ -1,8 +1,0 @@
-@define-color accent_bg_color #DC6F00;
-@define-color accent_fg_color #1B1B1B;
-@define-color accent_color #F0A05A;
-
-selection {
-    background-color: @accent_bg_color;
-    color: @accent_fg_color;
-}

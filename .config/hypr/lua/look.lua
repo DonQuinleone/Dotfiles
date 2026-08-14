@@ -1,24 +1,14 @@
 local MASTER_AREA_FRACTION = 0.6
 local SCROLLING_COLUMN_FRACTION = 0.5
 
-local ember = {
-    accent = "rgba(DC6F00ff)",
-    accent_soft = "rgba(F0A05Aff)",
-    border_idle = "rgba(3A332Dff)",
-}
+local state = os.getenv("XDG_STATE_HOME")
+    or (os.getenv("HOME") .. "/.local/state")
 
 hl.config({
     general = {
         gaps_in = 6,
         gaps_out = 12,
         border_size = 4,
-        col = {
-            active_border = {
-                colors = { ember.accent, ember.accent_soft },
-                angle = 45,
-            },
-            inactive_border = ember.border_idle,
-        },
         layout = "master",
     },
     master = {
@@ -92,3 +82,8 @@ end
 for _, a in ipairs(animations) do
     hl.animation(a)
 end
+
+-- Palette-driven colours are written by the theme script and
+-- are absent until it has run once, so Hyprland's own defaults
+-- stand in on a machine that has never applied a theme.
+pcall(dofile, state .. "/theme/hyprland.lua")

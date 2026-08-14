@@ -1,0 +1,165 @@
+p {
+  padding: 0px;
+  margin: 0px;
+}
+
+.TextMessage_UserLink {
+  color: @accent@;
+  font-weight: bold;
+  text-decoration: none;
+}
+
+.TextMessage_OfflineLink,
+.TextMessage_ChannelLink,
+.TextMessage_ServerLink {
+  color: @accentSoft@;
+  font-weight: bold;
+  text-decoration: none;
+}
+
+.TextMessage_HostName {
+  color: @accent@;
+  font-weight: bold;
+}
+
+.TextMessage_Welcome,
+.TextMessage_HostMessage,
+.TextMessage_Poke {
+  color: @good@;
+}
+
+.TextMessage_Normal,
+.TextMessage_Connected,
+.TextMessage_ClientConnected,
+.TextMessage_ClientJoined {
+  color: @fgDim@;
+}
+
+.TextMessage_Disconnected,
+.TextMessage_ClientDisconnected,
+.TextMessage_ClientSwitched,
+.TextMessage_ClientLeft {
+  color: @fgFaint@;
+}
+
+.TextMessage_ClientDropped,
+.TextMessage_ClientKicked,
+.TextMessage_ClientBanned {
+  color: @bad@;
+}
+
+.TextMessage_ChannelCreated,
+.TextMessage_ChannelDeleted,
+.TextMessage_ChannelEdited,
+.TextMessage_ChannelMoved,
+.TextMessage_ServerEdited {
+  color: @fgDim@;
+}
+
+.TextMessage_GroupAssigned,
+.TextMessage_GroupRevoked,
+.TextMessage_TalkPowerAssigned,
+.TextMessage_TalkPowerRevoked,
+.TextMessage_TalkPowerRequested {
+  color: @warn@;
+}
+
+.TextMessage_Text {
+  color: @fg@;
+}
+
+.TextMessage_Time {
+  color: @fgDim@;
+  font-weight: normal;
+}
+
+.TextMessage_BeginHistory,
+.TextMessage_EndHistory {
+  color: @fgFaint@;
+  font-weight: bold;
+  font-style: italic;
+}
+
+.TextMessage_ServerError {
+  color: @bad@;
+  font-weight: bold;
+}
+
+.InfoFrame_Title {
+  font-size: x-large;
+  color: @fg@;
+}
+
+.InfoFrame_Title .TextMessage_UserLink,
+.InfoFrame_Title .TextMessage_ChannelLink,
+.InfoFrame_Title .TextMessage_ServerLink {
+  color: @accent@;
+  font-weight: normal;
+}
+
+.InfoFrame_Title .InfoFrame_CustomNick {
+  color: @accent@;
+}
+
+.InfoFrame_Table {
+  border-collapse: collapse;
+  border-spacing: 0px;
+  color: @fg@;
+}
+
+.InfoFrame_Table td {
+  padding: 0px 4px 0px 1px;
+}
+
+.Highlight,
+.InfoFrame_Table td.Highlight {
+  color: @accent@;
+}
+
+.Important,
+.InfoFrame_Table td.Important {
+  color: @bad@;
+}
+
+.Active,
+.InfoFrame_Table td.Active {
+  color: @good@;
+}
+
+.Inactive,
+.InfoFrame_Table td.Inactive {
+  color: @fgFaint@;
+}
+
+.InfoFrame_Table td.Label {
+  font-weight: bold;
+  color: @fgDim@;
+}
+
+.InfoFrame_Table td.Bottom {
+  vertical-align: bottom;
+}
+
+.InfoFrame_Table td.List {
+  padding: 0px 1px 0px 8px;
+}
+
+.InfoFrame_Table td.Badge {
+  padding: 5px 5px 0px 5px;
+}
+
+.InfoFrame_Table td.Space-Top {
+  padding: 10px 0px 0px 0px;
+}
+
+.InfoFrame_Table td.Space-Bot {
+  padding: 0px 0px 10px 0px;
+}
+
+.InfoFrame_Table.Space-Top {
+  margin: 10px 0px 0px 0px;
+}
+
+.InfoFrame_Table.Space-Bot {
+  margin: 0px 0px 10px 0px;
+}
