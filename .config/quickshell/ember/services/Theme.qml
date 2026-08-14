@@ -1,0 +1,91 @@
+pragma Singleton
+
+import QtQuick
+import Quickshell
+import Quickshell.Io
+
+Singleton {
+    id: root
+
+    readonly property string themeName: "ember"
+
+    readonly property string configHome:
+        Quickshell.env("XDG_CONFIG_HOME")
+        ?? `${Quickshell.env("HOME")}/.config`
+
+    readonly property string path:
+        `${root.configHome}/quickshell/themes/${root.themeName}.json`
+
+    property var data: ({})
+
+    readonly property var palette: root.data.palette ?? ({})
+    readonly property var fonts: root.data.fonts ?? ({})
+    readonly property var fontSizes: root.data.fontSizes ?? ({})
+    readonly property var fontWeights: root.data.fontWeights ?? ({})
+    readonly property var radii: root.data.radii ?? ({})
+    readonly property var spacing: root.data.spacing ?? ({})
+    readonly property var sizes: root.data.sizes ?? ({})
+    readonly property var opacities: root.data.opacities ?? ({})
+
+    readonly property var animation: root.data.animation ?? ({})
+    readonly property var durations: root.animation.durations ?? ({})
+    readonly property var easings: root.animation.easings ?? ({})
+
+    readonly property bool reduceMotion: root.data.reduceMotion ?? false
+
+    readonly property url wallpaper: root.data.wallpaper
+        ? `file://${root.expandHome(root.data.wallpaper)}`
+        : ""
+
+    readonly property var easingCurves: ({
+        "Linear": Easing.Linear,
+        "InQuad": Easing.InQuad,
+        "OutQuad": Easing.OutQuad,
+        "InOutQuad": Easing.InOutQuad,
+        "OutCubic": Easing.OutCubic,
+        "InOutCubic": Easing.InOutCubic,
+        "OutQuart": Easing.OutQuart,
+        "OutQuint": Easing.OutQuint,
+        "OutExpo": Easing.OutExpo,
+        "OutBack": Easing.OutBack
+    })
+
+    function duration(role: string): int {
+        if (root.reduceMotion) return 0;
+        return root.durations[role] ?? 0;
+    }
+
+    function easing(role: string): int {
+        return root.easingCurves[root.easings[role]] ?? Easing.Linear;
+    }
+
+    function expandHome(target: string): string {
+        if (!target.startsWith("~/")) return target;
+        return `${Quickshell.env("HOME")}${target.substring(1)}`;
+    }
+
+    function reparse(): void {
+        try {
+            root.data = JSON.parse(file.text());
+        } catch (error) {
+            console.error(
+                `ember: ${root.path} is not valid JSON:`, error);
+        }
+    }
+
+    Component.onCompleted: root.reparse()
+
+    FileView {
+        id: file
+
+        path: root.path
+        watchChanges: true
+        blockLoading: true
+
+        onFileChanged: this.reload()
+        onLoaded: root.reparse()
+        onLoadFailed: error => console.error(
+            `ember: cannot read ${root.path}:`,
+            FileViewError.toString(error))
+    }
+}
