@@ -19,8 +19,8 @@ local binds = {
     { "SUPER",           "b",                     hl.dsp.exec_cmd("firefox")                             },
 
     -- Scratchpads
-    { "SUPER",           "grave",                 hl.dsp.workspace.toggle_special("term")                },
-    { "SUPER + SHIFT",   "grave",                 hl.dsp.workspace.toggle_special("mail")                },
+    { "SUPER",           "backslash",             hl.dsp.workspace.toggle_special("term")                },
+    { "SUPER",           "m",                     hl.dsp.workspace.toggle_special("mail")                },
 
     -- Shell
     { "SUPER + SHIFT",   "b",                     hl.dsp.exec_cmd("qs -c ember ipc call bar toggleFocused") },
@@ -40,11 +40,11 @@ local binds = {
     { "SUPER + SHIFT",   "space",                 hl.dsp.window.float({ action = "toggle" })             },
 
     -- Layouts
-    { "SUPER",           "t",                     layouts.set("master")                                  },
-    { "SUPER",           "m",                     layouts.set("monocle")                                 },
-    { "SUPER",           "s",                     layouts.set("scrolling")                               },
-    { "SUPER",           "f",                     layouts.set("floating")                                },
-    { "SUPER",           "backslash",             layouts.cycle                                          },
+    { "SUPER + ALT",     "t",                     layouts.set("master")                                  },
+    { "SUPER + ALT",     "m",                     layouts.set("monocle")                                 },
+    { "SUPER + ALT",     "s",                     layouts.set("scrolling")                               },
+    { "SUPER + ALT",     "f",                     layouts.set("floating")                                },
+    { "SUPER + ALT",     "backslash",             layouts.cycle                                          },
 
     -- Navigation
     { "SUPER",           "h",                     hl.dsp.focus({ direction = "left" })                   },

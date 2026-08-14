@@ -20,8 +20,8 @@ local scratchpads = {
     },
     {
         workspace = "special:mail",
-        class = "com.donquinleone.scratchmail",
-        exec = "antiphon",
+        class = "thunderbird",
+        command = "thunderbird",
         width = 0.96,
         height = 0.94,
     },
