@@ -1,10 +1,32 @@
 # fedora-dots
 
+```
+ (        *
+     .          *
+        ╲     ╱
+         ╲   ╱
+          ╲ ╱
+           *
+          ╱ ╲
+         ╱   ╲
+        ╱     ╲
+       ▄██████▄
+       ████████
+      ██████████
+     ████████████
+   ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
+```
+
 My Fedora desktop, kept as a single GNU Stow package so a fresh
 machine is one clone and one command away from the setup I
 actually work in: a Hyprland session with a Quickshell desktop
 built for a magnifier, seventeen themes that switch the whole
-system at once, Ghostty, Neovim, fish and lsd.
+system at once, Ghostty, Neovim, fish, lsd and fastfetch.
+
+I go by DonQuinleone online, a portmanteau of Don Quixote and
+Corleone, and the logo above is the nod: a windmill for the Don
+tilting at giants, under a sky that carries the rest of the
+magic.
 
 The repository mirrors `$HOME`, so every path below appears in
 the repo exactly where it lands on disk.
@@ -148,6 +170,35 @@ every terminal actually opened.
 Both prompts colour the username from the active theme and
 re-read it on every draw, so switching theme repaints the next
 prompt without restarting the shell.
+
+## Fetch
+
+`fastfetch` shows the windmill logo beside system information.
+The logo, its eight rotation frames and a small cycling script
+live under `.config/fastfetch/logo`.
+
+I tried playing an animated GIF of the windmill through the
+kitty graphics protocol (`fastfetch`'s `kitty-icat` logo type,
+which `fastfetch --logo-type kitty-icat` documents as supported
+by Kitty and iTerm). In a real Ghostty window it only ever drew
+the first frame: two screenshots a second apart were pixel
+identical. Ghostty's graphics protocol support doesn't yet cover
+the animation frame extension that playback needs, so the logo
+falls back to `.config/fastfetch/logo/animate`, a small script
+that redraws the eight text frames in place with `tput`:
+
+    ~/.config/fastfetch/logo/animate
+
+Run it directly for the full spinning windmill; `fastfetch`
+itself shows the static logo, since it prints its report once
+and exits.
+
+The logo is coloured for Ember (background `#1B1B1B`, foreground
+`#E7E7E7`, accent `#DC6F00`), the default of the seventeen
+themes above. It isn't wired into the theme engine yet, so
+switching theme doesn't recolour it; a later milestone can teach
+`theme set` to regenerate `.config/fastfetch/logo/logo-color.txt`
+the way it already does for Ghostty, GTK and the rest.
 
 ## Known rough edges
 

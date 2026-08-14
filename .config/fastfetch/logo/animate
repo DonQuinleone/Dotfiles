@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+readonly frame_interval_seconds="0.15"
+readonly loop_count=3
+
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+frames_dir="${script_dir}/frames"
+
+mapfile -t frames < <(find "${frames_dir}" -maxdepth 1 \
+    -name 'frame-*.txt' | sort)
+
+if [[ ${#frames[@]} -eq 0 ]]; then
+    echo "animate: no frames found in ${frames_dir}" >&2
+    exit 1
+fi
+
+restore_cursor() {
+    tput cnorm
+}
+trap restore_cursor EXIT
+
+tput civis
+tput sc
+for ((loop = 0; loop < loop_count; loop++)); do
+    for frame in "${frames[@]}"; do
+        tput rc
+        cat "${frame}"
+        sleep "${frame_interval_seconds}"
+    done
+done
+printf '\n'
