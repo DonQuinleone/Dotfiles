@@ -1,5 +1,5 @@
 {
-    "name": "Rosé Pine Dawn",
+    "name": "Ros\u00e9 Pine Dawn",
     "wallpaper": "/home/user/Pictures/walls/rose-pine-dawn/arch-mountain-dawn.png",
     "reduceMotion": false,
     "palette": {
@@ -9,7 +9,7 @@
         "fg": "#464261",
         "fgDim": "#797593",
         "accent": "#907AA9",
-        "accentSoft": "#D7827E",
+        "accentSoft": "#9483A7",
         "border": "#9893A5",
         "good": "#286983",
         "warn": "#EA9D34",

@@ -1,5 +1,5 @@
 {
-    "name": "Rosé Pine Moon",
+    "name": "Ros\u00e9 Pine Moon",
     "wallpaper": "/home/user/Pictures/walls/rose-pine-moon/arch-mountain-moon.png",
     "reduceMotion": false,
     "palette": {
@@ -9,7 +9,7 @@
         "fg": "#E0DEF4",
         "fgDim": "#908CAA",
         "accent": "#C4A7E7",
-        "accentSoft": "#EA9A97",
+        "accentSoft": "#AE8FD4",
         "border": "#6E6A86",
         "good": "#3E8FB0",
         "warn": "#F6C177",

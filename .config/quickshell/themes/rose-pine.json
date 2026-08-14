@@ -1,5 +1,5 @@
 {
-    "name": "Rosé Pine",
+    "name": "Ros\u00e9 Pine",
     "wallpaper": "/home/user/Pictures/walls/rose-pine/arch-mountain.png",
     "reduceMotion": false,
     "palette": {
@@ -9,7 +9,7 @@
         "fg": "#E0DEF4",
         "fgDim": "#908CAA",
         "accent": "#C4A7E7",
-        "accentSoft": "#EBBCBA",
+        "accentSoft": "#AC8CD3",
         "border": "#6E6A86",
         "good": "#31748F",
         "warn": "#F6C177",
