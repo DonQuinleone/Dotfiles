@@ -1,0 +1,235 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_DIR=$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")
+readonly SCRIPT_DIR
+readonly SUN_HELPER="${SCRIPT_DIR}/night-shift-sun"
+
+readonly CONFIG_HOME="${XDG_CONFIG_HOME:-${HOME}/.config}"
+readonly STATE_HOME="${XDG_STATE_HOME:-${HOME}/.local/state}"
+readonly STATE_DIR="${STATE_HOME}/night-shift"
+readonly OVERRIDE_FILE="${STATE_DIR}/override"
+readonly USER_CONFIG="${CONFIG_HOME}/night-shift.conf"
+
+# London, the astral library's own placeholder default: close
+# enough to the UK to be a sensible fallback, and nobody's real
+# address, so it is safe to commit.
+readonly DEFAULT_LATITUDE=51.4733
+readonly DEFAULT_LONGITUDE=-0.0008333
+readonly DEFAULT_DAY_TEMPERATURE=6500
+readonly DEFAULT_NIGHT_TEMPERATURE=5000
+readonly DEFAULT_TRANSITION_MINUTES=90
+readonly DEFAULT_ENABLED=1
+readonly MIN_TEMPERATURE_K=1000
+readonly MAX_TEMPERATURE_K=20000
+
+LATITUDE="${DEFAULT_LATITUDE}"
+LONGITUDE="${DEFAULT_LONGITUDE}"
+DAY_TEMPERATURE="${DEFAULT_DAY_TEMPERATURE}"
+NIGHT_TEMPERATURE="${DEFAULT_NIGHT_TEMPERATURE}"
+TRANSITION_MINUTES="${DEFAULT_TRANSITION_MINUTES}"
+ENABLED="${DEFAULT_ENABLED}"
+
+# shellcheck disable=SC1090
+[[ -r "${USER_CONFIG}" ]] && source "${USER_CONFIG}"
+
+die() {
+    printf 'night-shift: %s\n' "$*" >&2
+    exit 1
+}
+
+warn() {
+    printf 'night-shift: %s\n' "$*" >&2
+}
+
+require_command() {
+    command -v "$1" >/dev/null 2>&1 ||
+        die "$1 is not installed but is required"
+}
+
+usage() {
+    cat >&2 <<'EOF'
+usage: night-shift status
+       night-shift apply
+       night-shift on|off|auto|toggle
+EOF
+    exit 1
+}
+
+validate_temperature() {
+    local value="$1" label="$2"
+    [[ "${value}" =~ ^[0-9]+$ ]] ||
+        die "${label} must be a whole number of Kelvin"
+    (( value >= MIN_TEMPERATURE_K && value <= MAX_TEMPERATURE_K )) ||
+        die "${label} must be between ${MIN_TEMPERATURE_K} and" \
+            "${MAX_TEMPERATURE_K}"
+}
+
+validate_temperature "${DAY_TEMPERATURE}" "DAY_TEMPERATURE"
+validate_temperature "${NIGHT_TEMPERATURE}" "NIGHT_TEMPERATURE"
+
+read_override() {
+    [[ -r "${OVERRIDE_FILE}" ]] || { printf ''; return 0; }
+    local value
+    value=$(<"${OVERRIDE_FILE}")
+    case "${value}" in
+    on | off) printf '%s' "${value}" ;;
+    *) printf '' ;;
+    esac
+}
+
+write_override() {
+    local value="$1"
+    mkdir -p "${STATE_DIR}"
+    if [[ -z "${value}" ]]; then
+        rm -f "${OVERRIDE_FILE}"
+        return 0
+    fi
+    printf '%s' "${value}" >"${OVERRIDE_FILE}"
+}
+
+ramp_temperature() {
+    local from="$1" to="$2" elapsed="$3" duration="$4"
+    if (( duration <= 0 )); then
+        printf '%s\n' "${to}"
+        return 0
+    fi
+    printf '%s\n' "$(( from + (to - from) * elapsed / duration ))"
+}
+
+schedule_target() {
+    local sun_output
+    if ! sun_output=$(
+        "${SUN_HELPER}" "${LATITUDE}" "${LONGITUDE}"
+    ); then
+        warn "sun times unavailable, staying at the day" \
+            "temperature"
+        printf '%s %s\n' "${DAY_TEMPERATURE}" "day"
+        return 0
+    fi
+
+    local yesterday_sunset today_sunrise today_sunset now half
+    read -r yesterday_sunset today_sunrise today_sunset \
+        <<<"${sun_output}"
+    now=$(date +%s)
+    half=$(( TRANSITION_MINUTES * 60 / 2 ))
+
+    if (( now >= yesterday_sunset + half &&
+            now < today_sunrise - half )); then
+        printf '%s %s\n' "${NIGHT_TEMPERATURE}" "night"
+        return 0
+    fi
+    if (( now >= today_sunrise - half &&
+            now < today_sunrise + half )); then
+        printf '%s %s\n' "$(ramp_temperature \
+            "${NIGHT_TEMPERATURE}" "${DAY_TEMPERATURE}" \
+            $(( now - (today_sunrise - half) )) \
+            $(( half * 2 )))" "morning-ramp"
+        return 0
+    fi
+    if (( now >= today_sunrise + half &&
+            now < today_sunset - half )); then
+        printf '%s %s\n' "${DAY_TEMPERATURE}" "day"
+        return 0
+    fi
+    if (( now >= today_sunset - half &&
+            now < today_sunset + half )); then
+        printf '%s %s\n' "$(ramp_temperature \
+            "${DAY_TEMPERATURE}" "${NIGHT_TEMPERATURE}" \
+            $(( now - (today_sunset - half) )) \
+            $(( half * 2 )))" "evening-ramp"
+        return 0
+    fi
+    printf '%s %s\n' "${NIGHT_TEMPERATURE}" "night"
+}
+
+compute_target() {
+    local override
+    override=$(read_override)
+
+    if [[ "${ENABLED}" != "1" ]]; then
+        printf '%s %s\n' "${DAY_TEMPERATURE}" "disabled"
+        return 0
+    fi
+    if [[ "${override}" == "on" ]]; then
+        printf '%s %s\n' "${NIGHT_TEMPERATURE}" "override-on"
+        return 0
+    fi
+    if [[ "${override}" == "off" ]]; then
+        printf '%s %s\n' "${DAY_TEMPERATURE}" "override-off"
+        return 0
+    fi
+    schedule_target
+}
+
+cmd_apply() {
+    local temperature phase
+    read -r temperature phase <<<"$(compute_target)"
+
+    if [[ -z "${HYPRLAND_INSTANCE_SIGNATURE:-}" ]]; then
+        warn "no running Hyprland instance; not applying"
+        return 0
+    fi
+    require_command hyprctl
+    hyprctl hyprsunset temperature "${temperature}" >/dev/null ||
+        die "hyprctl could not reach hyprsunset" \
+            "(is night-shift-daemon running?)"
+    printf 'night-shift: %sK (%s)\n' "${temperature}" "${phase}"
+}
+
+cmd_status() {
+    require_command jq
+    local temperature phase override active
+    read -r temperature phase <<<"$(compute_target)"
+    override=$(read_override)
+    active=false
+    (( temperature < DAY_TEMPERATURE )) && active=true
+
+    jq -n \
+        --argjson temperature "${temperature}" \
+        --arg phase "${phase}" \
+        --argjson active "${active}" \
+        --arg override "${override}" \
+        '{
+            temperature: $temperature,
+            active: $active,
+            override: (if $override == ""
+                then null else $override end),
+            phase: $phase
+        }'
+}
+
+cmd_toggle() {
+    local override
+    override=$(read_override)
+
+    if [[ -n "${override}" ]]; then
+        write_override ""
+        cmd_apply
+        return 0
+    fi
+
+    local phase
+    read -r _ phase <<<"$(compute_target)"
+    if [[ "${phase}" == "day" || "${phase}" == "disabled" ]]; then
+        write_override on
+    else
+        write_override off
+    fi
+    cmd_apply
+}
+
+main() {
+    (( $# == 1 )) || usage
+    case "$1" in
+    status) cmd_status ;;
+    apply) cmd_apply ;;
+    on) write_override on && cmd_apply ;;
+    off) write_override off && cmd_apply ;;
+    auto) write_override "" && cmd_apply ;;
+    toggle) cmd_toggle ;;
+    *) usage ;;
+    esac
+}
+
+main "$@"

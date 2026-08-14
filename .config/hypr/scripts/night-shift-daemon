@@ -1,0 +1,55 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_DIR=$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")
+readonly SCRIPT_DIR
+readonly NIGHT_SHIFT="${SCRIPT_DIR}/night-shift"
+readonly STATE_DIR="${XDG_STATE_HOME:-${HOME}/.local/state}/night-shift"
+readonly DAEMON_LOG="${STATE_DIR}/daemon.log"
+readonly POLL_SECONDS=60
+readonly SOCKET_WAIT_ATTEMPTS=20
+readonly SOCKET_WAIT_INTERVAL_SECONDS="0.25"
+
+# A session restart runs autostart again while the previous
+# daemon is still alive, so the lock keeps one of each.
+exec 9>"${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/night-shift.lock"
+flock -n 9 || exit 0
+
+die() {
+    printf 'night-shift-daemon: %s\n' "$1" >&2
+    exit 1
+}
+
+command -v hyprsunset >/dev/null 2>&1 ||
+    die "hyprsunset is not installed"
+[[ -x "${NIGHT_SHIFT}" ]] || die "${NIGHT_SHIFT} is not executable"
+
+mkdir -p "${STATE_DIR}"
+
+start_hyprsunset() {
+    pgrep -x hyprsunset >/dev/null 2>&1 && return 0
+    setsid hyprsunset >>"${DAEMON_LOG}" 2>&1 </dev/null &
+    disown
+}
+
+# The daemon's own socket takes a moment to come up after the
+# process starts, so the first apply is retried rather than
+# risking a permanently unwarmed session on a slow login.
+wait_for_first_apply() {
+    local attempt
+    for ((attempt = 0; attempt < SOCKET_WAIT_ATTEMPTS; attempt++)); do
+        "${NIGHT_SHIFT}" apply >>"${DAEMON_LOG}" 2>&1 && return 0
+        sleep "${SOCKET_WAIT_INTERVAL_SECONDS}"
+    done
+    return 1
+}
+
+start_hyprsunset
+wait_for_first_apply ||
+    echo "night-shift-daemon: hyprsunset socket never" \
+        "came up" >>"${DAEMON_LOG}"
+
+while true; do
+    sleep "${POLL_SECONDS}"
+    "${NIGHT_SHIFT}" apply >>"${DAEMON_LOG}" 2>&1 || true
+done
