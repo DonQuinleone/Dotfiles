@@ -4,7 +4,10 @@ for _, pad in ipairs(scratchpads) do
     hl.window_rule({
         match = { class = pad.class },
         float = true,
-        size = { "(monitor_w*0.62)", "(monitor_h*0.65)" },
+        size = {
+            "(monitor_w*" .. pad.width .. ")",
+            "(monitor_h*" .. pad.height .. ")",
+        },
         center = true,
     })
 end

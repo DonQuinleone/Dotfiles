@@ -21,6 +21,7 @@ ENABLED_PATH = os.path.join(STATE_DIR, "caret-follow.on")
 REPORT_PATH = os.path.join(RUNTIME_DIR, "caret-follow.sock")
 
 MIN_ZOOM_FACTOR = 1.05
+CARET_WIDTH_CAP = 40
 DEADZONE_RATIO = 0.14
 GLIDE_MS = 130
 FRAME_MS = 8
@@ -196,6 +197,24 @@ class CaretFollower:
         self.aim(window, x, y)
 
 
+def widget_extents(event):
+    try:
+        component = event.source.get_component_iface()
+        if component is None:
+            return None
+        return component.get_extents(Atspi.CoordType.WINDOW)
+    except Exception:
+        return None
+
+
+def encloses(frame, x, y):
+    return (frame.x <= x <= frame.x + frame.width
+            and frame.y <= y <= frame.y + frame.height)
+
+
+# Firefox reports caret rectangles relative to the widget while
+# GTK reports them relative to the window, and both call it
+# WINDOW, so the widget's own rectangle decides which it is.
 def character_extents(event):
     try:
         text = event.source.get_text_iface()
@@ -207,7 +226,14 @@ def character_extents(event):
         return None
     if extents.height <= 0:
         return None
-    return extents.x, extents.y, extents.width, extents.height
+    x, y = extents.x, extents.y
+    frame = widget_extents(event)
+    if frame is not None and frame.height > 0 \
+            and not encloses(frame, x, y):
+        x += frame.x
+        y += frame.y
+    width = min(extents.width, CARET_WIDTH_CAP)
+    return x, y, width, extents.height
 
 
 class ReportServer:
