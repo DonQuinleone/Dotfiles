@@ -27,6 +27,7 @@ local binds = {
     { "SUPER",           "space",                 hl.dsp.exec_cmd("qs -c ember ipc call launcher toggle") },
     { "SUPER + SHIFT",   "t",                     hl.dsp.exec_cmd(scripts .. "/theme-menu")              },
     { "SUPER + CTRL",    "t",                     hl.dsp.exec_cmd(scripts .. "/theme-menu accent")       },
+    { "SUPER + SHIFT",   "s",                     hl.dsp.exec_cmd("qs -c ember ipc call quickSettings toggle") },
 
     -- Notifications
     { "SUPER",           "n",                     hl.dsp.exec_cmd("qs -c ember ipc call notifications toggleCentre") },
