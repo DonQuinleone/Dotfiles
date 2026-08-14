@@ -8,6 +8,64 @@ readonly MOZILLA_CONTENT_TEMPLATE="mozilla-content.css.in"
 readonly MOZILLA_USER_PREFS="user.js"
 readonly MOZILLA_STYLESHEET_PREF=\
 "toolkit.legacyUserProfileCustomizations.stylesheets"
+readonly MOZILLA_LOADER_CONFIG="mozilla-theme.cfg"
+readonly MOZILLA_LOADER_PREFS="mozilla-autoconfig.js"
+readonly MOZILLA_INSTALLED_PREFS="defaults/pref/autoconfig.js"
+readonly MOZILLA_LOADER_INSTALLER=\
+"${CONFIG_HOME}/hypr/scripts/mozilla-theme-loader"
+readonly MOZILLA_LOADER_STAMP="${STATE_DIR}/mozilla-loader"
+
+declare -rA MOZILLA_INSTALL_ROOTS=(
+    [firefox]="/usr/lib64/firefox /usr/lib/firefox"
+    [thunderbird]="/usr/lib64/thunderbird /usr/lib/thunderbird"
+)
+
+mozilla_apps() {
+    printf '%s\n' "${!MOZILLA_INSTALL_ROOTS[@]}"
+}
+
+mozilla_install_dir() {
+    local candidates directory
+    read -r -a candidates <<<"${MOZILLA_INSTALL_ROOTS[$1]:-}"
+    for directory in "${candidates[@]}"; do
+        [[ -d "${directory}" ]] || continue
+        printf '%s\n' "${directory}"
+        return
+    done
+}
+
+mozilla_loader_files() {
+    printf '%s\t%s\n' \
+        "${TEMPLATE_DIR}/${MOZILLA_LOADER_CONFIG}" \
+        "$1/${MOZILLA_LOADER_CONFIG}"
+    printf '%s\t%s\n' \
+        "${TEMPLATE_DIR}/${MOZILLA_LOADER_PREFS}" \
+        "$1/${MOZILLA_INSTALLED_PREFS}"
+}
+
+mozilla_loader_installed() {
+    local source target
+    while IFS=$'\t' read -r source target; do
+        cmp -s "${source}" "${target}" || return 1
+    done < <(mozilla_loader_files "$1")
+}
+
+mozilla_report_loader() {
+    local app="$1" directory stamp
+    stamp="${MOZILLA_LOADER_STAMP}-${app}"
+    directory=$(mozilla_install_dir "${app}")
+    if [[ -n "${directory}" ]] &&
+        mozilla_loader_installed "${directory}"; then
+        rm -f "${stamp}"
+        return
+    fi
+    if [[ -e "${stamp}" ]]; then
+        return
+    fi
+    : >"${stamp}"
+    warn "${app} restyles only at launch:" \
+        "run ${MOZILLA_LOADER_INSTALLER}"
+}
 
 mozilla_profile_paths() {
     local root="$1"
@@ -70,10 +128,13 @@ mozilla_theme_root() {
 }
 
 mozilla_theme_app() {
-    local template="$1" root
-    shift
+    local app="$1" template="$2" root found=0
+    shift 2
     for root in "$@"; do
         [[ -f "${root}/${MOZILLA_PROFILE_INDEX}" ]] || continue
         mozilla_theme_root "${root}" "${template}"
+        found=1
     done
+    ((found == 1)) || return 0
+    mozilla_report_loader "${app}"
 }

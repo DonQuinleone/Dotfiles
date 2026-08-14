@@ -7,6 +7,6 @@ readonly FIREFOX_ROOTS=(
 readonly FIREFOX_CHROME_TEMPLATE="firefox-chrome.css.in"
 
 apply_firefox() {
-    mozilla_theme_app "${FIREFOX_CHROME_TEMPLATE}" \
+    mozilla_theme_app firefox "${FIREFOX_CHROME_TEMPLATE}" \
         "${FIREFOX_ROOTS[@]}"
 }

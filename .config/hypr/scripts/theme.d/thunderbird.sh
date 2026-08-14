@@ -7,6 +7,6 @@ readonly THUNDERBIRD_ROOTS=(
 readonly THUNDERBIRD_CHROME_TEMPLATE="thunderbird-chrome.css.in"
 
 apply_thunderbird() {
-    mozilla_theme_app "${THUNDERBIRD_CHROME_TEMPLATE}" \
+    mozilla_theme_app thunderbird "${THUNDERBIRD_CHROME_TEMPLATE}" \
         "${THUNDERBIRD_ROOTS[@]}"
 }
