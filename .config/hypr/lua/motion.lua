@@ -103,6 +103,20 @@ local function stored_values()
     return values
 end
 
+-- Hyprland only starts a looping angle when a window is mapped,
+-- so re-enabling the leaf leaves every open window frozen until
+-- something touches focus. Focusing the active window again is
+-- the cheapest thing that does.
+local function restart_drift()
+    local window = hl.get_active_window()
+    if window == nil then
+        return
+    end
+    hl.dispatch(hl.dsp.focus({
+        window = "address:" .. window.address,
+    }))
+end
+
 local motion = {}
 
 function motion.apply(scale, drift)
@@ -111,6 +125,9 @@ function motion.apply(scale, drift)
     end
     for _, row in ipairs(animations) do
         hl.animation(leaf_spec(row, scale, drift))
+    end
+    if drift then
+        restart_drift()
     end
 end
 
