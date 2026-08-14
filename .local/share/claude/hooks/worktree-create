@@ -31,21 +31,21 @@ EOF
 
 [ -n "$name" ] || die "no worktree name in request"
 
-# The request does not always carry a repository, and the hook
-# inherits whatever directory the caller happened to be in, so
-# fall back through the places one is likely to be found.
-if [ "$repo" = "-" ]; then
-    for candidate in "${CLAUDE_PROJECT_DIR:-}" "$PWD" "$HOME/.dotfiles"; do
-        [ -n "$candidate" ] || continue
-        git -C "$candidate" rev-parse --show-toplevel >/dev/null 2>&1 ||
-            continue
-        repo=$candidate
-        break
-    done
-fi
+# The request's directory is whatever the caller happened to be
+# in, which is not always a checkout, so every candidate is
+# tested rather than trusted.
+for candidate in "$repo" "${CLAUDE_PROJECT_DIR:-}" "$PWD" \
+    "$HOME/.dotfiles"; do
+    [ -n "$candidate" ] && [ "$candidate" != "-" ] || continue
+    git -C "$candidate" rev-parse --show-toplevel >/dev/null 2>&1 ||
+        continue
+    repo=$candidate
+    break
+done
 
-[ "$repo" != "-" ] || die "no git repository in the request, \
-CLAUDE_PROJECT_DIR, the working directory or \$HOME/.dotfiles"
+git -C "$repo" rev-parse --show-toplevel >/dev/null 2>&1 ||
+    die "no git repository in the request, CLAUDE_PROJECT_DIR, \
+the working directory or \$HOME/.dotfiles"
 
 cd "$repo" || die "cannot enter $repo"
 project=$(basename "$(git rev-parse --show-toplevel)")
