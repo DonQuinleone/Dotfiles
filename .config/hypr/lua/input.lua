@@ -15,7 +15,7 @@ hl.config({
 
 local devices = {
     { name = "elan0683:00-04f3:320b-touchpad", sensitivity = 0.5 },
-    { name = "apple-inc.-magic-trackpad", sensitivity = 0.95 },
+    { name = "apple-inc.-magic-trackpad", sensitivity = 0.88 },
 }
 
 for _, device in ipairs(devices) do
