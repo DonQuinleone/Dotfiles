@@ -7,6 +7,8 @@ local GROUPBAR_TAB_GAP = 2
 local GROUPBAR_WINDOW_GAP = 6
 local GROUPBAR_INDICATOR_HEIGHT = 0
 
+local motion = require("motion")
+
 local state = os.getenv("XDG_STATE_HOME")
     or (os.getenv("HOME") .. "/.local/state")
 
@@ -61,45 +63,7 @@ hl.config({
     },
 })
 
-local curves = {
-    { "emberOut", { type = "bezier",
-        points = { { 0.16, 1.0 }, { 0.3, 1.0 } } } },
-    { "emberQuick", { type = "bezier",
-        points = { { 0.15, 0.0 }, { 0.1, 1.0 } } } },
-    { "emberSoft", { type = "spring", mass = 1,
-        stiffness = 238.1191, dampening = 24.21279333 } },
-}
-
--- Speeds are in deciseconds; zoom at 1.5 is the deliberate
--- break from COSMIC's sluggish magnifier.
-local animations = {
-    { leaf = "global", enabled = true, speed = 10,
-      bezier = "default" },
-    { leaf = "border", enabled = true, speed = 3.0,
-      bezier = "emberOut" },
-    { leaf = "windows", enabled = true, speed = 2.5,
-      spring = "emberSoft" },
-    { leaf = "windowsIn", enabled = true, speed = 2.0,
-      spring = "emberSoft", style = "popin 87%" },
-    { leaf = "windowsOut", enabled = true, speed = 1.5,
-      bezier = "emberQuick", style = "popin 87%" },
-    { leaf = "fade", enabled = true, speed = 1.8,
-      bezier = "emberQuick" },
-    { leaf = "layers", enabled = true, speed = 2.0,
-      bezier = "emberOut" },
-    { leaf = "workspaces", enabled = true, speed = 2.0,
-      bezier = "emberOut", style = "slide" },
-    { leaf = "zoomFactor", enabled = true, speed = 1.5,
-      bezier = "emberQuick" },
-}
-
-for _, c in ipairs(curves) do
-    hl.curve(c[1], c[2])
-end
-
-for _, a in ipairs(animations) do
-    hl.animation(a)
-end
+motion.apply(motion.profile())
 
 -- Palette-driven colours are written by the theme script and
 -- are absent until it has run once, so Hyprland's own defaults

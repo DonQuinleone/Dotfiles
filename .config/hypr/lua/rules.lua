@@ -24,3 +24,30 @@ hl.window_rule({
     float = true,
     pin = true,
 })
+
+-- Each surface enters from the edge it lives on, so the motion
+-- says where the thing came from; the centred ones have no edge
+-- to come from and grow in place instead. The wallpaper never
+-- travels, and the screenshot flash is left to the shell, whose
+-- own ramp is gentler than anything the compositor would add.
+local layers = {
+    { namespace = "^ember-bar$", animation = "slide top" },
+    { namespace = "^ember-toasts$", animation = "slide right" },
+    { namespace = "^ember-notifications$",
+      animation = "slide right" },
+    { namespace = "^ember-quick-settings$",
+      animation = "slide right" },
+    { namespace = "^ember-osd$", animation = "popin 90%" },
+    { namespace = "^ember-chooser$", animation = "popin 92%" },
+    { namespace = "^ember-screensaver$", animation = "fade" },
+    { namespace = "^ember-wallpaper$", no_anim = true },
+    { namespace = "^ember-flash$", no_anim = true },
+}
+
+for _, layer in ipairs(layers) do
+    hl.layer_rule({
+        match = { namespace = layer.namespace },
+        animation = layer.animation,
+        no_anim = layer.no_anim,
+    })
+end

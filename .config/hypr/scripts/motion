@@ -1,0 +1,70 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+readonly CONFIG_DIR="${XDG_CONFIG_HOME:-${HOME}/.config}/hypr"
+readonly STATE_DIR="${XDG_STATE_HOME:-${HOME}/.local/state}/hypr"
+readonly PROFILE_FILE="${STATE_DIR}/motion"
+readonly LUA_DIR="${CONFIG_DIR}/lua"
+readonly NOTIFY="${CONFIG_DIR}/scripts/notify"
+readonly NOTIFY_MS=1500
+readonly DEFAULT_PROFILE="full"
+
+usage() {
+    echo "usage: motion [full|reduced|toggle|status]" >&2
+    exit 1
+}
+
+current() {
+    local profile=""
+    if [[ -r "${PROFILE_FILE}" ]]; then
+        read -r profile <"${PROFILE_FILE}" || profile=""
+    fi
+    case "${profile}" in
+        full|reduced) printf '%s\n' "${profile}" ;;
+        *) printf '%s\n' "${DEFAULT_PROFILE}" ;;
+    esac
+}
+
+announce() {
+    [[ -x "${NOTIFY}" ]] || return 0
+    "${NOTIFY}" --transient -a Hyprland -u low -t "${NOTIFY_MS}" \
+        -- "Motion: $1" || true
+}
+
+apply() {
+    local profile="$1" lua
+    if [[ -z "${HYPRLAND_INSTANCE_SIGNATURE:-}" ]]; then
+        echo "error: motion needs a running Hyprland session" >&2
+        exit 1
+    fi
+
+    mkdir -p "${STATE_DIR}"
+    printf '%s\n' "${profile}" >"${PROFILE_FILE}"
+
+    lua="package.path = '${LUA_DIR}/?.lua;' .. package.path"
+    lua="${lua}; require('motion').apply('${profile}')"
+    hyprctl eval "${lua}" >/dev/null
+
+    announce "${profile}"
+}
+
+toggle() {
+    if [[ "$(current)" == "reduced" ]]; then
+        apply full
+        return
+    fi
+    apply reduced
+}
+
+main() {
+    [[ $# -le 1 ]] || usage
+
+    case "${1:-toggle}" in
+        full|reduced) apply "$1" ;;
+        toggle) toggle ;;
+        status) current ;;
+        *) usage ;;
+    esac
+}
+
+main "$@"
