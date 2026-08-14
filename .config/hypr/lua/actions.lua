@@ -1,4 +1,6 @@
-local ZOOM_STEP = 1.0
+local DEFAULT_ZOOM_STEP = 1.0
+local ZOOM_STEP = require("settings").load().zoom_step
+    or DEFAULT_ZOOM_STEP
 local ZOOM_MIN = 1.0
 local ZOOM_MAX = 8.0
 local NOTIFY_MS = 1500

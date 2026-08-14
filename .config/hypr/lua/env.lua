@@ -1,7 +1,14 @@
+local DEFAULT_CURSOR_SIZE = 48
+
+local saved = require("settings").load()
+
+local cursor_size = tostring(
+    saved.cursor_size or DEFAULT_CURSOR_SIZE)
+
 local envs = {
     { "XCURSOR_THEME", "Adwaita" },
-    { "XCURSOR_SIZE", "48" },
-    { "HYPRCURSOR_SIZE", "48" },
+    { "XCURSOR_SIZE", cursor_size },
+    { "HYPRCURSOR_SIZE", cursor_size },
     -- Applications shipping their own Qt, TeamSpeak among
     -- them, abort outright when their bundled Wayland plugin
     -- fails to initialise, so leave XWayland as the fallback.
