@@ -1,0 +1,189 @@
+#!/usr/bin/env python3
+
+import json
+import os
+import socket
+
+import gi
+
+gi.require_version("Atspi", "2.0")
+
+from gi.repository import Atspi, GLib
+
+RUNTIME_DIR = os.environ.get(
+    "XDG_RUNTIME_DIR", "/run/user/%d" % os.getuid())
+STATE_DIR = os.path.join(
+    os.environ.get(
+        "XDG_STATE_HOME", os.path.expanduser("~/.local/state")),
+    "hypr")
+ENABLED_PATH = os.path.join(STATE_DIR, "caret-follow.on")
+REPORT_PATH = os.path.join(RUNTIME_DIR, "caret-follow.sock")
+
+MIN_ZOOM_FACTOR = 1.05
+READ_SIZE = 8192
+BACKLOG = 4
+
+
+class Hyprland:
+    def __init__(self):
+        signature = os.environ["HYPRLAND_INSTANCE_SIGNATURE"]
+        self.path = "%s/hypr/%s/.socket.sock" % (
+            RUNTIME_DIR, signature)
+
+    def request(self, payload):
+        with socket.socket(socket.AF_UNIX,
+                           socket.SOCK_STREAM) as client:
+            client.connect(self.path)
+            client.sendall(payload.encode())
+            chunks = []
+            while True:
+                chunk = client.recv(READ_SIZE)
+                if not chunk:
+                    break
+                chunks.append(chunk)
+        return b"".join(chunks).decode()
+
+    def zoom_factor(self):
+        reply = json.loads(
+            self.request("j/getoption cursor.zoom_factor"))
+        return float(reply.get("float", 1.0))
+
+    def active_window(self):
+        reply = json.loads(self.request("j/activewindow"))
+        if not reply.get("at") or not reply.get("size"):
+            return None
+        return reply
+
+    def warp(self, x, y):
+        self.request(
+            "dispatch hl.dsp.cursor.move({ x = %d, y = %d })"
+            % (round(x), round(y)))
+
+
+def enabled():
+    return os.path.exists(ENABLED_PATH)
+
+
+class CaretFollower:
+    def __init__(self, hyprland):
+        self.hyprland = hyprland
+
+    def zoomed(self):
+        try:
+            return self.hyprland.zoom_factor() >= MIN_ZOOM_FACTOR
+        except (OSError, ValueError, KeyError):
+            return False
+
+    def warp_within(self, window, x, y):
+        left, top = window["at"]
+        width, height = window["size"]
+        if not (0 <= x <= width and 0 <= y <= height):
+            return
+        self.hyprland.warp(left + x, top + y)
+
+    def on_caret(self, event):
+        if not enabled() or not self.zoomed():
+            return
+        window = self.hyprland.active_window()
+        if window is None:
+            return
+        extents = character_extents(event)
+        if extents is None:
+            return
+        x, y, width, height = extents
+        self.warp_within(window, x + width / 2, y + height / 2)
+
+    # Terminals draw their own text, so nothing reaches AT-SPI;
+    # editors report a grid cell instead and the cell size is
+    # derived from the window Hyprland already measures.
+    def on_report(self, report):
+        if not enabled() or not self.zoomed():
+            return
+        window = self.hyprland.active_window()
+        if window is None:
+            return
+        width, height = window["size"]
+        columns = max(1, int(report["columns"]))
+        rows = max(1, int(report["lines"]))
+        cell_width = width / columns
+        cell_height = height / rows
+        x = (int(report["col"]) - 0.5) * cell_width
+        y = (int(report["row"]) - 0.5) * cell_height
+        self.warp_within(window, x, y)
+
+
+def character_extents(event):
+    try:
+        text = event.source.get_text_iface()
+        if text is None:
+            return None
+        extents = text.get_character_extents(
+            event.detail1, Atspi.CoordType.WINDOW)
+    except Exception:
+        return None
+    if extents.height <= 0:
+        return None
+    return extents.x, extents.y, extents.width, extents.height
+
+
+class ReportServer:
+    def __init__(self, follower):
+        self.follower = follower
+        if os.path.exists(REPORT_PATH):
+            os.unlink(REPORT_PATH)
+        self.server = socket.socket(socket.AF_UNIX,
+                                    socket.SOCK_STREAM)
+        self.server.bind(REPORT_PATH)
+        self.server.listen(BACKLOG)
+        self.server.setblocking(False)
+        GLib.io_add_watch(self.server.fileno(), GLib.PRIORITY_DEFAULT,
+                          GLib.IO_IN, self.on_connect)
+
+    def on_connect(self, _fd, _condition):
+        client, _ = self.server.accept()
+        client.setblocking(False)
+        GLib.io_add_watch(client.fileno(), GLib.PRIORITY_DEFAULT,
+                          GLib.IO_IN | GLib.IO_HUP,
+                          lambda fd, condition: self.on_data(
+                              client, condition))
+        return True
+
+    def on_data(self, client, condition):
+        if condition & GLib.IO_HUP:
+            client.close()
+            return False
+        try:
+            payload = client.recv(READ_SIZE)
+        except OSError:
+            client.close()
+            return False
+        if not payload:
+            client.close()
+            return False
+        for line in payload.decode().splitlines():
+            self.dispatch(line)
+        return True
+
+    def dispatch(self, line):
+        try:
+            report = json.loads(line)
+        except ValueError:
+            return
+        try:
+            self.follower.on_report(report)
+        except (OSError, KeyError, ValueError, ZeroDivisionError):
+            return
+
+
+def main():
+    os.makedirs(STATE_DIR, exist_ok=True)
+    follower = CaretFollower(Hyprland())
+    ReportServer(follower)
+    Atspi.init()
+    listener = Atspi.EventListener.new(follower.on_caret)
+    listener.register("object:text-caret-moved")
+    Atspi.event_main()
+
+
+if __name__ == "__main__":
+    main()

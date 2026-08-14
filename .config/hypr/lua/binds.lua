@@ -1,6 +1,21 @@
 local ZOOM_STEP = 1.0
 local ZOOM_MIN = 1.0
 local ZOOM_MAX = 8.0
+local RESIZE_STEP = 60
+local NOTIFY_MS = 1500
+local NOTIFY_FONT = 22
+
+local state_dir = (os.getenv("XDG_STATE_HOME")
+    or (os.getenv("HOME") .. "/.local/state")) .. "/hypr"
+local caret_flag = state_dir .. "/caret-follow.on"
+
+local function notify(text)
+    hl.notification.create({
+        text = text,
+        timeout = NOTIFY_MS,
+        font_size = NOTIFY_FONT,
+    })
+end
 
 local function zoom_by(delta)
     return function()
@@ -20,12 +35,26 @@ end
 local function zoom_follow_toggle()
     local detached = hl.get_config("cursor.zoom_detached_camera")
     hl.config({ cursor = { zoom_detached_camera = not detached } })
-    hl.notification.create({
-        text = detached and "Zoom follows cursor"
-            or "Zoom camera fixed",
-        timeout = 1500,
-        font_size = 22,
-    })
+    notify(detached and "Zoom follows cursor"
+        or "Zoom camera fixed")
+end
+
+-- The caret daemon steers the zoom by warping the pointer, so
+-- the camera has to be attached for it to have any effect.
+local function caret_follow_toggle()
+    local flag = io.open(caret_flag, "r")
+    if flag then
+        flag:close()
+        os.remove(caret_flag)
+        notify("Caret following off")
+        return
+    end
+    local created = io.open(caret_flag, "w")
+    if created then
+        created:close()
+    end
+    hl.config({ cursor = { zoom_detached_camera = false } })
+    notify("Caret following on")
 end
 
 local apps = {
@@ -34,10 +63,10 @@ local apps = {
 }
 
 local directions = {
-    { key = "h", dir = "left" },
-    { key = "j", dir = "down" },
-    { key = "k", dir = "up" },
-    { key = "l", dir = "right" },
+    { key = "h", dir = "left", dx = -1, dy = 0 },
+    { key = "j", dir = "down", dx = 0, dy = 1 },
+    { key = "k", dir = "up", dx = 0, dy = -1 },
+    { key = "l", dir = "right", dx = 1, dy = 0 },
 }
 
 local binds = {
@@ -60,8 +89,13 @@ local binds = {
     { "SUPER + minus", zoom_by(-ZOOM_STEP) },
     { "SUPER + 0", zoom_reset },
     { "SUPER + z", zoom_follow_toggle },
+    { "SUPER + SHIFT + z", caret_follow_toggle },
     { "SUPER + mouse_up", zoom_by(ZOOM_STEP) },
     { "SUPER + mouse_down", zoom_by(-ZOOM_STEP) },
+    { "SUPER + mouse:272", hl.dsp.window.drag(),
+      { mouse = true } },
+    { "SUPER + mouse:273", hl.dsp.window.resize(),
+      { mouse = true } },
 }
 
 for _, a in ipairs(apps) do
@@ -74,6 +108,12 @@ for _, d in ipairs(directions) do
         hl.dsp.focus({ direction = d.dir }) })
     table.insert(binds, { "SUPER + SHIFT + " .. d.key,
         hl.dsp.window.move({ direction = d.dir }) })
+    table.insert(binds, { "SUPER + CTRL + " .. d.key,
+        hl.dsp.window.resize({
+            x = d.dx * RESIZE_STEP,
+            y = d.dy * RESIZE_STEP,
+            relative = true,
+        }) })
 end
 
 for i = 1, 9 do
@@ -84,5 +124,5 @@ for i = 1, 9 do
 end
 
 for _, b in ipairs(binds) do
-    hl.bind(b[1], b[2])
+    hl.bind(b[1], b[2], b[3])
 end

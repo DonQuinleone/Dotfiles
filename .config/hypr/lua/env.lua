@@ -4,6 +4,9 @@ local envs = {
     { "HYPRCURSOR_SIZE", "48" },
     { "QT_QPA_PLATFORM", "wayland" },
     { "MOZ_ENABLE_WAYLAND", "1" },
+    { "QT_ACCESSIBILITY", "1" },
+    { "QT_LINUX_ACCESSIBILITY_ALWAYS_ON", "1" },
+    { "GNOME_ACCESSIBILITY", "1" },
 }
 
 for _, e in ipairs(envs) do

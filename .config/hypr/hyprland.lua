@@ -9,6 +9,7 @@ local modules = {
     "workspaces.lua",
     "rules.lua",
     "binds.lua",
+    "autostart.lua",
 }
 
 for _, module in ipairs(modules) do
