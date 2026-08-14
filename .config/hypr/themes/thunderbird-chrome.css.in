@@ -230,10 +230,44 @@ menupopup > menu[_moz-menuactive]:not([disabled]) {
     color: @onAccent@ !important;
 }
 
-/* The compositor draws no decorations, so the title strip is a
-   row of dead space carrying buttons that keybinds already
-   cover. */
-#titlebar,
+/* The unified toolbar is an empty strip above the tabs once the
+   window buttons are gone, so it is taken out of the flow and its
+   app menu docked at the foot of the spaces toolbar instead. */
+#titlebar > unified-toolbar {
+    position: fixed !important;
+    inset-block-end: var(--spaces-padding) !important;
+    inset-inline-start: var(--spaces-padding) !important;
+    inline-size: auto !important;
+    border-block-end: none !important;
+    z-index: 3 !important;
+}
+
+#unifiedToolbarContainer {
+    inline-size: auto !important;
+    background-color: transparent !important;
+}
+
+#unifiedToolbarContent,
 .titlebar-buttonbox-container {
     display: none !important;
+}
+
+#button-appmenu {
+    min-inline-size: calc(var(--spaces-icon-size) +
+        2 * var(--spaces-button-padding)) !important;
+    margin-inline: 0 !important;
+    padding: var(--spaces-button-padding) !important;
+    border: none !important;
+}
+
+#button-appmenu .toolbarbutton-icon {
+    inline-size: var(--spaces-icon-size) !important;
+    block-size: var(--spaces-icon-size) !important;
+}
+
+.spaces-toolbar:not([hidden]) {
+    padding-block-end: calc(var(--spaces-padding) +
+        var(--spaces-container-gap) +
+        var(--spaces-icon-size) +
+        2 * var(--spaces-button-padding)) !important;
 }

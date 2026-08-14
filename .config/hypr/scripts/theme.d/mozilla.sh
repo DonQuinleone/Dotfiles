@@ -127,6 +127,17 @@ mozilla_theme_root() {
         warn "no usable profile in ${root}/${MOZILLA_PROFILE_INDEX}"
 }
 
+mozilla_app_profiles() {
+    local root profile
+    for root in "$@"; do
+        [[ -f "${root}/${MOZILLA_PROFILE_INDEX}" ]] || continue
+        while read -r profile; do
+            [[ -d "${profile}" ]] || continue
+            printf '%s\n' "${profile}"
+        done < <(mozilla_profile_paths "${root}")
+    done
+}
+
 mozilla_theme_app() {
     local app="$1" template="$2" root found=0
     shift 2
