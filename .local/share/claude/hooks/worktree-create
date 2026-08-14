@@ -1,0 +1,55 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+STATE=${XDG_STATE_HOME:-$HOME/.local/state}
+LOG=$STATE/claude/worktree-hook.log
+mkdir -p "$(dirname "$LOG")"
+
+die() {
+    printf 'worktree-create: %s\n' "$1" >&2
+    exit 1
+}
+
+command -v python3 >/dev/null 2>&1 || die "python3 is not installed"
+
+payload=$(cat)
+
+read -r name repo base <<EOF
+$(printf '%s' "$payload" | python3 -c '
+import json
+import sys
+
+request = json.load(sys.stdin)
+name = (request.get("name") or request.get("worktree_name")
+        or request.get("worktreeName") or "session")
+repo = (request.get("repo_path") or request.get("repoPath")
+        or request.get("cwd") or "")
+base = (request.get("base_ref") or request.get("baseRef") or "")
+print(name, repo or "-", base or "-")
+')
+EOF
+
+[ -n "$name" ] || die "no worktree name in request"
+[ "$repo" != "-" ] || repo=$(pwd)
+
+cd "$repo" || die "cannot enter $repo"
+project=$(basename "$(git rev-parse --show-toplevel)")
+project=${project#.}
+
+root=$STATE/$project-worktrees
+mkdir -p "$root"
+target=$root/$name
+
+branch=worktree-$name
+if git show-ref --quiet "refs/heads/$branch"; then
+    branch=$branch-$$
+fi
+
+if [ "$base" = "-" ]; then
+    base=HEAD
+fi
+
+git worktree add -b "$branch" "$target" "$base" >>"$LOG" 2>&1 ||
+    die "git worktree add failed, see $LOG"
+
+printf '%s\n' "$target"

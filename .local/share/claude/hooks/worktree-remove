@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+STATE=${XDG_STATE_HOME:-$HOME/.local/state}
+LOG=$STATE/claude/worktree-hook.log
+mkdir -p "$(dirname "$LOG")"
+
+die() {
+    printf 'worktree-remove: %s\n' "$1" >&2
+    exit 1
+}
+
+command -v python3 >/dev/null 2>&1 || die "python3 is not installed"
+
+payload=$(cat)
+
+target=$(printf '%s' "$payload" | python3 -c '
+import json
+import sys
+
+request = json.load(sys.stdin)
+print(request.get("path") or request.get("worktree_path")
+      or request.get("worktreePath") or "")
+')
+
+[ -n "$target" ] || exit 0
+[ -d "$target" ] || exit 0
+
+# Removing the checkout leaves the branch behind, and those pile up
+# far faster than the directories do.
+branch=$(git -C "$target" rev-parse --abbrev-ref HEAD 2>/dev/null || true)
+
+git -C "$target" worktree remove --force "$target" >>"$LOG" 2>&1 ||
+    rm -rf "$target"
+
+if [ -n "$branch" ] && [ "$branch" != "HEAD" ]; then
+    git -C "$(dirname "$target")" branch -D "$branch" >>"$LOG" 2>&1 ||
+        true
+fi
