@@ -112,8 +112,12 @@ size; every value comes from the active theme.
 | Lock | PAM or fingerprint, on every monitor |
 | Screensaver | Themed lava lamp, docked only |
 
-Layouts are per workspace: master stack, monocle, scrolling and
-floating, each remembered by the workspace it belongs to.
+Layouts are per workspace: master stack, monocle and scrolling,
+each remembered by the workspace it belongs to. Monocle stacks
+the windows into one group and shows their titles as an
+accordion, so a workspace of ten windows still reads as a list.
+Any single window can be floated on top wherever it sits, which
+is what a floating mode would have been for.
 
 Idle behaviour follows the dock. Docked, the screen dims at five
 minutes, the lava lamp takes over at eight and the screens go off
@@ -122,8 +126,9 @@ metaball shader coloured from the active palette, kept dim and
 always moving because the primary display is an OLED. Undocked it
 dims at two, locks at three, blanks at four and suspends at
 fifteen. `loginctl lock-session` reaches the same locker, which
-authenticates against PAM, so an enrolled fingerprint unlocks as
-readily as a typed password.
+authenticates against the login PAM stack rather than checking a
+password itself, so whatever that stack accepts, an enrolled
+fingerprint included, unlocks the screen.
 
 ## Themes
 
@@ -210,6 +215,10 @@ Qt applications read their palette at launch, so a theme change
 reaches them when they next start. Fedora 44 has no `qt5ct`, so
 Qt 5 applications carrying their own toolkit, TeamSpeak among
 them, are covered by their own stylesheet instead.
+
+The locker rejects a wrong password and offers a retry, both
+checked. A successful unlock and a real finger scan are not yet
+verified.
 
 Caret tracking follows the text cursor in Neovim, which reports
 its position directly. Applications that expose a caret through
