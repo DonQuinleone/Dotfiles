@@ -20,6 +20,9 @@ local binds = {
     { "SUPER",           "grave",                 hl.dsp.workspace.toggle_special("term")                },
     { "SUPER + SHIFT",   "grave",                 hl.dsp.workspace.toggle_special("mail")                },
 
+    -- Shell
+    { "SUPER + SHIFT",   "b",                     hl.dsp.exec_cmd("qs -c ember ipc call bar toggleFocused") },
+
     -- Windows
     { "SUPER",           "q",                     hl.dsp.window.close()                                  },
     { "SUPER",           "p",                     hl.dsp.window.pin()                                    },

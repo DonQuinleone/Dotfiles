@@ -5,6 +5,7 @@ local commands = {
     "gsettings set org.gnome.desktop.interface "
         .. "toolkit-accessibility true",
     config .. "/hypr/scripts/caret-follow",
+    "qs -c ember",
 }
 
 hl.on("hyprland.start", function()
