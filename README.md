@@ -41,8 +41,8 @@ magnifier comes before everything else: it animates in 150ms
 because a slow zoom is unusable, the pointer can be steered by
 the text caret, and the whole shell is typeset larger than a rice
 usually is. Wallpapers are chosen calm and low-detail, because a
-busy image under 3x magnification is noise. Notifications can
-speak. Every accent is contrast-checked against its background,
+busy image under 3x magnification is noise. Every accent is
+contrast-checked against its background,
 and where a palette cannot reach a comfortable ratio with its own
 authentic colours, a high-contrast sibling ships beside it rather
 than the palette being quietly falsified.
@@ -54,7 +54,8 @@ than the palette being quietly falsified.
 - Hyprland 0.56 and Quickshell 0.3 (from COPRs, see below)
 
 `get_packages.sh` enables every repository and installs
-everything, including the fonts and the Piper voice. It is
+everything, including the fonts and the Piper voice the lock
+screen speaks with. It is
 idempotent, so re-running it after an update is safe.
 
 ## Usage
@@ -144,7 +145,7 @@ size; every value comes from the active theme.
 | --- | --- |
 | Bar | Workspaces, layout, clock, tray, vitals |
 | Launcher | Fuzzy search, plus a scriptable picker |
-| Notifications | Own daemon, history, sounds, speech |
+| Notifications | Own daemon, history, sounds |
 | Display | Volume and brightness, foot of the screen |
 | Wallpaper | Per-theme, crossfaded |
 | Lock | PAM or fingerprint, on every monitor |
@@ -204,26 +205,46 @@ authenticates against the login PAM stack rather than checking a
 password itself, so whatever that stack accepts, an enrolled
 fingerprint included, unlocks the screen.
 
-## Glance and the panels
+## The panels
 
-`Super+V` drops a readout of the whole machine from the bar: the
-time and date in large type, battery and time left, processor
-load, temperature, memory, disk, uptime, load average, and the
-connection with its address and live throughput.
+The pills sit in one row at the right of the bar, in this order:
+notifications, updates, VPN, network, Bluetooth, microphone,
+sound and battery. Each is an icon alone, because the row is
+shared with the tray and horizontal space is scarce; only the
+battery percentage, the notification count and the update count
+earn text beside their glyph. A pill with nothing to say hides
+itself, so the updates pill appears only when DNF has something
+pending and the VPN pill only when there is a tunnel to show.
 
-Each pill in the bar opens its own panel, the way the clock
-already opens the calendar:
+Every pill opens its own panel, the way the clock opens its
+dropdown. Each panel is capped against the height of the screen
+and scrolls inside itself, so none of them can run off the
+display:
 
 | Pill | Panel |
 | --- | --- |
-| Network | throughput, latency and loss to router and internet, addresses and DNS with copy buttons, a provider picker, saved and nearby networks |
-| Bluetooth | quick settings, where the Bluetooth toggles already live |
-| Volume | a per-application mixer to 150%, with output and input pickers |
+| Notifications | opens the notification centre; right-click silences |
+| Updates | none; the count is the whole message |
+| VPN | NetBird with its peers and address, and any NetworkManager tunnel, each with a connect and disconnect |
+| Network | throughput, latency and loss to router and internet, addresses and DNS with copy buttons, a provider picker, and the networks in range |
+| Bluetooth | the radio, and the devices that can be connected, with their battery where they report one |
+| Microphone | live or muted, the input level, and which device records |
+| Sound | a per-application mixer to 150%, and which device plays |
 | Battery | health against design capacity, charge cycles, time to empty or full, and the power profile |
 
 The power profile is remembered separately for AC and battery, so
 plugging in restores the profile last chosen on AC and unplugging
 restores the one chosen on battery.
+
+The clock in the middle of the bar opens a dropdown of its own,
+carrying the month, alarms and the time elsewhere. Alarms are set
+with steppers rather than typing, since a dropdown never takes
+keyboard focus, and ring as a critical notification, which stays
+on screen until it is dismissed. Other time zones are picked by
+region and city from the system database, and their times are
+read from the zone rules on every sample, so they follow daylight
+saving without anything being told about it. Both are kept in
+`$XDG_STATE_HOME/donbox`.
 
 Panels answer the keyboard as well as the mouse, since a surface
 only a pointer can reach is no use under magnification:
@@ -234,8 +255,7 @@ Opening one panel closes any other. Two things the panels cannot
 do, because a dropdown never takes keyboard focus: joining an
 unsaved secured network, which would need a password field, and
 reading the clipboard through Qt, so copying goes through
-`wl-copy` instead. The Wi-Fi QR needs `qrencode`, which
-`get_packages.sh` installs.
+`wl-copy` instead.
 
 ## Settings
 
@@ -251,7 +271,7 @@ what the desktop can be told:
 | Monitors | every screen, its workspaces, the profile in force |
 | Audio | output and input devices, volume, mute |
 | Bluetooth | radio, searching, paired devices |
-| Notifications | per-application rules, sounds, speech |
+| Notifications | per-application rules and sounds |
 | Input devices | pointer and scroll behaviour, per device |
 | Idle and power | power profile, idle timings, screensaver |
 | Autostart | everything that starts with the session |
