@@ -18,16 +18,33 @@ Singleton {
     readonly property var adapter: Bluetooth.defaultAdapter
     readonly property bool available: root.adapter !== null
     readonly property bool powered: root.adapter?.enabled ?? false
+    readonly property string adapterName: root.adapter?.name ?? ""
+
+    readonly property bool scanning: root.adapter?.discovering ?? false
+
+    readonly property bool discoverable:
+        root.adapter?.discoverable ?? false
+
+    readonly property int discoverableSeconds:
+        root.adapter?.discoverableTimeout ?? 0
 
     readonly property var devices: Bluetooth.devices?.values ?? []
 
     readonly property var linked:
         root.devices.filter(device => device.connected)
-    readonly property var known: root.devices
-        .filter(device => device.paired || device.bonded)
+
+    readonly property var paired: root.devices
+        .filter(device => root.isPaired(device))
         .sort((first, second) =>
-            Number(second.connected) - Number(first.connected))
-        .slice(0, root.maxListedDevices)
+            Number(second.connected) - Number(first.connected)
+            || first.name.localeCompare(second.name))
+
+    readonly property var known:
+        root.paired.slice(0, root.maxListedDevices)
+
+    readonly property var nearby: root.devices
+        .filter(device => !root.isPaired(device))
+        .sort((first, second) => first.name.localeCompare(second.name))
 
     readonly property int linkedCount: root.linked.length
 
@@ -74,6 +91,10 @@ Singleton {
         return Theme.palette.fgDim ?? "white";
     }
 
+    function isPaired(device: var): bool {
+        return device.paired || device.bonded;
+    }
+
     function peripheralFor(address: string): var {
         const key = address.toLowerCase();
         return root.peripherals.find(device =>
@@ -103,6 +124,7 @@ Singleton {
     function statusOf(device: var): string {
         if (device.pairing) return "Pairing";
         if (device.connected) return "Connected";
+        if (!root.isPaired(device)) return "Not paired";
         if (device.trusted) return "Trusted";
         return "Paired";
     }
@@ -112,12 +134,30 @@ Singleton {
         root.adapter.enabled = !root.adapter.enabled;
     }
 
+    function toggleScanning(): void {
+        if (!root.adapter) return;
+        root.adapter.discovering = !root.adapter.discovering;
+    }
+
+    function toggleDiscoverable(): void {
+        if (!root.adapter) return;
+        root.adapter.discoverable = !root.adapter.discoverable;
+    }
+
     function toggleLink(device: var): void {
         if (device.connected) {
             device.disconnect();
             return;
         }
         device.connect();
+    }
+
+    function togglePairing(device: var): void {
+        if (device.pairing) {
+            device.cancelPair();
+            return;
+        }
+        device.pair();
     }
 
     function toggleTrust(device: var): void {
