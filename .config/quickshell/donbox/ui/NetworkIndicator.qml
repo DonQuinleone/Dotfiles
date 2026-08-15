@@ -1,4 +1,5 @@
 import QtQuick
+import Quickshell
 import qs.services
 
 BarPill {
@@ -9,6 +10,38 @@ BarPill {
         (Theme.sizes.menuWidth ?? 0) * root.labelWidthFactor
 
     visible: Connectivity.available
+    highlighted: panel.visible
+
+    MouseArea {
+        anchors.fill: parent
+        cursorShape: Qt.PointingHandCursor
+
+        onClicked: Panels.toggle("network")
+    }
+
+    Connections {
+        target: Panels
+
+        function onRequested(name: string): void {
+            panel.visible = name === "network" && !panel.visible;
+        }
+    }
+
+    Connections {
+        target: panel
+
+        function onVisibleChanged(): void {
+            if (!panel.visible) Panels.noteClosed();
+        }
+    }
+
+    NetworkPanel {
+        id: panel
+
+        anchor.item: root
+        anchor.edges: Edges.Bottom
+        anchor.gravity: Edges.Bottom
+    }
 
     content: [
         PillText {

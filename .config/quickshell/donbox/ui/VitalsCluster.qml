@@ -44,9 +44,7 @@ Item {
 
         spacing: Theme.spacing.normal ?? 0
 
-        NetworkIndicator {
-            highlighted: QuickSettings.shown
-        }
+        NetworkIndicator {}
 
         BluetoothIndicator {
             highlighted: QuickSettings.shown
