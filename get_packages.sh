@@ -47,8 +47,11 @@ PACKAGES=(
     claude-desktop
     fastfetch
     firefox
+    fprintd-pam
+    gcr3
     ghostty
     git
+    gnupg2
     golang
     grim
     htop
@@ -59,6 +62,7 @@ PACKAGES=(
     hyprsunset
     ibm-plex-sans-fonts
     jetbrains-mono-fonts-all
+    libsecret
     lsd
     mpv
     nautilus
@@ -66,6 +70,8 @@ PACKAGES=(
     netbird
     nmap
     obs-studio
+    openssh-clients
+    pinentry-gnome3
     pipx
     playerctl
     kvantum
