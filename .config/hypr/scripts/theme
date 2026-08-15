@@ -38,6 +38,8 @@ source "${MODULE_DIR}/thunderbird.sh"
 source "${MODULE_DIR}/nvim.sh"
 # shellcheck source=theme.d/fastfetch.sh
 source "${MODULE_DIR}/fastfetch.sh"
+# shellcheck source=theme.d/btop.sh
+source "${MODULE_DIR}/btop.sh"
 # shellcheck source=theme.d/shell.sh
 source "${MODULE_DIR}/shell.sh"
 
@@ -58,6 +60,7 @@ readonly DEFERRED_APPLIERS=(
     apply_thunderbird
     apply_nvim
     apply_fastfetch
+    apply_btop
     apply_shell
 )
 

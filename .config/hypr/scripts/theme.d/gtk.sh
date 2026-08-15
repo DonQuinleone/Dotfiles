@@ -103,15 +103,6 @@ replace_with_regular_file() {
     fi
 }
 
-colour_pairs() {
-    local -n table="$1"
-    local entry
-    for entry in "${table[@]}"; do
-        printf '%s\t%s\n' "${entry%%:*}" \
-            "${COLOURS[${entry#*:}]}"
-    done
-}
-
 emit_define_colours() {
     local name colour
     while IFS=$'\t' read -r name colour; do

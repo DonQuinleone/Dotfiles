@@ -190,6 +190,15 @@ derive_colours() {
         "${PALETTE[bg]}" "${ACCENT_DARK_BLEND}")
 }
 
+colour_pairs() {
+    local -n table="$1"
+    local entry
+    for entry in "${table[@]}"; do
+        printf '%s\t%s\n' "${entry%%:*}" \
+            "${COLOURS[${entry#*:}]}"
+    done
+}
+
 render_template() {
     local template="$1" target="$2" key pair args=()
     shift 2
