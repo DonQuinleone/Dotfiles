@@ -7,11 +7,8 @@ readonly THEME="${SCRIPT_DIR}/theme"
 readonly PICK="${SCRIPT_DIR}/pick"
 readonly CONFIG_HOME="${XDG_CONFIG_HOME:-${HOME}/.config}"
 readonly THEME_JSON_DIR="${CONFIG_HOME}/quickshell/themes"
-readonly ACTIVE_JSON="${THEME_JSON_DIR}/current.json"
-readonly WALLPAPER_ROOT="${HOME}/Pictures/walls"
 readonly THEME_PROMPT="Theme"
 readonly ACCENT_PROMPT="Accent"
-readonly WALLPAPER_PROMPT="Wallpaper"
 readonly MARKER_WIDTH=2
 
 declare -rA MODES=(
@@ -68,10 +65,6 @@ marked_name() {
     awk '/^\*/ { print $2 }'
 }
 
-wallpaper_items() {
-    find "${WALLPAPER_ROOT}/$1" -maxdepth 1 -type f | sort
-}
-
 choose_theme() {
     theme_items |
         "${PICK}" --prompt "${THEME_PROMPT}" --current "$1" \
@@ -84,26 +77,14 @@ choose_accent() {
             --preview-cmd "$(preview_command preview-accent)"
 }
 
-choose_wallpaper() {
-    local slug="$1" current
-    current=$(jq -r '.wallpaper // ""' "${ACTIVE_JSON}")
-    wallpaper_items "${slug}" |
-        "${PICK}" --grid --prompt "${WALLPAPER_PROMPT}" \
-            --current "${current}"
-}
-
 run_theme_flow() {
-    local active slug wallpaper
+    local active slug
     active=$("${THEME}" current)
     if ! slug=$(choose_theme "${active}"); then
         "${THEME}" preview "${active}"
         return 0
     fi
     "${THEME}" set "${slug}"
-
-    [[ -d "${WALLPAPER_ROOT}/${slug}" ]] || return 0
-    wallpaper=$(choose_wallpaper "${slug}") || return 0
-    "${THEME}" wallpaper "${wallpaper}"
 }
 
 run_accent_flow() {
