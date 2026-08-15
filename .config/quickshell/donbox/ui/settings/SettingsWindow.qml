@@ -27,6 +27,7 @@ FloatingWindow {
     function gather(): void {
         Accessibility.refresh();
         InputDevices.refresh();
+        MonitorProfiles.refresh();
         KeyBindings.refresh();
         ThemeCatalogue.refresh();
         Motion.refresh();

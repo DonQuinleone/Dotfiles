@@ -9,6 +9,10 @@ Singleton {
     readonly property var panes: [
         { slug: "appearance", title: qsTr("Appearance"), glyph: "󰸌" },
         { slug: "magnifier", title: qsTr("Magnifier"), glyph: "󰍉" },
+        { slug: "monitors", title: qsTr("Monitors and workspaces"),
+          glyph: "󰍺" },
+        { slug: "audio", title: qsTr("Audio"), glyph: "󰕾" },
+        { slug: "bluetooth", title: qsTr("Bluetooth"), glyph: "󰂯" },
         { slug: "notifications", title: qsTr("Notifications"),
           glyph: "󰂚" },
         { slug: "devices", title: qsTr("Input devices"), glyph: "󰍽" },

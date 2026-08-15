@@ -9,6 +9,9 @@ FocusScope {
     readonly property var pages: ({
         "appearance": appearance,
         "magnifier": magnifier,
+        "monitors": monitors,
+        "audio": audio,
+        "bluetooth": bluetooth,
         "notifications": notifications,
         "devices": devices,
         "bindings": bindings
@@ -62,6 +65,24 @@ FocusScope {
         id: magnifier
 
         MagnifierPane {}
+    }
+
+    Component {
+        id: monitors
+
+        MonitorsPane {}
+    }
+
+    Component {
+        id: audio
+
+        AudioPane {}
+    }
+
+    Component {
+        id: bluetooth
+
+        BluetoothPane {}
     }
 
     Component {
