@@ -259,6 +259,13 @@ that single source. Most surfaces update live; Qt applications
 read their palette at launch, and TeamSpeak needs its style
 selected once.
 
+Icons are generated rather than configured. Adwaita writes its
+folder blue into each drawing, so applying a theme re-shades
+every blue to the accent at its own lightness and writes the
+result to `~/.local/share/icons/donbox`, which inherits Adwaita
+for everything it does not touch. Applications already running
+keep the old icons until they restart.
+
 Palettes with more than one canonical accent expose all of them,
 refusing any that falls below a readable contrast ratio, and each
 theme ships six or more wallpapers under `Pictures/walls`.
