@@ -10,11 +10,14 @@
           ╱ ╲
          ╱   ╲
         ╱     ╲
-       ▄██████▄
-       ████████
+      ▄████████▄
       ██████████
-     ████████████
+      ██████████
+      ██████████
    ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
+
+▄▄█ █▀█ █▀█ █▄▄ █▀█ ▀▄▀
+█▄█ █▄█ █ █ █▄█ █▄█ ▄▀▄
 ```
 
 My Fedora desktop, kept as a single GNU Stow package so a fresh
@@ -25,8 +28,8 @@ system at once, Ghostty, Neovim, fish, lsd and fastfetch.
 
 I go by DonQuinleone online, a portmanteau of Don Quixote and
 Corleone, and the logo above is the nod: a windmill for the Don
-tilting at giants, under a sky that carries the rest of the
-magic.
+tilting at giants, standing on the box the whole desktop ships
+in, under a sky that carries the rest of the magic.
 
 The repository mirrors `$HOME`, so every path below appears in
 the repo exactly where it lands on disk.
@@ -309,12 +312,14 @@ Run it directly for the full spinning windmill; `fastfetch`
 itself shows the static logo, since it prints its report once
 and exits.
 
-The logo is coloured for Ember (background `#1B1B1B`, foreground
-`#E7E7E7`, accent `#DC6F00`), the default of the seventeen
-themes above. It isn't wired into the theme engine yet, so
-switching theme doesn't recolour it; a later milestone can teach
-`theme set` to regenerate `.config/fastfetch/logo/logo-color.txt`
-the way it already does for Ghostty, GTK and the rest.
+The logo follows the active theme. `theme set` regenerates
+`~/.config/fastfetch/config.jsonc` from the palette the way it
+already does for Ghostty, GTK and the rest, so the generated
+config is not part of this repository, and `animate` reads the
+same palette on every run. Before the first `theme set` the
+fetch falls back to fastfetch's stock look; `theme-daemon`
+applies the active theme at login, so in practice the config is
+always there.
 
 ## Known rough edges
 
