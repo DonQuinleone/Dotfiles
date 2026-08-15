@@ -30,6 +30,8 @@ FloatingWindow {
         MonitorProfiles.refresh();
         IdleProfile.refresh();
         LidSwitch.refresh();
+        Autostart.refresh();
+        NightShift.refresh();
         KeyBindings.refresh();
         ThemeCatalogue.refresh();
         Motion.refresh();

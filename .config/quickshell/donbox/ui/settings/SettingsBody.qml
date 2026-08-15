@@ -9,12 +9,14 @@ FocusScope {
     readonly property var pages: ({
         "appearance": appearance,
         "magnifier": magnifier,
+        "nightshift": nightshift,
         "monitors": monitors,
         "audio": audio,
         "bluetooth": bluetooth,
         "notifications": notifications,
         "devices": devices,
         "power": power,
+        "autostart": autostart,
         "bindings": bindings
     })
 
@@ -69,6 +71,12 @@ FocusScope {
     }
 
     Component {
+        id: nightshift
+
+        NightShiftPane {}
+    }
+
+    Component {
         id: monitors
 
         MonitorsPane {}
@@ -102,6 +110,12 @@ FocusScope {
         id: power
 
         PowerPane {}
+    }
+
+    Component {
+        id: autostart
+
+        AutostartPane {}
     }
 
     Component {
