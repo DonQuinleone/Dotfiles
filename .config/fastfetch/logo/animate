@@ -4,8 +4,60 @@ set -euo pipefail
 readonly frame_interval_seconds="0.15"
 readonly loop_count=3
 
+readonly line_roles=(
+    accent accent accent accent accent accent accent accent
+    accent fg fg fg fg fgDim none accent accent
+)
+
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 frames_dir="${script_dir}/frames"
+theme_dir="${XDG_CONFIG_HOME:-${HOME}/.config}/quickshell/themes"
+
+declare -A tints=()
+
+palette_file() {
+    local slug candidate
+    for slug in current ember; do
+        candidate="${theme_dir}/${slug}.json"
+        [[ -r "${candidate}" ]] || continue
+        printf '%s\n' "${candidate}"
+        return 0
+    done
+    return 1
+}
+
+sgr() {
+    local hex="${1#\#}"
+    printf '\033[38;2;%d;%d;%dm' \
+        "0x${hex:0:2}" "0x${hex:2:2}" "0x${hex:4:2}"
+}
+
+load_tints() {
+    local file shades=()
+    command -v jq >/dev/null 2>&1 || return 0
+    file=$(palette_file) || return 0
+    mapfile -t shades < <(jq -r \
+        '.palette.accent, .palette.fg, .palette.fgDim' \
+        "${file}" 2>/dev/null)
+    [[ ${#shades[@]} -eq 3 ]] || return 0
+    tints[accent]=$(sgr "${shades[0]}")
+    tints[fg]=$(sgr "${shades[1]}")
+    tints[fgDim]=$(sgr "${shades[2]}")
+}
+
+paint() {
+    local file="$1" index=0 line tint painted=""
+    while IFS= read -r line; do
+        tint="${tints[${line_roles[${index}]:-none}]:-}"
+        if [[ -n "${tint}" ]]; then
+            painted+="${tint}${line}"$'\033[0m\n'
+        else
+            painted+="${line}"$'\n'
+        fi
+        index=$((index + 1))
+    done <"${file}"
+    printf '%s' "${painted}"
+}
 
 mapfile -t frames < <(find "${frames_dir}" -maxdepth 1 \
     -name 'frame-*.txt' | sort)
@@ -15,6 +67,13 @@ if [[ ${#frames[@]} -eq 0 ]]; then
     exit 1
 fi
 
+load_tints
+
+painted_frames=()
+for frame in "${frames[@]}"; do
+    painted_frames+=("$(paint "${frame}")")
+done
+
 restore_cursor() {
     tput cnorm
 }
@@ -23,10 +82,9 @@ trap restore_cursor EXIT
 tput civis
 tput sc
 for ((loop = 0; loop < loop_count; loop++)); do
-    for frame in "${frames[@]}"; do
+    for painted in "${painted_frames[@]}"; do
         tput rc
-        cat "${frame}"
+        printf '%s\n' "${painted}"
         sleep "${frame_interval_seconds}"
     done
 done
-printf '\n'
