@@ -43,11 +43,11 @@ Item {
         anchors.fill: parent
         cursorShape: Qt.PointingHandCursor
 
-        onClicked: calendar.visible = !calendar.visible
+        onClicked: dropdown.visible = !dropdown.visible
     }
 
-    CalendarPopup {
-        id: calendar
+    ClockPopup {
+        id: dropdown
 
         today: clock.date
         anchor.item: root
