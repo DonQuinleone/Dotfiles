@@ -11,8 +11,21 @@ readonly GTK4_SETTINGS="${CONFIG_HOME}/gtk-4.0/settings.ini"
 readonly GTK_FONT_POINTS=10
 
 # Named here rather than left to whatever a desktop happened to
-# set, so removing that desktop cannot take the icons with it.
+# set, so removing that desktop cannot take them with it.
 readonly GTK_ICON_THEME="Adwaita"
+readonly GTK_THEME_NAME="Adwaita"
+
+gtk_prefers_dark() {
+    if theme_is_dark; then
+        printf '1\n'
+        return
+    fi
+    printf '0\n'
+}
+
+colour_scheme() {
+    printf 'prefer-%s\n' "$(light_or_dark)"
+}
 
 replace_with_regular_file() {
     mkdir -p "$(dirname "$1")"
@@ -56,15 +69,26 @@ write_gtk_settings() {
 [Settings]
 gtk-font-name=${FONTS[ui]} ${GTK_FONT_POINTS}
 gtk-icon-theme-name=${GTK_ICON_THEME}
+gtk-theme-name=${GTK_THEME_NAME}
+gtk-application-prefer-dark-theme=$(gtk_prefers_dark)
 EOF
 }
 
-announce_gtk_font() {
+# What the portal reads and hands to GTK 4, and what GTK 3 reads
+# directly. Both toolkits ask here before they ask settings.ini.
+announce_appearance() {
     command -v gsettings >/dev/null 2>&1 || return 0
-    gsettings set org.gnome.desktop.interface font-name \
-        "${FONTS[ui]} ${GTK_FONT_POINTS}" >/dev/null 2>&1 || true
-    gsettings set org.gnome.desktop.interface icon-theme \
-        "${GTK_ICON_THEME}" >/dev/null 2>&1 || true
+    local -a appearance=(
+        "font-name:${FONTS[ui]} ${GTK_FONT_POINTS}"
+        "icon-theme:${GTK_ICON_THEME}"
+        "gtk-theme:${GTK_THEME_NAME}"
+        "color-scheme:$(colour_scheme)"
+    )
+    local entry
+    for entry in "${appearance[@]}"; do
+        gsettings set org.gnome.desktop.interface \
+            "${entry%%:*}" "${entry#*:}" >/dev/null 2>&1 || true
+    done
 }
 
 apply_gtk() {
@@ -72,5 +96,5 @@ apply_gtk() {
     write_gtk4_css
     write_gtk_settings "${GTK3_SETTINGS}"
     write_gtk_settings "${GTK4_SETTINGS}"
-    announce_gtk_font
+    announce_appearance
 }
