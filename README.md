@@ -147,6 +147,37 @@ authenticates against the login PAM stack rather than checking a
 password itself, so whatever that stack accepts, an enrolled
 fingerprint included, unlocks the screen.
 
+## Night shift
+
+`night-shift` warms the display through `hyprsunset`, ramping
+over ninety minutes rather than stepping, and `Super+Shift+W`
+overrides it either way until the next scheduled change. Times
+come from a local sunrise and sunset worked out offline by the
+NOAA solar algorithm, so it needs no network and no address in a
+committed file.
+
+Everything is set in `~/.config/night-shift.conf`, which is not
+part of this repository:
+
+| Key | Default | What it does |
+| --- | --- | --- |
+| `ENABLED` | `1` | `0` disables warming entirely |
+| `NIGHT_TEMPERATURE` | `5800` | Kelvin at full night |
+| `DAY_TEMPERATURE` | `6500` | Kelvin by day, unwarmed |
+| `TRANSITION_MINUTES` | `90` | Length of each ramp |
+| `NIGHT_START`, `NIGHT_END` | unset | Fixed `HH:MM` times, replacing the sun; set both, and the start must fall later in the day than the end |
+| `LATITUDE`, `LONGITUDE` | London | Where the sun is worked out for |
+
+The default of 5800K is deliberately mild, and the reason is
+contrast rather than taste. Warming multiplies the colour
+channels unevenly, so it lowers every ratio the palettes were
+checked against. Measured across all seventeen, the tightest
+accent that still clears WCAG AA in daylight is Osaka Jade's,
+and it stops clearing it below 5750K; Ember survives all the way
+to 3150K. Warm it further and the accents go first, which on
+this desktop means the focus border and the highlights, while
+body text keeps a great deal more headroom.
+
 ## Themes
 
 Seventeen, switched with one command that reaches the whole

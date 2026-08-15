@@ -17,9 +17,15 @@ readonly USER_CONFIG="${CONFIG_HOME}/night-shift.conf"
 readonly DEFAULT_LATITUDE=51.4733
 readonly DEFAULT_LONGITUDE=-0.0008333
 readonly DEFAULT_DAY_TEMPERATURE=6500
-readonly DEFAULT_NIGHT_TEMPERATURE=5000
+# Warming shifts every colour, so it eats the contrast the
+# palettes are checked against. Measured across all seventeen,
+# the tightest accent stops clearing WCAG AA below 5750K.
+readonly DEFAULT_NIGHT_TEMPERATURE=5800
 readonly DEFAULT_TRANSITION_MINUTES=90
 readonly DEFAULT_ENABLED=1
+readonly DEFAULT_NIGHT_START=""
+readonly DEFAULT_NIGHT_END=""
+readonly SECONDS_PER_DAY=86400
 readonly MIN_TEMPERATURE_K=1000
 readonly MAX_TEMPERATURE_K=20000
 
@@ -29,6 +35,8 @@ DAY_TEMPERATURE="${DEFAULT_DAY_TEMPERATURE}"
 NIGHT_TEMPERATURE="${DEFAULT_NIGHT_TEMPERATURE}"
 TRANSITION_MINUTES="${DEFAULT_TRANSITION_MINUTES}"
 ENABLED="${DEFAULT_ENABLED}"
+NIGHT_START="${DEFAULT_NIGHT_START}"
+NIGHT_END="${DEFAULT_NIGHT_END}"
 
 # shellcheck disable=SC1090
 [[ -r "${USER_CONFIG}" ]] && source "${USER_CONFIG}"
@@ -68,6 +76,36 @@ validate_temperature() {
 validate_temperature "${DAY_TEMPERATURE}" "DAY_TEMPERATURE"
 validate_temperature "${NIGHT_TEMPERATURE}" "NIGHT_TEMPERATURE"
 
+validate_clock() {
+    local value="$1" label="$2"
+    [[ -n "${value}" ]] || return 0
+    [[ "${value}" =~ ^([01][0-9]|2[0-3]):[0-5][0-9]$ ]] ||
+        die "${label} must be a 24-hour HH:MM time, got '${value}'"
+}
+
+validate_clock "${NIGHT_START}" "NIGHT_START"
+validate_clock "${NIGHT_END}" "NIGHT_END"
+
+if [[ -n "${NIGHT_START}" && -z "${NIGHT_END}" ]] ||
+    [[ -z "${NIGHT_START}" && -n "${NIGHT_END}" ]]; then
+    die "set NIGHT_START and NIGHT_END together, or neither to" \
+        "follow sunrise and sunset"
+fi
+
+clock_minutes() {
+    printf '%s\n' "$(( 10#${1%%:*} * 60 + 10#${1##*:} ))"
+}
+
+# The schedule is built around a night that spans midnight, so
+# an evening start that sorts before its morning end would be
+# read as one endless night.
+if [[ -n "${NIGHT_START}" ]] &&
+    (( $(clock_minutes "${NIGHT_START}") <=
+        $(clock_minutes "${NIGHT_END}") )); then
+    die "NIGHT_START (${NIGHT_START}) must fall later in the" \
+        "day than NIGHT_END (${NIGHT_END})"
+fi
+
 read_override() {
     [[ -r "${OVERRIDE_FILE}" ]] || { printf ''; return 0; }
     local value
@@ -97,12 +135,32 @@ ramp_temperature() {
     printf '%s\n' "$(( from + (to - from) * elapsed / duration ))"
 }
 
+# The schedule is written against three instants: when night
+# began yesterday, when it ends this morning, and when it begins
+# again this evening. Fixed times give those directly; otherwise
+# the sun does.
+clock_anchors() {
+    local dusk dawn
+    dusk=$(date -d "today ${NIGHT_START}" +%s) ||
+        die "could not read NIGHT_START '${NIGHT_START}'"
+    dawn=$(date -d "today ${NIGHT_END}" +%s) ||
+        die "could not read NIGHT_END '${NIGHT_END}'"
+    printf '%s %s %s\n' \
+        "$(( dusk - SECONDS_PER_DAY ))" "${dawn}" "${dusk}"
+}
+
+schedule_anchors() {
+    if [[ -n "${NIGHT_START}" ]]; then
+        clock_anchors
+        return 0
+    fi
+    "${SUN_HELPER}" "${LATITUDE}" "${LONGITUDE}"
+}
+
 schedule_target() {
     local sun_output
-    if ! sun_output=$(
-        "${SUN_HELPER}" "${LATITUDE}" "${LONGITUDE}"
-    ); then
-        warn "sun times unavailable, staying at the day" \
+    if ! sun_output=$(schedule_anchors); then
+        warn "schedule times unavailable, staying at the day" \
             "temperature"
         printf '%s %s\n' "${DAY_TEMPERATURE}" "day"
         return 0
