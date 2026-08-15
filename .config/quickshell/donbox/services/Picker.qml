@@ -140,7 +140,10 @@ Singleton {
         root.deliver(root.chosenStatus, chosen.value);
     }
 
+    // Also reached over IPC by a caller that is going away, so
+    // it has to be safe to ask for twice.
     function cancel(): void {
+        if (!root.shown) return;
         root.deliver(root.cancelledStatus, "");
     }
 

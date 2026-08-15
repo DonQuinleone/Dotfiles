@@ -21,7 +21,12 @@ die() {
     exit 1
 }
 
+# The picker answers through a fifo in the workspace, so a
+# caller that goes away would otherwise leave its window on
+# screen with nothing left to reply to.
 cleanup() {
+    qs -c "${SHELL_CONFIG}" ipc call "${IPC_TARGET}" cancel \
+        >/dev/null 2>&1 || true
     if [[ -n "${workspace}" ]]; then
         rm -rf "${workspace}"
     fi
@@ -37,7 +42,7 @@ usage() {
 usage: pick [--prompt LABEL] [--current VALUE] [--grid]
             [--preview-cmd COMMAND]
 
-Shows the items read from stdin in the Ember chooser, prints
+Shows the items read from stdin in the donbox chooser, prints
 the chosen one to stdout, and exits 1 when the user cancels.
 
 Every line is one item, split on tabs:
@@ -117,7 +122,7 @@ main() {
     require_command qs
     parse_arguments "$@"
 
-    trap cleanup EXIT
+    trap cleanup EXIT INT TERM HUP
     workspace=$(mktemp -d "${RUNTIME_DIR}/pick.XXXXXXXX")
 
     local items="${workspace}/items"

@@ -157,6 +157,10 @@ ShellRoot {
         function open(request: string): string {
             return Picker.present(request);
         }
+
+        function cancel(): void {
+            Picker.cancel();
+        }
     }
 
     IpcHandler {
