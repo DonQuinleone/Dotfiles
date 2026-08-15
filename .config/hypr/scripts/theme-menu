@@ -67,8 +67,7 @@ marked_name() {
 
 choose_theme() {
     theme_items |
-        "${PICK}" --prompt "${THEME_PROMPT}" --current "$1" \
-            --preview-cmd "$(preview_command preview)"
+        "${PICK}" --prompt "${THEME_PROMPT}" --current "$1"
 }
 
 choose_accent() {
@@ -80,10 +79,7 @@ choose_accent() {
 run_theme_flow() {
     local active slug
     active=$("${THEME}" current)
-    if ! slug=$(choose_theme "${active}"); then
-        "${THEME}" preview "${active}"
-        return 0
-    fi
+    slug=$(choose_theme "${active}") || return 0
     "${THEME}" set "${slug}"
 }
 

@@ -66,7 +66,6 @@ declare -rA COMMANDS=(
     [current]=cmd_current
     [set]=cmd_set
     [accent]=cmd_accent
-    [preview]=cmd_preview
     [preview-accent]=cmd_preview_accent
     [wallpaper]=cmd_wallpaper
 )
@@ -77,7 +76,6 @@ usage: theme list
        theme current
        theme set <name>
        theme accent [name]
-       theme preview <name>
        theme preview-accent <name>
        theme wallpaper [path]
 EOF
@@ -147,12 +145,6 @@ cmd_accent() {
     require_readable_accent
     store_accent "${slug}" "${ACCENT_NAME}"
     apply_every_surface
-}
-
-cmd_preview() {
-    (($# == 1)) || usage
-    select_theme "$1"
-    apply_live_surfaces
 }
 
 cmd_preview_accent() {

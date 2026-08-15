@@ -51,16 +51,8 @@ Singleton {
         command.running = true;
     }
 
-    function preview(slug: string): void {
-        root.run(["preview", slug]);
-    }
-
     function commit(slug: string): void {
         root.run(["set", slug]);
-    }
-
-    function previewAccent(name: string): void {
-        root.run(["preview-accent", name]);
     }
 
     function applyAccent(name: string): void {
