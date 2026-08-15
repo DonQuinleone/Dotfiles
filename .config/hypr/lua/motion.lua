@@ -25,10 +25,11 @@ local curves = {
         stiffness = 238.1191, dampening = 24.21279333 } },
 }
 
--- Speeds are in deciseconds; zoom at 1.5 is the deliberate
--- break from COSMIC's sluggish magnifier. A spring leaf is timed
--- by its constants alone and ignores its speed, which is why the
--- reduced profile has to swap the curve rather than shorten it.
+-- Speeds are in deciseconds; zoom at 1.5 keeps the magnifier
+-- ahead of the eye instead of trailing it. A spring leaf is
+-- timed by its constants alone and ignores its speed, which is
+-- why the reduced profile has to swap the curve rather than
+-- shorten it.
 local animations = {
     { leaf = "global", speed = 2.0, bezier = "donboxOut" },
     { leaf = "border", speed = 3.0, bezier = "donboxOut" },

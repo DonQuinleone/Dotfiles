@@ -4,8 +4,8 @@ readonly FASTFETCH_DIR="${CONFIG_HOME}/fastfetch"
 readonly FASTFETCH_CONFIG_FILE="${FASTFETCH_DIR}/config.jsonc"
 readonly FASTFETCH_LOGO_FILE="${FASTFETCH_DIR}/logo/logo-color.txt"
 
-# /etc/os-release still says COSMIC, and fedora-release owns it,
-# so a root edit would be undone by the next update.
+# os-release names no variant at all, and fedora-release owns the
+# file, so a root edit would be undone by the next update.
 readonly DESKTOP_FLAVOUR="donbox"
 
 write_fastfetch_config() {
