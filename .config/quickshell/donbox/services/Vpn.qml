@@ -24,10 +24,13 @@ Singleton {
     readonly property string linkedGlyph: "󰦝"
 
     property var report: null
-    property var tunnels: []
+    property var discovered: []
     property string netbirdDevice: ""
     property string busyUuid: ""
     property bool netbirdBusy: false
+
+    readonly property var tunnels:
+        root.discovered.filter(entry => root.keeps(entry))
 
     readonly property bool netbirdPresent: root.report !== null
 
@@ -107,10 +110,9 @@ Singleton {
     }
 
     function absorbTunnels(payload: string): void {
-        root.tunnels = NetworkCli.rowsIn(payload)
+        root.discovered = NetworkCli.rowsIn(payload)
             .filter(columns => columns.length >= root.tunnelColumns)
-            .map(columns => root.tunnelFrom(columns))
-            .filter(entry => root.keeps(entry));
+            .map(columns => root.tunnelFrom(columns));
     }
 
     // NetBird's own interface is a WireGuard link NetworkManager

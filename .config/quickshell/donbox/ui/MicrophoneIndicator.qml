@@ -1,4 +1,5 @@
 import QtQuick
+import Quickshell
 import Quickshell.Services.Pipewire
 import qs.services
 
@@ -11,6 +12,7 @@ BarPill {
     readonly property PwNode source: Pipewire.defaultAudioSource
     readonly property bool muted: root.source?.audio?.muted ?? true
 
+    highlighted: panel.visible
     visible: root.source !== null
 
     content: [
@@ -25,5 +27,18 @@ BarPill {
 
     PwObjectTracker {
         objects: [Pipewire.defaultAudioSource]
+    }
+
+    PanelToggle {
+        name: "microphone"
+        surface: panel
+    }
+
+    MicrophonePanel {
+        id: panel
+
+        anchor.item: root
+        anchor.edges: Edges.Bottom
+        anchor.gravity: Edges.Bottom
     }
 }

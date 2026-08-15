@@ -7,7 +7,7 @@ import Quickshell.Io
 Singleton {
     id: root
 
-    readonly property string automaticLabel: "Automatic"
+    readonly property string automaticLabel: "DHCP"
     readonly property string customLabel: "Custom"
     readonly property string listSeparator: ","
 
@@ -31,11 +31,6 @@ Singleton {
             label: "Google",
             ipv4: ["8.8.8.8", "8.8.4.4"],
             ipv6: ["2001:4860:4860::8888", "2001:4860:4860::8844"]
-        },
-        {
-            label: "OpenDNS",
-            ipv4: ["208.67.222.222", "208.67.220.220"],
-            ipv6: ["2620:119:35::35", "2620:119:53::53"]
         }
     ]
 

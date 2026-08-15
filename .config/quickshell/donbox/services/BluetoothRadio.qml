@@ -80,7 +80,7 @@ Singleton {
 
     readonly property string label: {
         if (!root.powered) return "Bluetooth off";
-        if (root.linkedCount === 0) return "No devices";
+        if (root.linkedCount === 0) return "Nothing connected";
         if (root.linkedCount === 1) return root.linked[0].name;
         return `${root.linkedCount} devices`;
     }
@@ -125,7 +125,6 @@ Singleton {
         if (device.pairing) return "Pairing";
         if (device.connected) return "Connected";
         if (!root.isPaired(device)) return "Not paired";
-        if (device.trusted) return "Trusted";
         return "Paired";
     }
 

@@ -12,8 +12,8 @@ Column {
     property real maximum: 1.0
     property real mark: 0.0
 
-    readonly property string mutedGlyph: "󰝟"
-    readonly property string liveGlyph: "󰕾"
+    property string mutedGlyph: "󰖁"
+    property string liveGlyph: "󰕾"
 
     readonly property bool boosted:
         slider.marked && root.level > root.mark
