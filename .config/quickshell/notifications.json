@@ -1,8 +1,14 @@
 {
   "defaults": {
-    "low": { "sound": null },
-    "normal": { "sound": "info" },
-    "critical": { "sound": "critical" }
+    "low": {
+      "sound": null
+    },
+    "normal": {
+      "sound": "info"
+    },
+    "critical": {
+      "sound": "critical"
+    }
   },
   "applications": {
     "Thunderbird": {
