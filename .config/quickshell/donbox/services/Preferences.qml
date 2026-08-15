@@ -14,6 +14,7 @@ Singleton {
         detachedCamera: false,
         cursorSize: 48,
         borderSize: 4,
+        screensaver: "cycle",
         devices: ({})
     })
 

@@ -17,8 +17,18 @@ Singleton {
     readonly property var groundCandidates:
         ["bg", "bgAlt", "surface", "fg", "fgDim", "border"]
 
+    readonly property var saverNames: ["lava", "windmill", "rain"]
+    readonly property var modeNames: ["cycle", "off"]
+
+    readonly property string glyphAlphabet:
+        "0123456789ABCDEF#$%&*+=<>/|[]{}!?~^"
+
     property bool active: false
     property real elapsed: 0
+    property string saver: root.saverNames[0]
+
+    readonly property string choice:
+        Preferences.value("screensaver")
 
     readonly property real glow: Math.min(root.glowCeiling,
         Theme.opacities.dim ?? root.glowCeiling)
@@ -51,8 +61,32 @@ Singleton {
         return picked;
     }
 
+    function choose(): string {
+        if (root.saverNames.includes(root.choice)) return root.choice;
+        return root.saverNames[
+            Math.floor(Math.random() * root.saverNames.length)];
+    }
+
+    function select(name: string): string {
+        const known = root.saverNames.concat(root.modeNames);
+        if (!known.includes(name))
+            return `no screensaver '${name}'; ` +
+                `one of: ${known.join(" ")}`;
+        Preferences.set("screensaver", name);
+        return name;
+    }
+
+    function names(): string {
+        const marker = name =>
+            name === root.choice ? `* ${name}` : `  ${name}`;
+        return root.saverNames.concat(root.modeNames)
+            .map(marker).join("\n");
+    }
+
     function start(): void {
         if (Lock.locked) return;
+        if (root.choice === "off") return;
+        root.saver = root.choose();
         root.active = true;
     }
 

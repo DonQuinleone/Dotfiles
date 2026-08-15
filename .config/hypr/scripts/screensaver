@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+readonly SHELL_CONFIG="donbox"
+
+usage() {
+    cat >&2 <<'EOF'
+usage: screensaver list
+       screensaver get
+       screensaver set <name>
+       screensaver start
+       screensaver stop
+
+The saver list, and which is chosen, live in the shell: `list`
+marks the active choice, `set` accepts any listed name, `cycle`
+picks one at random each time, and `off` disables idle starts.
+EOF
+    exit 1
+}
+
+ipc() {
+    qs -c "${SHELL_CONFIG}" ipc call screensaver "$@"
+}
+
+command="${1:-}"
+case "${command}" in
+    list | get | start | stop)
+        (($# == 1)) || usage
+        ipc "${command}"
+        ;;
+    set)
+        (($# == 2)) || usage
+        ipc set "$2"
+        ;;
+    *)
+        usage
+        ;;
+esac

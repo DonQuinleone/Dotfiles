@@ -52,9 +52,33 @@ PanelWindow {
     Item {
         id: canvas
 
+        readonly property var saverScenes: ({
+            lava: lavaScene,
+            windmill: windmillScene,
+            rain: rainScene
+        })
+
         anchors.fill: parent
         focus: true
         opacity: root.visible ? 1 : 0
+
+        Component {
+            id: lavaScene
+
+            LavaLamp {}
+        }
+
+        Component {
+            id: windmillScene
+
+            WindmillSaver {}
+        }
+
+        Component {
+            id: rainScene
+
+            CodeRain {}
+        }
 
         Keys.onPressed: event => {
             event.accepted = true;
@@ -68,8 +92,11 @@ PanelWindow {
             }
         }
 
-        LavaLamp {
+        Loader {
             anchors.fill: parent
+            active: Screensaver.active
+            sourceComponent: canvas.saverScenes[Screensaver.saver]
+                ?? lavaScene
         }
 
         DriftingClock {

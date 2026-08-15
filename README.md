@@ -113,7 +113,7 @@ size; every value comes from the active theme.
 | Display | Volume and brightness, foot of the screen |
 | Wallpaper | Per-theme, crossfaded |
 | Lock | PAM or fingerprint, on every monitor |
-| Screensaver | Themed lava lamp, docked only |
+| Screensaver | Lava lamp, windmill or code rain, docked only |
 
 Layouts are per workspace: master stack, monocle and scrolling,
 each remembered by the workspace it belongs to. Monocle stacks
@@ -140,12 +140,30 @@ milliseconds without switching it off, so direction is still
 readable when a full-speed desktop is too much.
 
 Idle behaviour follows the dock. Docked, the screen dims at five
-minutes, the lava lamp takes over at eight and the screens go off
-at twelve, and the machine never suspends itself; the lamp is a
-metaball shader coloured from the active palette, kept dim and
-always moving because the primary display is an OLED. Undocked it
+minutes, the screensaver takes over at eight and the screens go
+off at twelve, and the machine never suspends itself. Undocked it
 dims at two, locks at three, blanks at four and suspends at
-fifteen. `loginctl lock-session` reaches the same locker, which
+fifteen.
+
+Three screensavers ship, every one coloured from the active
+palette, kept dim and incapable of strobing because the primary
+display is an OLED: the lava lamp, a metaball shader that never
+stops moving; the donbox windmill turning under the stars, which
+every so often dissolves into glyphs and resolves back; and a
+field of code rain in the register the lock screen uses. The
+windmill saver is a native rebuild of the terminal-text
+screensaver Omarchy ships (MIT, by David Heinemeier Hansson);
+the idea is borrowed with credit, the code is not, so it can
+follow the palette and hold still under reduced motion. One
+command chooses, and the choice persists in the shell's settings
+store:
+
+    screensaver list
+    screensaver set windmill
+    screensaver set cycle
+
+`cycle` draws one at random each time the saver starts, and
+`off` disables idle starts entirely. `loginctl lock-session` reaches the same locker, which
 authenticates against the login PAM stack rather than checking a
 password itself, so whatever that stack accepts, an enrolled
 fingerprint included, unlocks the screen.

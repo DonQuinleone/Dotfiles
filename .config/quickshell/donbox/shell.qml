@@ -113,6 +113,18 @@ ShellRoot {
         function stop(): void {
             Screensaver.stop();
         }
+
+        function set(name: string): string {
+            return Screensaver.select(name);
+        }
+
+        function get(): string {
+            return Screensaver.choice;
+        }
+
+        function list(): string {
+            return Screensaver.names();
+        }
     }
 
     IpcHandler {
