@@ -14,6 +14,10 @@ command -v stow >/dev/null 2>&1 || die "GNU Stow is not installed"
 [ "$STOW_DIR" = "$HOME" ] ||
     die "repo must sit directly in \$HOME, found $REPO"
 
+# The wallpapers live in their own repository, so a fresh clone
+# has an empty directory here until it is populated.
+git -C "$REPO" submodule update --init --recursive
+
 # Stow 2.4 skips the whole package when its stow directory is also the
 # target, so the repo itself is the stow directory and "." the package.
 stow --dir "$REPO" --target "$HOME" --restow --verbose .

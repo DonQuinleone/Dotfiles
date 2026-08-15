@@ -1,0 +1,3 @@
+[submodule "Pictures/walls"]
+	path = Pictures/walls
+	url = ssh://git@forge.example.com/user/donbox-walls.git
