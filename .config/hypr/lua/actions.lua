@@ -1,6 +1,4 @@
 local DEFAULT_ZOOM_STEP = 1.0
-local ZOOM_STEP = require("settings").load().zoom_step
-    or DEFAULT_ZOOM_STEP
 local ZOOM_MIN = 1.0
 local ZOOM_MAX = 8.0
 local NOTIFY_MS = 1500
@@ -11,7 +9,17 @@ local state_dir = (os.getenv("XDG_STATE_HOME")
 local caret_flag = state_dir .. "/caret-follow.on"
 local notify_script = "$HOME/.config/hypr/scripts/notify"
 
+-- Held in the module rather than captured by each binding, so
+-- the shell can change the step through overrides.apply without
+-- the compositor reloading its configuration.
+local zoom_step = require("settings").load().zoom_step
+    or DEFAULT_ZOOM_STEP
+
 local actions = {}
+
+function actions.set_zoom_step(step)
+    zoom_step = tonumber(step) or DEFAULT_ZOOM_STEP
+end
 
 -- The desktop's own confirmations are worth a toast but not a
 -- place in the history the user reviews later.
@@ -21,12 +29,18 @@ local function notify(text)
         notify_script, NOTIFY_MS, text))
 end
 
-function actions.zoom(delta)
-    return function()
-        local factor = hl.get_config("cursor.zoom_factor") + delta
-        factor = math.max(ZOOM_MIN, math.min(ZOOM_MAX, factor))
-        hl.config({ cursor = { zoom_factor = factor } })
-    end
+local function change_zoom(delta)
+    local factor = hl.get_config("cursor.zoom_factor") + delta
+    factor = math.max(ZOOM_MIN, math.min(ZOOM_MAX, factor))
+    hl.config({ cursor = { zoom_factor = factor } })
+end
+
+function actions.zoom_in()
+    change_zoom(zoom_step)
+end
+
+function actions.zoom_out()
+    change_zoom(-zoom_step)
 end
 
 function actions.zoom_reset()
@@ -147,7 +161,6 @@ function actions.focus_step(direction)
     end
 end
 
-actions.ZOOM_STEP = ZOOM_STEP
 actions.notify = notify
 
 return actions

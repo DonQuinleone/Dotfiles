@@ -2,7 +2,6 @@ import Quickshell
 import Quickshell.Io
 import qs.services
 import qs.ui
-import qs.ui.settings
 
 ShellRoot {
     Variants {
@@ -62,28 +61,6 @@ ShellRoot {
     }
 
     LockScreen {}
-
-    SettingsWindow {}
-
-    IpcHandler {
-        target: "settings"
-
-        function toggle(): void {
-            Settings.toggle();
-        }
-
-        function open(): void {
-            Settings.show();
-        }
-
-        function pane(name: string): void {
-            Settings.reveal(name);
-        }
-
-        function close(): void {
-            Settings.hide();
-        }
-    }
 
     IpcHandler {
         target: "panels"

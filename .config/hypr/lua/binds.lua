@@ -3,7 +3,6 @@ local gaps = require("gaps")
 local layouts = require("layouts")
 
 local scripts = "$HOME/.config/hypr/scripts"
-local step = actions.ZOOM_STEP
 local RESIZE_STEP = 60
 
 local held = { locked = true, repeating = true }
@@ -76,13 +75,13 @@ local binds = {
     { "SUPER + CTRL",    "l",                     actions.resize(RESIZE_STEP, 0)                         },
 
     -- Magnifier
-    { "SUPER",           "equal",                 actions.zoom(step)                                     },
-    { "SUPER",           "minus",                 actions.zoom(-step)                                    },
+    { "SUPER",           "equal",                 actions.zoom_in                                        },
+    { "SUPER",           "minus",                 actions.zoom_out                                       },
     { "SUPER",           "0",                     actions.zoom_reset                                     },
     { "SUPER",           "z",                     actions.zoom_follow_toggle                             },
     { "SUPER + SHIFT",   "z",                     actions.caret_follow_toggle                            },
-    { "SUPER",           "mouse_up",              actions.zoom(step)                                     },
-    { "SUPER",           "mouse_down",            actions.zoom(-step)                                    },
+    { "SUPER",           "mouse_up",              actions.zoom_in                                        },
+    { "SUPER",           "mouse_down",            actions.zoom_out                                       },
 
     -- Comfort
     { "SUPER + CTRL",    "m",                     hl.dsp.exec_cmd(scripts .. "/motion reduced toggle")   },

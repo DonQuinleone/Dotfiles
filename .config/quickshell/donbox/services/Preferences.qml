@@ -8,6 +8,8 @@ Singleton {
     id: root
 
     readonly property int writeDelayMs: 300
+    readonly property int jsonIndent: 4
+    readonly property string fallbackCursorTheme: "Adwaita"
 
     readonly property var defaults: ({
         zoomStep: 1.0,
@@ -39,6 +41,9 @@ Singleton {
     readonly property string stateHome:
         Quickshell.env("XDG_STATE_HOME")
         ?? `${Quickshell.env("HOME")}/.local/state`
+
+    readonly property string cursorTheme:
+        Quickshell.env("XCURSOR_THEME") ?? root.fallbackCursorTheme
 
     readonly property string path:
         `${root.configHome}/quickshell/settings.json`
@@ -110,16 +115,44 @@ Singleton {
         return table;
     }
 
-    function sync(): void {
-        if (live.running) {
-            writeBack.restart();
-            return;
-        }
+    function applyOverrides(): void {
         const table = LuaTable.table(root.payload());
         generatedFile.setText(`return ${table}\n`);
         live.command = ["hyprctl", "eval",
             `dofile(${LuaTable.quoted(root.applier)}).apply(${table})`];
         live.running = true;
+    }
+
+    function resizeCursor(): void {
+        if (cursor.running) return;
+        cursor.command = ["hyprctl", "setcursor", root.cursorTheme,
+            `${root.value("cursorSize")}`];
+        cursor.running = true;
+    }
+
+    function sync(): void {
+        if (live.running) {
+            writeBack.restart();
+            return;
+        }
+        root.applyOverrides();
+        root.resizeCursor();
+    }
+
+    function effective(): var {
+        const complete = ({});
+        for (const name in root.defaults) {
+            complete[name] = root.value(name);
+        }
+        return complete;
+    }
+
+    function materialise(): void {
+        root.data = root.effective();
+    }
+
+    function serialised(): string {
+        return JSON.stringify(root.data, null, root.jsonIndent);
     }
 
     function seed(name: string, seeded: var): void {
@@ -136,6 +169,18 @@ Singleton {
         }
     }
 
+    // Reading a hand-edited file must not restart the write
+    // back, which would reformat the file under an editor still
+    // holding it open.
+    function adopt(): void {
+        if (!root.ready) return;
+        if (file.text() === root.serialised()) return;
+        root.ready = false;
+        root.reparse();
+        root.ready = true;
+        root.sync();
+    }
+
     onDataChanged: {
         if (!root.ready) return;
         writeBack.restart();
@@ -148,6 +193,7 @@ Singleton {
         root.ready = true;
         const inherited = Number(Quickshell.env("XCURSOR_SIZE"));
         if (inherited > 0) root.seed("cursorSize", inherited);
+        root.materialise();
     }
 
     Timer {
@@ -156,9 +202,13 @@ Singleton {
         interval: root.writeDelayMs
 
         onTriggered: {
-            file.setText(JSON.stringify(root.data, null, 4));
+            file.setText(root.serialised());
             root.sync();
         }
+    }
+
+    Process {
+        id: cursor
     }
 
     Process {
@@ -195,8 +245,12 @@ Singleton {
 
         path: root.path
         blockLoading: true
+        watchChanges: true
         atomicWrites: true
         printErrors: false
+
+        onFileChanged: this.reload()
+        onLoaded: root.adopt()
     }
 
     FileView {
