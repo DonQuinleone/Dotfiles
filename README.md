@@ -204,6 +204,39 @@ authenticates against the login PAM stack rather than checking a
 password itself, so whatever that stack accepts, an enrolled
 fingerprint included, unlocks the screen.
 
+## Glance and the panels
+
+`Super+V` drops a readout of the whole machine from the bar: the
+time and date in large type, battery and time left, processor
+load, temperature, memory, disk, uptime, load average, and the
+connection with its address and live throughput.
+
+Each pill in the bar opens its own panel, the way the clock
+already opens the calendar:
+
+| Pill | Panel |
+| --- | --- |
+| Network | throughput, latency and loss to router and internet, addresses and DNS with copy buttons, a provider picker, saved and nearby networks |
+| Bluetooth | quick settings, where the Bluetooth toggles already live |
+| Volume | a per-application mixer to 150%, with output and input pickers |
+| Battery | health against design capacity, charge cycles, time to empty or full, and the power profile |
+
+The power profile is remembered separately for AC and battery, so
+plugging in restores the profile last chosen on AC and unplugging
+restores the one chosen on battery.
+
+Panels answer the keyboard as well as the mouse, since a surface
+only a pointer can reach is no use under magnification:
+
+    qs -c donbox ipc call panels toggle network
+
+Opening one panel closes any other. Two things the panels cannot
+do, because a dropdown never takes keyboard focus: joining an
+unsaved secured network, which would need a password field, and
+reading the clipboard through Qt, so copying goes through
+`wl-copy` instead. The Wi-Fi QR needs `qrencode`, which
+`get_packages.sh` installs.
+
 ## Settings
 
 `Super+C` opens the settings window, and `qs -c donbox ipc call
