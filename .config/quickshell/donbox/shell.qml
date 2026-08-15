@@ -48,12 +48,6 @@ ShellRoot {
     }
 
     Variants {
-        model: Quickshell.screens
-
-        QuickSettingsPanel {}
-    }
-
-    Variants {
         id: flashes
 
         model: Quickshell.screens
@@ -180,22 +174,6 @@ ShellRoot {
 
         function cancel(): void {
             Picker.cancel();
-        }
-    }
-
-    IpcHandler {
-        target: "quickSettings"
-
-        function toggle(): void {
-            QuickSettings.toggle();
-        }
-
-        function open(): void {
-            QuickSettings.show();
-        }
-
-        function close(): void {
-            QuickSettings.hide();
         }
     }
 

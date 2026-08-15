@@ -61,8 +61,6 @@ local layers = {
     { namespace = "^donbox-toasts$", animation = "slide right" },
     { namespace = "^donbox-notifications$",
       animation = "slide right" },
-    { namespace = "^donbox-quick-settings$",
-      animation = "slide right" },
     { namespace = "^donbox-osd$", animation = "slide bottom" },
     { namespace = "^donbox-chooser$", animation = "popin 92%" },
     { namespace = "^donbox-screensaver$", animation = "fade" },

@@ -13,7 +13,7 @@ Singleton {
     readonly property string testApp: qsTr("Donbox settings")
     readonly property string testSummary: qsTr("Test notification")
     readonly property string testBody:
-        qsTr("This is how %1 will sound and speak.")
+        qsTr("This is how %1 will sound.")
 
     readonly property var urgencies: [
         { key: "low", word: qsTr("Low") },

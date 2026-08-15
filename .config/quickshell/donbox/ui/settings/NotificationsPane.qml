@@ -72,7 +72,7 @@ Column {
             width: parent.width
             label: qsTr("Give one of these a rule")
             hint: qsTr("Applications that have sent a notification "
-                + "but have no sound or spoken words set.")
+                + "but have no sound set.")
 
             Flow {
                 width: parent.width

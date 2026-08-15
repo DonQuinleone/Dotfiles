@@ -31,7 +31,6 @@ gpgkey=https://pkgs.netbird.io/yum/repodata/repomd.xml.key
 repo_gpgcheck=1'
 
 COPRS=(
-    donquinleone/antiphon
     donquinleone/claude-desktop
     scottames/ghostty
     lionheartp/Hyprland
@@ -41,7 +40,6 @@ COPRS=(
 PACKAGES=(
     ShellCheck
     ansible
-    antiphon
     brightnessctl
     claude-code
     claude-desktop
@@ -76,7 +74,6 @@ PACKAGES=(
     pipx
     playerctl
     kvantum
-    qrencode
     qt6-qtimageformats
     qt6-qtmultimedia
     qt6-qtsvg

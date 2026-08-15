@@ -12,8 +12,7 @@
   },
   "applications": {
     "Thunderbird": {
-      "sound": "message",
-      "speak": "New e-mail from {summary}"
+      "sound": "message"
     }
   }
 }
