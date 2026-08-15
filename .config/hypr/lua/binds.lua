@@ -10,45 +10,48 @@ local held = { locked = true, repeating = true }
 local locked = { locked = true }
 local mouse = { mouse = true }
 
+-- SUPER goes somewhere, SUPER + SHIFT acts on the focused
+-- window, SUPER + CTRL adjusts, SUPER + ALT is hardware and the
+-- session. The magnifier keeps plain SUPER against that rule
+-- because it is in constant use.
 local binds = {
-    -- Session
-    { "SUPER + SHIFT",   "e",                     hl.dsp.exit()                                          },
-    { "SUPER",           "Escape",                hl.dsp.exec_cmd(scripts .. "/power-menu")              },
-    { "SUPER + SHIFT",   "Escape",                hl.dsp.exec_cmd("loginctl lock-session")               },
-    { "SUPER + CTRL",    "Escape",                hl.dsp.exec_cmd(scripts .. "/idle-screensaver start")  },
-
     -- Applications
     { "SUPER",           "Return",                hl.dsp.exec_cmd("ghostty")                             },
     { "SUPER",           "b",                     hl.dsp.exec_cmd("firefox")                             },
     { "SUPER",           "f",                     hl.dsp.exec_cmd("nautilus")                            },
+    { "SUPER",           "a",                     hl.dsp.exec_cmd(scripts .. "/activity")                },
 
     -- Scratchpads
     { "SUPER",           "d",                     hl.dsp.workspace.toggle_special("term")                },
     { "SUPER",           "e",                     hl.dsp.workspace.toggle_special("mail")                },
 
     -- Shell
-    { "SUPER + SHIFT",   "b",                     hl.dsp.exec_cmd("qs -c donbox ipc call bar toggleFocused") },
     { "SUPER",           "space",                 hl.dsp.exec_cmd("qs -c donbox ipc call launcher toggle") },
-    { "SUPER + SHIFT",   "t",                     hl.dsp.exec_cmd(scripts .. "/theme-menu")              },
-    { "SUPER + CTRL",    "t",                     hl.dsp.exec_cmd(scripts .. "/theme-menu accent")       },
+    { "SUPER + CTRL",    "b",                     hl.dsp.exec_cmd("qs -c donbox ipc call bar toggleFocused") },
+    { "SUPER + CTRL",    "c",                     hl.dsp.exec_cmd("qs -c donbox ipc call settings toggle")  },
 
     -- Notifications
     { "SUPER",           "n",                     hl.dsp.exec_cmd("qs -c donbox ipc call notifications toggleCentre") },
     { "SUPER + SHIFT",   "n",                     hl.dsp.exec_cmd("qs -c donbox ipc call notifications toggleDnd")    },
     { "SUPER + CTRL",    "n",                     hl.dsp.exec_cmd("qs -c donbox ipc call notifications dismissAll")   },
 
+    -- Appearance
+    { "SUPER + CTRL",    "t",                     hl.dsp.exec_cmd(scripts .. "/theme-menu")              },
+    { "SUPER + CTRL",    "a",                     hl.dsp.exec_cmd(scripts .. "/theme-menu accent")       },
+    { "SUPER + CTRL",    "w",                     hl.dsp.exec_cmd(scripts .. "/wallpaper-menu")          },
+
     -- Windows
-    { "SUPER",           "q",                     hl.dsp.window.close()                                  },
-    { "SUPER",           "x",                     hl.dsp.window.pin()                                    },
+    { "SUPER + SHIFT",   "q",                     hl.dsp.window.close()                                  },
+    { "SUPER + SHIFT",   "x",                     hl.dsp.window.pin()                                    },
     { "SUPER + SHIFT",   "f",                     hl.dsp.window.fullscreen()                             },
     { "SUPER + SHIFT",   "space",                 hl.dsp.window.float({ action = "toggle" })             },
 
     -- Layouts
-    { "SUPER",           "t",                     layouts.set("master")                                  },
-    { "SUPER",           "m",                     layouts.set("monocle")                                 },
-    { "SUPER",           "s",                     layouts.set("scrolling")                               },
-    { "SUPER",           "backslash",             layouts.cycle                                          },
-    { "SUPER",           "g",                     gaps.toggle                                            },
+    { "SUPER + SHIFT",   "t",                     layouts.set("master")                                  },
+    { "SUPER + SHIFT",   "m",                     layouts.set("monocle")                                 },
+    { "SUPER + SHIFT",   "s",                     layouts.set("scrolling")                               },
+    { "SUPER + SHIFT",   "backslash",             layouts.cycle                                          },
+    { "SUPER + SHIFT",   "g",                     gaps.toggle                                            },
 
     -- Navigation
     { "SUPER",           "h",                     hl.dsp.focus({ direction = "left" })                   },
@@ -78,18 +81,25 @@ local binds = {
     { "SUPER",           "0",                     actions.zoom_reset                                     },
     { "SUPER",           "z",                     actions.zoom_follow_toggle                             },
     { "SUPER + SHIFT",   "z",                     actions.caret_follow_toggle                            },
-    { "SUPER + CTRL",    "m",                     hl.dsp.exec_cmd(scripts .. "/motion reduced toggle")   },
-    { "SUPER + SHIFT",   "w",                     hl.dsp.exec_cmd(scripts .. "/night-shift toggle")     },
-    { "SUPER",           "c",                     hl.dsp.exec_cmd("qs -c donbox ipc call settings toggle")            },
     { "SUPER",           "mouse_up",              actions.zoom(step)                                     },
     { "SUPER",           "mouse_down",            actions.zoom(-step)                                    },
 
+    -- Comfort
+    { "SUPER + CTRL",    "m",                     hl.dsp.exec_cmd(scripts .. "/motion reduced toggle")   },
+    { "SUPER + ALT",     "w",                     hl.dsp.exec_cmd(scripts .. "/night-shift toggle")      },
+
+    -- Session
+    { "SUPER",           "Escape",                hl.dsp.exec_cmd(scripts .. "/power-menu")              },
+    { "SUPER + SHIFT",   "Escape",                hl.dsp.exec_cmd("loginctl lock-session")               },
+    { "SUPER + CTRL",    "Escape",                hl.dsp.exec_cmd(scripts .. "/idle-screensaver start")  },
+    { "SUPER + ALT",     "e",                     hl.dsp.exit()                                          },
+
     -- Volume and brightness
-    { "SUPER + ALT",     "k",                     hl.dsp.exec_cmd("wpctl set-volume -l 1 @DEFAULT_AUDIO_SINK@ 5%+"), held },
-    { "SUPER + ALT",     "j",                     hl.dsp.exec_cmd("wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-"),      held },
+    { "SUPER + ALT",     "up",                    hl.dsp.exec_cmd("wpctl set-volume -l 1 @DEFAULT_AUDIO_SINK@ 5%+"), held },
+    { "SUPER + ALT",     "down",                  hl.dsp.exec_cmd("wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-"),      held },
     { "SUPER + ALT",     "m",                     hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"),     locked },
-    { "SUPER + ALT",     "l",                     hl.dsp.exec_cmd("brightnessctl -e4 -n2 set 5%+"),                  held },
-    { "SUPER + ALT",     "h",                     hl.dsp.exec_cmd("brightnessctl -e4 -n2 set 5%-"),                  held },
+    { "SUPER + ALT",     "right",                 hl.dsp.exec_cmd("brightnessctl -e4 -n2 set 5%+"),                  held },
+    { "SUPER + ALT",     "left",                  hl.dsp.exec_cmd("brightnessctl -e4 -n2 set 5%-"),                  held },
     { "",                "XF86AudioRaiseVolume",  hl.dsp.exec_cmd("wpctl set-volume -l 1 @DEFAULT_AUDIO_SINK@ 5%+"), held },
     { "",                "XF86AudioLowerVolume",  hl.dsp.exec_cmd("wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-"),      held },
     { "",                "XF86AudioMute",         hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"),     locked },
