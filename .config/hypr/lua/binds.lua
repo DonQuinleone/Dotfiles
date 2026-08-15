@@ -81,6 +81,7 @@ local binds = {
     { "SUPER + SHIFT",   "z",                     actions.caret_follow_toggle                            },
     { "SUPER + CTRL",    "m",                     hl.dsp.exec_cmd(scripts .. "/motion reduced toggle")   },
     { "SUPER + SHIFT",   "w",                     hl.dsp.exec_cmd(scripts .. "/night-shift toggle")     },
+    { "SUPER",           "c",                     hl.dsp.exec_cmd("qs -c ember ipc call settings toggle")            },
     { "SUPER",           "mouse_up",              actions.zoom(step)                                     },
     { "SUPER",           "mouse_down",            actions.zoom(-step)                                    },
 

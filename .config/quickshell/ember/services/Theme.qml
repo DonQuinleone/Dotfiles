@@ -12,16 +12,20 @@ Singleton {
 
     property bool usingFallback: false
 
+    readonly property int fallbackRetryMs: 2000
+
     readonly property string configHome:
         Quickshell.env("XDG_CONFIG_HOME")
         ?? `${Quickshell.env("HOME")}/.config`
 
-    readonly property string themeName: root.usingFallback
-        ? root.fallbackTheme
-        : root.activeTheme
-
     readonly property string path:
-        `${root.configHome}/quickshell/themes/${root.themeName}.json`
+        `${root.themeDir}/${root.activeTheme}.json`
+
+    readonly property string themeDir:
+        `${root.configHome}/quickshell/themes`
+
+    readonly property string fallbackPath:
+        `${root.themeDir}/${root.fallbackTheme}.json`
 
     property var data: ({})
 
@@ -103,11 +107,12 @@ Singleton {
     }
 
     function reparse(): void {
+        const source = root.usingFallback ? fallbackFile : file;
         try {
-            root.data = JSON.parse(file.text());
+            root.data = JSON.parse(source.text());
         } catch (error) {
             console.error(
-                `ember: ${root.path} is not valid JSON:`, error);
+                `ember: ${source.path} is not valid JSON:`, error);
         }
     }
 
@@ -125,15 +130,38 @@ Singleton {
         blockLoading: true
 
         onFileChanged: this.reload()
-        onLoaded: root.reparse()
-        onLoadFailed: error => {
-            if (!root.usingFallback) {
-                root.usingFallback = true;
-                return;
-            }
-            console.error(
-                `ember: cannot read ${root.path}:`,
-                FileViewError.toString(error));
+
+        onLoaded: {
+            root.usingFallback = false;
+            root.reparse();
         }
+
+        // The generated palette is absent until the theme script
+        // has run once, so a first session legitimately starts
+        // without it and must pick it up when it appears.
+        onLoadFailed: {
+            root.usingFallback = true;
+            fallbackFile.reload();
+        }
+    }
+
+    FileView {
+        id: fallbackFile
+
+        path: root.fallbackPath
+        blockLoading: true
+
+        onLoaded: if (root.usingFallback) root.reparse()
+        onLoadFailed: error => console.error(
+            `ember: cannot read ${root.fallbackPath}:`,
+            FileViewError.toString(error))
+    }
+
+    Timer {
+        running: root.usingFallback
+        interval: root.fallbackRetryMs
+        repeat: true
+
+        onTriggered: file.reload()
     }
 }
