@@ -18,6 +18,10 @@ command -v stow >/dev/null 2>&1 || die "GNU Stow is not installed"
 # has an empty directory here until it is populated.
 git -C "$REPO" submodule update --init --recursive
 
+# Stow folds a directory that does not exist yet into a link to
+# the repo, and GnuPG refuses a home directory it can read at 755.
+install -d -m 700 "$HOME/.gnupg"
+
 # Stow 2.4 skips the whole package when its stow directory is also the
 # target, so the repo itself is the stow directory and "." the package.
 stow --dir "$REPO" --target "$HOME" --restow --verbose .

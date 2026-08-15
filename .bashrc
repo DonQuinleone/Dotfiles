@@ -11,6 +11,13 @@ export PAGER=most
 GPG_TTY="$(tty)"
 export GPG_TTY
 
+# gpg-agent serves SSH too, and a terminal started by the
+# compositor never sees ~/.config/environment.d.
+if command -v gpgconf >/dev/null 2>&1; then
+    SSH_AUTH_SOCK="$(gpgconf --list-dirs agent-ssh-socket)"
+    export SSH_AUTH_SOCK
+fi
+
 export PATH="$PATH:$HOME/.local/bin"
 
 export HISTFILE="$XDG_STATE_HOME/bash/history"

@@ -7,6 +7,12 @@ set -gx EDITOR nvim
 set -gx VISUAL nvim
 set -gx PAGER most
 
+# gpg-agent serves SSH too, and a terminal started by the
+# compositor never sees ~/.config/environment.d.
+if command -q gpgconf
+    set -gx SSH_AUTH_SOCK (gpgconf --list-dirs agent-ssh-socket)
+end
+
 # fish_add_path defaults to a universal variable, which would persist
 # in fish_variables outside this repository.
 fish_add_path --global --path --append $HOME/.local/bin
