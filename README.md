@@ -204,6 +204,38 @@ authenticates against the login PAM stack rather than checking a
 password itself, so whatever that stack accepts, an enrolled
 fingerprint included, unlocks the screen.
 
+## Settings
+
+`Super+C` opens the settings window, and `qs -c donbox ipc call
+settings pane <slug>` opens it at one pane. Eleven panes cover
+what the desktop can be told:
+
+| Pane | What it holds |
+| --- | --- |
+| Appearance | theme, accent, wallpaper, motion |
+| Magnifier | zoom step, camera, cursor and border size |
+| Night shift | warmth, schedule and a live readout |
+| Monitors | every screen, its workspaces, the profile in force |
+| Audio | output and input devices, volume, mute |
+| Bluetooth | radio, searching, paired devices |
+| Notifications | per-application rules, sounds, speech |
+| Input devices | pointer and scroll behaviour, per device |
+| Idle and power | power profile, idle timings, screensaver |
+| Autostart | everything that starts with the session |
+| Shortcuts | every binding, read from the compositor |
+
+Parts of it report rather than edit, deliberately: a second
+writer would only disagree with the file that already owns the
+setting. Monitor geometry belongs to the monitor profile, the
+compositor's own startup list to `autostart.lua`, and the lid
+rule follows the screens. Those cards say so rather than
+offering a control that would fight git.
+
+Up and Down move between panes, Tab moves through the controls
+and Escape closes. The audio pane switches device only when you
+confirm it, so a stray keypress cannot move the sound somewhere
+unexpected.
+
 ## Night shift
 
 `night-shift` warms the display through `hyprsunset`, ramping
