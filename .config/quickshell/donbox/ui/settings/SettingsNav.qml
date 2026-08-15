@@ -14,6 +14,8 @@ FocusScope {
         [Qt.Key_End]: Settings.panes.length - 1
     })
 
+    readonly property int padding: Theme.sizes.popupPadding ?? 0
+
     implicitWidth: Metrics.settingsNavWidth
     activeFocusOnTab: true
 
@@ -30,31 +32,70 @@ FocusScope {
         event.accepted = true;
     }
 
+    // The pane list outgrew the window once it passed ten
+    // entries, and a selection moved by the keyboard is worth
+    // nothing if it lands somewhere the eye cannot reach.
+    function reveal(): void {
+        const item = rows.itemAt(Settings.current);
+        if (!item) return;
+        const top = list.y + item.y;
+        if (top < scroller.contentY) {
+            scroller.contentY = Math.max(0, top - root.padding);
+            return;
+        }
+        const bottom = top + item.height;
+        if (bottom <= scroller.contentY + scroller.height) return;
+        scroller.contentY = Math.min(
+            Math.max(0, scroller.contentHeight - scroller.height),
+            bottom - scroller.height + root.padding);
+    }
+
     Keys.onPressed: event => root.handle(event)
 
-    Column {
-        anchors.top: parent.top
-        anchors.left: parent.left
-        anchors.right: parent.right
-        anchors.margins: Theme.sizes.popupPadding ?? 0
-        spacing: Metrics.rowGap
+    Connections {
+        target: Settings
 
-        Repeater {
-            model: Settings.panes
+        function onCurrentChanged(): void {
+            root.reveal();
+        }
+    }
 
-            SettingsNavRow {
-                required property var modelData
-                required property int index
+    Flickable {
+        id: scroller
 
-                width: parent.width
-                pane: this.modelData
-                selected: this.index === Settings.current
-                focused: root.activeFocus
-                    && this.index === Settings.current
+        anchors.fill: parent
+        contentWidth: root.width
+        contentHeight: list.implicitHeight + root.padding * 2
+        clip: true
+        boundsBehavior: Flickable.StopAtBounds
 
-                onActivated: {
-                    root.forceActiveFocus();
-                    Settings.select(this.index);
+        Column {
+            id: list
+
+            x: root.padding
+            y: root.padding
+            width: root.width - root.padding * 2
+            spacing: Metrics.rowGap
+
+            Repeater {
+                id: rows
+
+                model: Settings.panes
+
+                SettingsNavRow {
+                    required property var modelData
+                    required property int index
+
+                    width: parent.width
+                    pane: this.modelData
+                    selected: this.index === Settings.current
+                    focused: root.activeFocus
+                        && this.index === Settings.current
+
+                    onActivated: {
+                        root.forceActiveFocus();
+                        Settings.select(this.index);
+                    }
                 }
             }
         }
