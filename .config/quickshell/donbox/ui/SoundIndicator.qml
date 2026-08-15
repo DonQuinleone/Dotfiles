@@ -6,7 +6,6 @@ import qs.services
 BarPill {
     id: root
 
-    readonly property real step: 0.05
     readonly property real quietest: 0.0
     readonly property real loudest: 1.0
 
@@ -44,8 +43,8 @@ BarPill {
         name: "audio"
         surface: panel
 
-        onWheel: wheel => root.nudge(wheel.angleDelta.y > 0
-            ? root.step : -root.step)
+        onStepped: direction =>
+            root.nudge(direction * Levels.step)
     }
 
     AudioPanel {

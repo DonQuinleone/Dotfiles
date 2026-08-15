@@ -129,6 +129,7 @@ PanelWindow {
             anchors.right: parent.right
             anchors.margins: root.padding
             clip: true
+            boundsBehavior: Flickable.StopAtBounds
             spacing: Theme.spacing.loose ?? 0
             model: root.groups
 

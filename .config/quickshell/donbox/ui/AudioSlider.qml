@@ -117,7 +117,7 @@ Item {
             color: Theme.palette.bg ?? "transparent"
         }
 
-        MouseArea {
+        WheelArea {
             id: area
 
             anchors.fill: parent
@@ -129,10 +129,7 @@ Item {
             }
             onPositionChanged: mouse => root.seek(mouse.x)
 
-            onWheel: wheel => {
-                if (wheel.angleDelta.y === 0) return;
-                root.stepBy(wheel.angleDelta.y > 0 ? 1 : -1);
-            }
+            onStepped: direction => root.stepBy(direction)
         }
     }
 }

@@ -68,6 +68,7 @@ FocusScope {
 
         anchors.fill: parent
         clip: true
+        boundsBehavior: Flickable.StopAtBounds
         spacing: Metrics.rowGap
         model: root.items
         currentIndex: root.index

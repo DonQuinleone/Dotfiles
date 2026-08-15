@@ -68,6 +68,7 @@ FocusScope {
 
         anchors.fill: parent
         clip: true
+        boundsBehavior: Flickable.StopAtBounds
         cellWidth: Metrics.settingsCellWidth
         cellHeight: Metrics.settingsCellHeight
         model: folder

@@ -1,7 +1,7 @@
 import QtQuick
 import qs.services
 
-MouseArea {
+WheelArea {
     id: root
 
     required property string name
