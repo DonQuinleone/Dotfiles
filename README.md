@@ -82,9 +82,10 @@ Hyprland left the official Fedora repositories at Fedora 43, so
 the compositor and its ecosystem come from a COPR, and Quickshell
 from another. Both are personal repositories, which is a real
 risk: the previously standard one was abandoned mid-lifecycle and
-stranded its users. COSMIC remains installed and appears at the
-greeter, so a broken update costs a session rather than a
-machine.
+stranded its users. There is no second desktop to fall back on
+any more, so the safety net is a text console: a broken update
+costs a graphical session, and `Ctrl+Alt+F3` still gets a login
+and a shell.
 
 | Component | Source |
 | --- | --- |
@@ -163,7 +164,8 @@ store:
     screensaver set cycle
 
 `cycle` draws one at random each time the saver starts, and
-`off` disables idle starts entirely. `loginctl lock-session` reaches the same locker, which
+`off` disables idle starts entirely. `loginctl lock-session`
+reaches the same locker, which
 authenticates against the login PAM stack rather than checking a
 password itself, so whatever that stack accepts, an enrolled
 fingerprint included, unlocks the screen.
