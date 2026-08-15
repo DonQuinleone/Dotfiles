@@ -1,0 +1,202 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_DIR=$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")
+readonly SCRIPT_DIR
+readonly PICK="${SCRIPT_DIR}/pick"
+readonly NIGHT_SHIFT="${SCRIPT_DIR}/night-shift"
+readonly CONFIG_HOME="${XDG_CONFIG_HOME:-${HOME}/.config}"
+
+readonly MENU_PROMPT="Settings"
+readonly EDITOR_COMMAND=nvim
+readonly TERMINAL=ghostty
+readonly HYPRCTL_ACCEPTED=ok
+
+# Ghostty drops a class that is not a valid GTK application ID,
+# and folds into a running instance unless told not to; either
+# leaves the window without the rule that sizes it, and a folded
+# window also returns before the editor has been closed.
+readonly WINDOW_CLASS="com.donquinleone.settings"
+
+readonly TUI_AREA=tui
+readonly ROW_SEPARATOR='|'
+readonly AREA_FIELD=0
+readonly TARGET_FIELD=1
+readonly LABEL_FIELD=2
+readonly ICON_FIELD=3
+
+readonly MENU_ROWS=(
+    "compositor|binds.lua|Shortcuts|input-keyboard"
+    "compositor|input.lua|Input and gestures|input-touchpad"
+    "magnifier|settings.json|Magnifier and cursor|zoom-in"
+    "compositor|look.lua|Layout and decoration|preferences-desktop"
+    "compositor|motion.lua|Motion|media-playback-start"
+    "compositor|rules.lua|Window rules|window-new"
+    "compositor|monitors.lua|Monitors|video-display"
+    "compositor|workspaces.lua|Workspaces|view-grid-symbolic"
+    "notifications|notifications.json|Notifications|dialog-information"
+    "nightshift|night-shift.conf|Night shift|night-light-symbolic"
+    "compositor|autostart.lua|Session startup|system-run"
+    "tui|nmtui|Network connections|network-wired"
+    "tui|wiremix|Audio routing|audio-volume-high"
+)
+
+declare -rA AREA_DIRECTORIES=(
+    [compositor]="hypr/lua"
+    [magnifier]="quickshell"
+    [notifications]="quickshell"
+    [nightshift]=""
+)
+
+# The shell watches the files it owns and re-reads them itself,
+# so only the compositor's own configuration and the night shift
+# schedule need telling that something changed.
+declare -rA AREA_APPLIERS=(
+    [compositor]=reload_compositor
+    [nightshift]=apply_night_shift
+)
+
+declare -rA FILE_PREPARERS=(
+    [night-shift.conf]=write_night_shift_defaults
+)
+
+announce() {
+    printf 'settings-menu: %s\n' "$*" >&2
+    command -v notify-send >/dev/null 2>&1 || return 0
+    notify-send "${MENU_PROMPT}" "$*"
+}
+
+die() {
+    announce "$@"
+    exit 1
+}
+
+require_command() {
+    command -v "$1" >/dev/null 2>&1 ||
+        die "$1 is not installed but is required"
+}
+
+relative_path() {
+    local directory="${AREA_DIRECTORIES[$1]}"
+    printf '%s\n' "${directory:+${directory}/}$2"
+}
+
+file_path() {
+    printf '%s\n' "${CONFIG_HOME}/$(relative_path "$1" "$2")"
+}
+
+subtitle_of() {
+    if [[ "$1" == "${TUI_AREA}" ]]; then
+        printf '%s\n' "$2"
+        return 0
+    fi
+    relative_path "$1" "$2"
+}
+
+menu_items() {
+    local row area target
+    local -a fields
+    for row in "${MENU_ROWS[@]}"; do
+        IFS="${ROW_SEPARATOR}" read -r -a fields <<<"${row}"
+        area="${fields[AREA_FIELD]}"
+        target="${fields[TARGET_FIELD]}"
+        printf '%s\t%s\t%s\t%s\n' \
+            "${target}" "${fields[LABEL_FIELD]}" \
+            "${fields[ICON_FIELD]}" \
+            "$(subtitle_of "${area}" "${target}")"
+    done
+}
+
+area_of() {
+    local row
+    local -a fields
+    for row in "${MENU_ROWS[@]}"; do
+        IFS="${ROW_SEPARATOR}" read -r -a fields <<<"${row}"
+        [[ "${fields[TARGET_FIELD]}" == "$1" ]] || continue
+        printf '%s\n' "${fields[AREA_FIELD]}"
+        return 0
+    done
+    die "no such entry: $1"
+}
+
+reload_compositor() {
+    require_command hyprctl
+    local reply
+    reply=$(hyprctl reload 2>&1) || true
+    case "${reply}" in
+    "" | "${HYPRCTL_ACCEPTED}") return 0 ;;
+    *) announce "${reply}" ;;
+    esac
+}
+
+apply_night_shift() {
+    "${NIGHT_SHIFT}" apply >/dev/null
+}
+
+apply_area() {
+    local applier="${AREA_APPLIERS[$1]:-}"
+    [[ -n "${applier}" ]] || return 0
+    "${applier}"
+}
+
+write_night_shift_defaults() {
+    [[ -x "${NIGHT_SHIFT}" ]] || die "${NIGHT_SHIFT} is missing"
+    "${NIGHT_SHIFT}" defaults >"$1"
+}
+
+prepare_file() {
+    local target="$1" path="$2"
+    if [[ -e "${path}" ]]; then
+        return 0
+    fi
+    local preparer="${FILE_PREPARERS[${target}]:-}"
+    [[ -n "${preparer}" ]] ||
+        die "${path} is missing from the configuration"
+    "${preparer}" "${path}"
+    [[ -r "${path}" ]] || die "${preparer} wrote no ${path}"
+}
+
+modified_at() {
+    stat -c %Y "$1"
+}
+
+open_terminal() {
+    "${TERMINAL}" --class="${WINDOW_CLASS}" \
+        --gtk-single-instance=false -e "$@"
+}
+
+run_tui() {
+    command -v "$1" >/dev/null 2>&1 ||
+        die "$1 is not installed; get_packages.sh installs it"
+    open_terminal "$1"
+}
+
+edit_file() {
+    local area="$1" target="$2" path before
+    path=$(file_path "${area}" "${target}")
+    prepare_file "${target}" "${path}"
+    before=$(modified_at "${path}")
+    open_terminal "${EDITOR_COMMAND}" "${path}"
+    [[ "$(modified_at "${path}")" == "${before}" ]] ||
+        apply_area "${area}"
+}
+
+main() {
+    (($# == 0)) || die "takes no arguments"
+    [[ -x "${PICK}" ]] || die "${PICK} is missing"
+    require_command "${TERMINAL}"
+    require_command "${EDITOR_COMMAND}"
+
+    local chosen area
+    chosen=$(menu_items | "${PICK}" --prompt "${MENU_PROMPT}") ||
+        exit 0
+    area=$(area_of "${chosen}")
+
+    if [[ "${area}" == "${TUI_AREA}" ]]; then
+        run_tui "${chosen}"
+        return 0
+    fi
+    edit_file "${area}" "${chosen}"
+}
+
+main "$@"

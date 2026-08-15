@@ -59,6 +59,7 @@ usage() {
     cat >&2 <<'EOF'
 usage: night-shift status
        night-shift apply
+       night-shift defaults
        night-shift on|off|auto|toggle
 EOF
     exit 1
@@ -257,6 +258,24 @@ cmd_status() {
         }'
 }
 
+cmd_defaults() {
+    cat <<EOF
+ENABLED="${DEFAULT_ENABLED}"
+
+DAY_TEMPERATURE="${DEFAULT_DAY_TEMPERATURE}"
+NIGHT_TEMPERATURE="${DEFAULT_NIGHT_TEMPERATURE}"
+TRANSITION_MINUTES="${DEFAULT_TRANSITION_MINUTES}"
+
+# Empty follows the sun. Set both or neither, and the start must
+# fall later in the day than the end.
+NIGHT_START="${DEFAULT_NIGHT_START}"
+NIGHT_END="${DEFAULT_NIGHT_END}"
+
+LATITUDE="${DEFAULT_LATITUDE}"
+LONGITUDE="${DEFAULT_LONGITUDE}"
+EOF
+}
+
 cmd_toggle() {
     local override
     override=$(read_override)
@@ -282,6 +301,7 @@ main() {
     case "$1" in
     status) cmd_status ;;
     apply) cmd_apply ;;
+    defaults) cmd_defaults ;;
     on) write_override on && cmd_apply ;;
     off) write_override off && cmd_apply ;;
     auto) write_override "" && cmd_apply ;;

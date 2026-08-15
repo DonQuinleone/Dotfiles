@@ -290,35 +290,46 @@ close for something that cannot be undone.
 
 ## Settings
 
-`Super+Ctrl+C` opens the settings window, and `qs -c donbox ipc
-call settings pane <slug>` opens it at one pane. Eleven panes
-cover what the desktop can be told:
+`Super+Ctrl+C` opens a picker of everything the desktop can be
+told. Choosing an entry opens the file that owns it in Neovim, in
+a floating terminal sized to hold a 72-column file at the reading
+font size, or hands over to the tool that owns it instead:
 
-| Pane | What it holds |
+| Entry | What it opens |
 | --- | --- |
-| Appearance | theme, accent, wallpaper, motion |
-| Magnifier | zoom step, camera, cursor and border size |
-| Night shift | warmth, schedule and a live readout |
-| Monitors | every screen, its workspaces, the profile in force |
-| Audio | output and input devices, volume, mute |
-| Bluetooth | radio, searching, paired devices |
-| Notifications | per-application rules and sounds |
-| Input devices | pointer and scroll behaviour, per device |
-| Idle and power | power profile, idle timings, screensaver |
-| Autostart | everything that starts with the session |
-| Shortcuts | every binding, read from the compositor |
+| Shortcuts | `hypr/lua/binds.lua` |
+| Input and gestures | `hypr/lua/input.lua` |
+| Magnifier and cursor | `quickshell/settings.json` |
+| Layout and decoration | `hypr/lua/look.lua` |
+| Motion | `hypr/lua/motion.lua` |
+| Window rules | `hypr/lua/rules.lua` |
+| Monitors | `hypr/lua/monitors.lua` |
+| Workspaces | `hypr/lua/workspaces.lua` |
+| Notifications | `quickshell/notifications.json` |
+| Night shift | `night-shift.conf` |
+| Session startup | `hypr/lua/autostart.lua` |
+| Network connections | `nmtui` |
+| Audio routing | `wiremix` |
 
-Parts of it report rather than edit, deliberately: a second
-writer would only disagree with the file that already owns the
-setting. Monitor geometry belongs to the monitor profile, the
-compositor's own startup list to `autostart.lua`, and the lid
-rule follows the screens. Those cards say so rather than
-offering a control that would fight git.
+Paths are relative to `~/.config`, and the picker shows each one
+under its entry, so what is about to be edited is never a guess.
+`night-shift.conf` is not tracked here, so the picker writes the
+defaults out before opening it rather than dropping you into an
+empty buffer.
 
-Up and Down move between panes, Tab moves through the controls
-and Escape closes. The audio pane switches device only when you
-confirm it, so a stray keypress cannot move the sound somewhere
-unexpected.
+Closing the editor applies what changed, and only if something
+did: the compositor is reloaded for its own configuration, the
+night shift schedule is re-applied for its, and the shell watches
+the two files it owns and re-reads them itself. Hand-editing
+`quickshell/settings.json` therefore lands live, magnifier step
+and cursor size included.
+
+There is no entry for Bluetooth, network status, volume or power,
+because the bar's panels already do all of that live and a second
+route would only be a second thing to keep true. `nmtui` and
+`wiremix` earn their places by reaching what the panels cannot:
+editing saved connection profiles, and routing individual streams
+between devices.
 
 ## Night shift
 
@@ -330,7 +341,9 @@ NOAA solar algorithm, so it needs no network and no address in a
 committed file.
 
 Everything is set in `~/.config/night-shift.conf`, which is not
-part of this repository:
+part of this repository; `night-shift defaults` prints it, and
+the settings picker writes it out that way before opening it for
+the first time:
 
 | Key | Default | What it does |
 | --- | --- | --- |

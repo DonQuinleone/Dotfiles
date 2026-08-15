@@ -1,43 +1,47 @@
 local scratchpads = require("workspaces")
 
--- Centring measures the whole monitor rather than the area
--- the panel leaves free, so a tall scratchpad would slide
--- underneath it. Sizing against the free height keeps the
--- window clear of the panel while staying centred.
+-- Centring measures the whole monitor rather than the area the
+-- panel leaves free, so a tall window would slide underneath
+-- it. Sizing against the free height keeps the window clear of
+-- the panel while staying centred.
 local PANEL_HEIGHT = 48
 local SETTINGS_WIDTH_FRACTION = 0.55
 local SETTINGS_HEIGHT_FRACTION = 0.85
-local ACTIVITY_WIDTH_FRACTION = 0.75
-local ACTIVITY_HEIGHT_FRACTION = 0.9
 
-for _, pad in ipairs(scratchpads) do
+local function float_centred(class, width, height)
     hl.window_rule({
-        match = { class = pad.class },
+        match = { class = class },
         float = true,
         size = {
-            "(monitor_w*" .. pad.width .. ")",
-            "((monitor_h-" .. PANEL_HEIGHT .. ")*"
-                .. pad.height .. ")",
+            "(monitor_w*" .. width .. ")",
+            "((monitor_h-" .. PANEL_HEIGHT .. ")*" .. height .. ")",
         },
         center = true,
     })
+end
+
+-- The terminal keeps the session's reading font size, so the
+-- editor needs nearly the whole screen to hold the ninety-odd
+-- columns a 72-column configuration file wants.
+local terminals = {
+    { class = "com.donquinleone.activity", width = 0.75,
+      height = 0.90 },
+    { class = "com.donquinleone.settings", width = 0.92,
+      height = 0.92 },
+}
+
+for _, pad in ipairs(scratchpads) do
+    float_centred(pad.class, pad.width, pad.height)
+end
+
+for _, terminal in ipairs(terminals) do
+    float_centred(terminal.class, terminal.width, terminal.height)
 end
 
 hl.window_rule({
     match = { title = "Picture-in-Picture" },
     float = true,
     pin = true,
-})
-
-hl.window_rule({
-    match = { class = "com.donquinleone.activity" },
-    float = true,
-    size = {
-        "(monitor_w*" .. ACTIVITY_WIDTH_FRACTION .. ")",
-        "((monitor_h-" .. PANEL_HEIGHT .. ")*"
-            .. ACTIVITY_HEIGHT_FRACTION .. ")",
-    },
-    center = true,
 })
 
 hl.window_rule({

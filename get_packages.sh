@@ -38,6 +38,7 @@ COPRS=(
 )
 
 PACKAGES=(
+    NetworkManager-tui
     ShellCheck
     ansible
     brightnessctl
@@ -89,6 +90,7 @@ PACKAGES=(
     tldr
     tree
     tuigreet
+    wiremix
     wireshark
     wl-clipboard
     xdg-desktop-portal-hyprland
