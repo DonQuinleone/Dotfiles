@@ -23,6 +23,8 @@ SettingsSurface {
         spacing: Theme.spacing.normal ?? 0
 
         Text {
+            id: mark
+
             anchors.verticalCenter: parent.verticalCenter
             text: root.pane.glyph
             color: root.ink
@@ -32,6 +34,8 @@ SettingsSurface {
 
         Text {
             anchors.verticalCenter: parent.verticalCenter
+            width: parent.width - mark.width - parent.spacing
+            elide: Text.ElideRight
             text: root.pane.title
             color: root.ink
             font.family: Theme.fonts.ui ?? ""
