@@ -10,6 +10,13 @@ PanelWindow {
 
     readonly property url source: Theme.wallpaper
 
+    readonly property bool plain: Theme.reduceMotion || Motion.reduced
+
+    property bool flipped: false
+
+    readonly property Image incoming: root.flipped ? second : first
+    readonly property Image outgoing: root.flipped ? first : second
+
     screen: root.modelData
     color: Theme.palette.bg ?? "black"
     exclusionMode: ExclusionMode.Ignore
@@ -23,44 +30,54 @@ PanelWindow {
         right: true
     }
 
-    onSourceChanged: root.crossfade()
-    Component.onCompleted: root.crossfade()
+    onSourceChanged: root.load()
+    Component.onCompleted: root.load()
 
-    function crossfade(): void {
-        if (incoming.source === root.source) return;
-        outgoing.source = incoming.source;
-        incoming.opacity = 0;
-        incoming.source = root.source;
+    function load(): void {
+        if (root.incoming.source === root.source) return;
+        root.flipped = !root.flipped;
+        root.incoming.source = root.source;
+    }
+
+    function reveal(): void {
+        if (`${root.outgoing.source}` === "") {
+            blend.settle();
+            return;
+        }
+        blend.play(catalogue.next(root.plain));
+    }
+
+    WallpaperTransitions {
+        id: catalogue
     }
 
     Image {
-        id: outgoing
+        id: first
 
-        anchors.fill: parent
-        fillMode: Image.PreserveAspectCrop
+        visible: false
         asynchronous: true
         cache: false
+
+        onStatusChanged: if (this.status === Image.Ready
+            && root.incoming === this) root.reveal()
     }
 
     Image {
-        id: incoming
+        id: second
 
-        anchors.fill: parent
-        fillMode: Image.PreserveAspectCrop
+        visible: false
         asynchronous: true
         cache: false
-        opacity: 0
 
-        onStatusChanged: if (this.status === Image.Ready) fade.restart()
+        onStatusChanged: if (this.status === Image.Ready
+            && root.incoming === this) root.reveal()
     }
 
-    NumberAnimation {
-        id: fade
+    WallpaperBlend {
+        id: blend
 
-        target: incoming
-        property: "opacity"
-        to: 1
-        duration: Theme.duration("slow")
-        easing.type: Theme.easing("standard")
+        anchors.fill: parent
+        outgoing: root.outgoing
+        incoming: root.incoming
     }
 }
