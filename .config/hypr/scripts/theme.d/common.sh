@@ -175,6 +175,9 @@ derive_colours() {
         COLOURS["${key}"]="${PALETTE[${key}]}"
     done
     COLOURS[onAccent]=$(readable_on "${PALETTE[accent]}")
+    COLOURS[onGood]=$(readable_on "${PALETTE[good]}")
+    COLOURS[onWarn]=$(readable_on "${PALETTE[warn]}")
+    COLOURS[onBad]=$(readable_on "${PALETTE[bad]}")
     COLOURS[fgFaint]=$(mix "${PALETTE[fgDim]}" \
         "${PALETTE[bg]}" "${FAINT_BLEND}")
     COLOURS[borderStrong]=$(mix "${PALETTE[border]}" \
