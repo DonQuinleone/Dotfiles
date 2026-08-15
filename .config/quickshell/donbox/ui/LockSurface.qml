@@ -7,6 +7,7 @@ Item {
 
     readonly property real blurStrength: 1.0
     readonly property int blurRadius: 64
+    readonly property real rainOpacity: 0.16
 
     readonly property var printable: /^[^\x00-\x1f\x7f]+$/
 
@@ -72,6 +73,15 @@ Item {
         anchors.fill: parent
         color: Theme.palette.bg ?? "black"
         opacity: Theme.opacities.dim ?? 1
+    }
+
+    CrtRain {
+        anchors.fill: parent
+        opacity: root.rainOpacity
+    }
+
+    CrtScanlines {
+        anchors.fill: parent
     }
 
     LockPanel {
