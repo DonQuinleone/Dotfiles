@@ -7,6 +7,8 @@ local scratchpads = require("workspaces")
 local PANEL_HEIGHT = 48
 local SETTINGS_WIDTH_FRACTION = 0.55
 local SETTINGS_HEIGHT_FRACTION = 0.85
+local ACTIVITY_WIDTH_FRACTION = 0.75
+local ACTIVITY_HEIGHT_FRACTION = 0.9
 
 for _, pad in ipairs(scratchpads) do
     hl.window_rule({
@@ -25,6 +27,17 @@ hl.window_rule({
     match = { title = "Picture-in-Picture" },
     float = true,
     pin = true,
+})
+
+hl.window_rule({
+    match = { class = "donbox-activity" },
+    float = true,
+    size = {
+        "(monitor_w*" .. ACTIVITY_WIDTH_FRACTION .. ")",
+        "((monitor_h-" .. PANEL_HEIGHT .. ")*"
+            .. ACTIVITY_HEIGHT_FRACTION .. ")",
+    },
+    center = true,
 })
 
 hl.window_rule({

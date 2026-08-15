@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+# Open the activity monitor in a window sized to fit it.
+#
+# btop refuses to draw below 80 columns by 24 rows, and the
+# terminal's usual type is chosen for reading rather than for
+# dense output, which leaves nowhere near enough cells. Twenty
+# points is the largest that still clears btop's minimum inside
+# the floating window rules.lua gives this class, measured at
+# roughly 104 by 28.
+set -euo pipefail
+
+readonly WINDOW_CLASS="donbox-activity"
+readonly FONT_POINTS=20
+readonly MONITOR="btop"
+readonly TERMINAL="ghostty"
+
+die() {
+    printf 'activity: %s\n' "$*" >&2
+    exit 1
+}
+
+require_command() {
+    command -v "$1" >/dev/null 2>&1 ||
+        die "$1 is not installed but is required"
+}
+
+require_command "${TERMINAL}"
+require_command "${MONITOR}"
+
+exec "${TERMINAL}" --class="${WINDOW_CLASS}" \
+    --font-size="${FONT_POINTS}" -e "${MONITOR}"
