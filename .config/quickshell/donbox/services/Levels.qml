@@ -7,6 +7,7 @@ Singleton {
     id: root
 
     readonly property real step: 0.05
+    readonly property int percentScale: 100
 
     readonly property var volumeWords: [
         { floor: 0.85, word: "LOUD" },
@@ -27,8 +28,12 @@ Singleton {
         return scale.find(band => level >= band.floor).word;
     }
 
+    function percent(level: real): string {
+        return `${Math.round(level * root.percentScale)}%`;
+    }
+
     function readout(scale: var, level: real): string {
-        return `${Math.round(level * 100)}% · `
+        return `${root.percent(level)} · `
             + root.wordFor(scale, level);
     }
 }

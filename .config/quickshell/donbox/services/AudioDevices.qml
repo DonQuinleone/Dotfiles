@@ -40,6 +40,11 @@ Singleton {
         return node.description || node.nickname || node.name;
     }
 
+    function currentLabel(kind: string): string {
+        const node = root.inUse(kind);
+        return node ? root.label(node) : "";
+    }
+
     function rows(kind: string): var {
         const chosen = root.inUse(kind)?.id ?? root.noDevice;
         return root.devices(kind)
