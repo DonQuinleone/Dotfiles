@@ -1,6 +1,7 @@
 # shellcheck shell=bash
 
 readonly CONFIG_HOME="${XDG_CONFIG_HOME:-${HOME}/.config}"
+readonly DATA_HOME="${XDG_DATA_HOME:-${HOME}/.local/share}"
 readonly STATE_DIR="${XDG_STATE_HOME:-${HOME}/.local/state}/theme"
 readonly THEME_JSON_DIR="${CONFIG_HOME}/quickshell/themes"
 readonly ACTIVE_JSON="${THEME_JSON_DIR}/current.json"
@@ -17,6 +18,7 @@ readonly LUMA_GREEN_WEIGHT=587
 readonly LUMA_BLUE_WEIGHT=114
 readonly LUMA_WEIGHT_TOTAL=1000
 readonly LUMA_MIDPOINT=128
+readonly LUMA_MAX=255
 readonly BLACK="#000000"
 readonly WHITE="#FFFFFF"
 

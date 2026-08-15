@@ -11,8 +11,7 @@ readonly GTK4_SETTINGS="${CONFIG_HOME}/gtk-4.0/settings.ini"
 readonly GTK_FONT_POINTS=10
 
 # Named here rather than left to whatever a desktop happened to
-# set, so removing that desktop cannot take them with it.
-readonly GTK_ICON_THEME="Adwaita"
+# set, so removing that desktop cannot take it with it.
 readonly GTK_THEME_NAME="Adwaita"
 
 # Every surface libadwaita paints, against the palette entry it
@@ -169,7 +168,7 @@ write_gtk_settings() {
     cat >"$1" <<EOF
 [Settings]
 gtk-font-name=${FONTS[ui]} ${GTK_FONT_POINTS}
-gtk-icon-theme-name=${GTK_ICON_THEME}
+gtk-icon-theme-name=${ICON_THEME_NAME}
 gtk-theme-name=${GTK_THEME_NAME}
 EOF
 }
@@ -189,7 +188,7 @@ announce_appearance() {
     command -v gsettings >/dev/null 2>&1 || return 0
     local -a appearance=(
         "font-name:${FONTS[ui]} ${GTK_FONT_POINTS}"
-        "icon-theme:${GTK_ICON_THEME}"
+        "icon-theme:${ICON_THEME_NAME}"
         "gtk-theme:${GTK_THEME_NAME}"
         "color-scheme:$(colour_scheme)"
     )
