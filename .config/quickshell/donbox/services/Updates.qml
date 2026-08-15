@@ -20,6 +20,10 @@ Singleton {
     // adds underneath do not match that shape.
     readonly property var packageLine: /^\S+\.\S+\s+\S+\s+\S+$/
 
+    // dnf answers 100 when it found something and 0 when it did
+    // not; anything else means it never got to look.
+    readonly property var answeredCodes: [0, 100]
+
     readonly property string glyph: "󰚰"
 
     readonly property string stateHome:
@@ -30,6 +34,7 @@ Singleton {
     readonly property string path: `${root.directory}/updates.json`
 
     property int pending: 0
+    property string harvest: ""
     property real checkedAtMs: 0
     property bool checking: false
 
@@ -50,10 +55,17 @@ Singleton {
             .length;
     }
 
-    function absorb(payload: string): void {
-        root.pending = root.countIn(payload);
-        root.checkedAtMs = Date.now();
+    // A failed check keeps the last count rather than claiming
+    // there is nothing to install, and waits out the usual
+    // interval instead of retrying in a tight loop.
+    function settle(code: int): void {
         root.checking = false;
+        root.checkedAtMs = Date.now();
+        if (root.answeredCodes.includes(code)) {
+            root.pending = root.countIn(root.harvest);
+        } else {
+            console.error("donbox: dnf could not check for updates");
+        }
         writeBack.restart();
     }
 
@@ -109,8 +121,10 @@ Singleton {
 
         command: ["dnf", "--quiet", "check-update"]
 
+        onExited: code => root.settle(code)
+
         stdout: StdioCollector {
-            onStreamFinished: root.absorb(this.text)
+            onStreamFinished: root.harvest = this.text
         }
     }
 
