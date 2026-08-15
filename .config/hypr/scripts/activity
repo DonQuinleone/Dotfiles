@@ -9,7 +9,9 @@
 # roughly 104 by 28.
 set -euo pipefail
 
-readonly WINDOW_CLASS="donbox-activity"
+# Ghostty drops a class that is not a valid GTK application ID,
+# leaving the window with the default one and no rule to match.
+readonly WINDOW_CLASS="com.donquinleone.activity"
 readonly FONT_POINTS=20
 readonly MONITOR="btop"
 readonly TERMINAL="ghostty"

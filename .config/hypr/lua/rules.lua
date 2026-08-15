@@ -30,7 +30,7 @@ hl.window_rule({
 })
 
 hl.window_rule({
-    match = { class = "donbox-activity" },
+    match = { class = "com.donquinleone.activity" },
     float = true,
     size = {
         "(monitor_w*" .. ACTIVITY_WIDTH_FRACTION .. ")",
