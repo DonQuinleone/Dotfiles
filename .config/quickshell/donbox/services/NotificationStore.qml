@@ -18,7 +18,8 @@ Singleton {
         body: "",
         image: "",
         urgency: NotificationUrgency.Normal,
-        time: 0
+        time: 0,
+        seen: false
     })
 
     readonly property string stateHome:
@@ -34,6 +35,9 @@ Singleton {
     property bool doNotDisturb: false
 
     readonly property int pending: root.entries.length
+
+    readonly property int unseen:
+        root.entries.filter(entry => !entry.seen).length
 
     function restored(saved: var): var {
         const entry = { actions: [], live: null };
@@ -90,6 +94,14 @@ Singleton {
     function clear(): void {
         root.entries.forEach(item => root.close(item));
         root.entries = [];
+    }
+
+    function markSeen(): void {
+        if (root.unseen === 0) return;
+        root.entries = root.entries.map(entry => {
+            entry.seen = true;
+            return entry;
+        });
     }
 
     function toggleDoNotDisturb(): void {

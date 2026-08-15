@@ -1,57 +1,24 @@
 import QtQuick
-import Quickshell
 import qs.services
 
-Item {
+Row {
     id: root
 
-    implicitWidth: pills.implicitWidth
-    implicitHeight: pills.implicitHeight
+    spacing: Theme.spacing.normal ?? 0
 
-    MouseArea {
-        anchors.fill: parent
-        cursorShape: Qt.PointingHandCursor
+    NotificationPill {}
 
-        onClicked: QuickSettings.toggle()
-    }
+    UpdatesIndicator {}
 
-    Connections {
-        target: Panels
+    VpnIndicator {}
 
-        function onRequested(name: string): void {
-            glance.visible = name === "glance" && !glance.visible;
-        }
-    }
+    NetworkIndicator {}
 
-    Connections {
-        target: glance
+    BluetoothIndicator {}
 
-        function onVisibleChanged(): void {
-            if (!glance.visible) Panels.noteClosed();
-        }
-    }
+    MicrophoneIndicator {}
 
-    GlancePopup {
-        id: glance
+    SoundIndicator {}
 
-        anchor.item: root
-        anchor.edges: Edges.Bottom
-        anchor.gravity: Edges.Bottom
-    }
-
-    Row {
-        id: pills
-
-        spacing: Theme.spacing.normal ?? 0
-
-        NetworkIndicator {}
-
-        BluetoothIndicator {
-            highlighted: QuickSettings.shown
-        }
-
-        VolumeIndicator {}
-
-        BatteryIndicator {}
-    }
+    BatteryIndicator {}
 }

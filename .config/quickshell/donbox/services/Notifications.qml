@@ -113,6 +113,7 @@ Singleton {
             urgency: notification.urgency,
             time: Date.now(),
             transient: notification.transient,
+            seen: false,
             actions: root.actionsOf(notification),
             live: notification
         };
@@ -241,6 +242,9 @@ Singleton {
     function activate(toast: var): void {
         root.invoke(toast, root.defaultAction);
     }
+
+    onCentreOpenChanged:
+        if (root.centreOpen) NotificationStore.markSeen()
 
     ListModel {
         id: toastModel

@@ -125,11 +125,7 @@ PanelWindow {
             anchors.verticalCenter: parent.verticalCenter
             spacing: Theme.spacing.normal ?? 0
 
-            ZoomIndicator {}
-
             TrayRow {}
-
-            NotificationPill {}
 
             VitalsCluster {}
         }

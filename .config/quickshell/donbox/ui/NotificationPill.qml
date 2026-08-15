@@ -4,18 +4,23 @@ import qs.services
 BarPill {
     id: root
 
+    readonly property string restingGlyph: "󰂚"
+    readonly property string ringingGlyph: "󰂞"
+    readonly property string silentGlyph: "󰂛"
+
     readonly property bool silenced: NotificationStore.doNotDisturb
     readonly property int pending: NotificationStore.pending
+    readonly property int unseen: NotificationStore.unseen
 
     readonly property string glyph: {
-        if (root.silenced) return "󰂛";
-        if (root.pending > 0) return "󰂞";
-        return "󰂚";
+        if (root.silenced) return root.silentGlyph;
+        if (root.unseen > 0) return root.ringingGlyph;
+        return root.restingGlyph;
     }
 
     readonly property color tint: {
         if (root.silenced) return Theme.palette.warn ?? "white";
-        if (root.pending > 0) return Theme.palette.accent ?? "white";
+        if (root.unseen > 0) return Theme.palette.accent ?? "white";
         return Theme.palette.fg ?? "white";
     }
 
