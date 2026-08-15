@@ -3,14 +3,14 @@
 -- guessed at until "monitor-profile save" teaches us its
 -- description, resolution, scale and position.
 local fallback = {
-    { output = "eDP-1", mode = "1920x1200@60", position = "auto",
-      scale = 1.0 },
-    { output = "", mode = "preferred", position = "auto",
-      scale = 1.0 },
+    { output = "eDP-1", mode = "1920x1200@60",
+      position = "auto", scale = 1.0 },
+    { output = "",      mode = "preferred",
+      position = "auto", scale = 1.0 },
 }
 
-for _, m in ipairs(fallback) do
-    hl.monitor(m)
+for _, monitor in ipairs(fallback) do
+    hl.monitor(monitor)
 end
 
 local scripts = "$HOME/.config/hypr/scripts"

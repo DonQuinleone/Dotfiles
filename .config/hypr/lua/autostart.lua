@@ -1,5 +1,6 @@
 local config = os.getenv("XDG_CONFIG_HOME")
     or (os.getenv("HOME") .. "/.config")
+local scripts = config .. "/hypr/scripts"
 
 -- graphical-session.target refuses a manual start, so the only
 -- way to reach it is a target bound to it. Nothing else pulls it
@@ -10,11 +11,11 @@ local commands = {
     "systemctl --user start donbox-session.target",
     "gsettings set org.gnome.desktop.interface "
         .. "toolkit-accessibility true",
-    config .. "/hypr/scripts/caret-follow",
+    scripts .. "/caret-follow",
     "qs -c donbox",
-    config .. "/hypr/scripts/theme-daemon",
-    config .. "/hypr/scripts/idle-profile",
-    config .. "/hypr/scripts/night-shift-daemon",
+    scripts .. "/theme-daemon",
+    scripts .. "/idle-profile",
+    scripts .. "/night-shift-daemon",
 }
 
 hl.on("hyprland.start", function()

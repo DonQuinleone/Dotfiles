@@ -1,5 +1,15 @@
+local motion = require("motion")
+
+local GAP_INNER = 6
+local GAP_OUTER = 12
+local BORDER_WIDTH = 4
+local CORNER_RADIUS = 10
+local BLUR_RADIUS = 8
+local BLUR_PASSES = 2
+
 local MASTER_AREA_FRACTION = 0.6
 local SCROLLING_COLUMN_FRACTION = 0.5
+
 local GROUPBAR_HEIGHT = 34
 local GROUPBAR_TEXT_PADDING = 12
 local GROUPBAR_ROUNDING = 8
@@ -7,17 +17,25 @@ local GROUPBAR_TAB_GAP = 2
 local GROUPBAR_WINDOW_GAP = 6
 local GROUPBAR_INDICATOR_HEIGHT = 0
 
-local motion = require("motion")
+local ZOOM_UNMAGNIFIED = 1.0
 
 local state = os.getenv("XDG_STATE_HOME")
     or (os.getenv("HOME") .. "/.local/state")
 
 hl.config({
     general = {
-        gaps_in = 6,
-        gaps_out = 12,
-        border_size = 4,
+        gaps_in = GAP_INNER,
+        gaps_out = GAP_OUTER,
+        border_size = BORDER_WIDTH,
         layout = "master",
+    },
+    decoration = {
+        rounding = CORNER_RADIUS,
+        blur = {
+            enabled = true,
+            size = BLUR_RADIUS,
+            passes = BLUR_PASSES,
+        },
     },
     master = {
         new_status = "master",
@@ -40,16 +58,8 @@ hl.config({
             indicator_height = GROUPBAR_INDICATOR_HEIGHT,
         },
     },
-    decoration = {
-        rounding = 10,
-        blur = {
-            enabled = true,
-            size = 8,
-            passes = 2,
-        },
-    },
     cursor = {
-        zoom_factor = 1.0,
+        zoom_factor = ZOOM_UNMAGNIFIED,
         zoom_rigid = false,
         zoom_detached_camera = false,
     },
