@@ -52,9 +52,7 @@ Item {
             highlighted: QuickSettings.shown
         }
 
-        VolumeIndicator {
-            highlighted: QuickSettings.shown
-        }
+        VolumeIndicator {}
 
         BatteryIndicator {}
     }

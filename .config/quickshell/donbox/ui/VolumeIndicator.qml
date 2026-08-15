@@ -1,4 +1,5 @@
 import QtQuick
+import Quickshell
 import Quickshell.Services.Pipewire
 import qs.services
 
@@ -30,6 +31,7 @@ BarPill {
         : (Theme.palette.fg ?? "white")
 
     visible: root.sink !== null
+    highlighted: panel.visible
 
     function nudge(delta: real): void {
         if (!root.sink?.audio) return;
@@ -53,13 +55,37 @@ BarPill {
         objects: [Pipewire.defaultAudioSink]
     }
 
-    // Clicks belong to the vitals cluster underneath, which
-    // opens quick settings; only the wheel is claimed here.
     MouseArea {
         anchors.fill: parent
-        acceptedButtons: Qt.NoButton
+        cursorShape: Qt.PointingHandCursor
+
+        onClicked: Panels.toggle("audio")
 
         onWheel: wheel => root.nudge(wheel.angleDelta.y > 0
             ? root.step : -root.step)
+    }
+
+    Connections {
+        target: Panels
+
+        function onRequested(name: string): void {
+            panel.visible = name === "audio" && !panel.visible;
+        }
+    }
+
+    Connections {
+        target: panel
+
+        function onVisibleChanged(): void {
+            if (!panel.visible) Panels.noteClosed();
+        }
+    }
+
+    AudioPanel {
+        id: panel
+
+        anchor.item: root
+        anchor.edges: Edges.Bottom
+        anchor.gravity: Edges.Bottom
     }
 }
