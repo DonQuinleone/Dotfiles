@@ -89,29 +89,7 @@ Singleton {
     readonly property int settingsGridHeight:
         root.settingsCellHeight * root.settingsGridRows
 
-    readonly property real lockClockScale: 3.6
-    readonly property real lockPromptScale: 1.6
-    readonly property real lockEntryScale: 1.4
-    readonly property real lockFieldScale: 1.8
-    readonly property real lockDotScale: 0.42
     readonly property real screensaverClockScale: 2.4
-
-    readonly property int lockClockSize: Math.round(
-        (Theme.fontSizes.display ?? 0) * root.lockClockScale)
-
-    readonly property int lockPromptSize: Math.round(
-        (Theme.fontSizes.display ?? 0) * root.lockPromptScale)
-
-    readonly property int lockEntrySize: Math.round(
-        (Theme.fontSizes.display ?? 0) * root.lockEntryScale)
-
-    readonly property int lockFieldWidth: root.surfaceWidth
-
-    readonly property int lockFieldHeight: Math.round(
-        root.rowHeight * root.lockFieldScale)
-
-    readonly property int lockDotSize: Math.round(
-        root.lockFieldHeight * root.lockDotScale)
 
     readonly property int screensaverClockSize: Math.round(
         (Theme.fontSizes.display ?? 0) * root.screensaverClockScale)
