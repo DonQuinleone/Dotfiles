@@ -16,8 +16,6 @@ Singleton {
     readonly property var passwordConfigs: ["password-auth", "login"]
     readonly property var fingerprintConfigs: ["fingerprint-auth"]
 
-    readonly property bool announceFailures: true
-
     readonly property string defaultInstruction: "Password"
     readonly property int retryDelayMs: 400
     readonly property int stallRetryMs: 2000
@@ -28,9 +26,6 @@ Singleton {
         Quickshell.env("XDG_RUNTIME_DIR") ?? "/tmp"
     readonly property string markerPath:
         `${root.runtimeDir}/donbox-session-locked`
-    readonly property string speakCommand:
-        `${Theme.configHome}/hypr/scripts/speak`
-
     readonly property var refusals: ({
         [PamResult.Failed]: "wrong password",
         [PamResult.MaxTries]: "too many attempts",
@@ -174,17 +169,11 @@ Singleton {
     }
 
     function deny(reason: string): void {
-        root.announce(`Unlock failed. ${reason}.`);
         root.reject(reason);
         root.rearm(root.retryDelayMs);
     }
 
-    // A stack that will not open keeps failing every couple of
-    // seconds, and only the first of those is news.
     function fault(reason: string): void {
-        if (root.notice !== reason) {
-            root.announce(`Unlock unavailable. ${reason}.`);
-        }
         root.reject(reason);
         root.rearm(root.stallRetryMs);
     }
@@ -201,11 +190,6 @@ Singleton {
         root.notice = reason;
         root.note("deny", `access denied: ${reason}`);
         root.rejected();
-    }
-
-    function announce(speech: string): void {
-        if (!root.announceFailures) return;
-        Quickshell.execDetached([root.speakCommand, speech]);
     }
 
     function note(tag: string, text: string): void {

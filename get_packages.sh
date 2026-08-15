@@ -101,8 +101,6 @@ NERD_FONT_URL+=/JetBrainsMono.tar.xz
 FONT_DIR=$HOME/.local/share/fonts/JetBrainsMonoNerd
 FONT_STAMP=$FONT_DIR/.installed-$NERD_FONT_TAG
 
-PIPER_SPEC=piper-tts==1.6.0
-
 ensure_repo() {
     local name=$1 content=$2
     local path=/etc/yum.repos.d/$name.repo
@@ -141,13 +139,6 @@ style=Fusion
 EOF
 }
 
-install_piper() {
-    pipx list --short 2>/dev/null | grep -q '^piper-tts ' &&
-        return 0
-    say "installing $PIPER_SPEC via pipx"
-    pipx install "$PIPER_SPEC"
-}
-
 ensure_repo claude-code "$CLAUDE_CODE_REPO"
 ensure_repo netbird "$NETBIRD_REPO"
 
@@ -160,7 +151,6 @@ say "installing ${#PACKAGES[@]} packages"
 sudo dnf -y install "${PACKAGES[@]}"
 
 install_nerd_font
-install_piper
 write_qt6ct_config
 
 say "done"

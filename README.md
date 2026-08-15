@@ -54,9 +54,8 @@ than the palette being quietly falsified.
 - Hyprland 0.56 and Quickshell 0.3 (from COPRs, see below)
 
 `get_packages.sh` enables every repository and installs
-everything, including the fonts and the Piper voice the lock
-screen speaks with. It is
-idempotent, so re-running it after an update is safe.
+everything, including the fonts. It is idempotent, so re-running
+it after an update is safe.
 
 ## Usage
 
@@ -126,7 +125,6 @@ and a shell.
 | --- | --- |
 | `hyprland`, `hypridle`, portal | COPR `lionheartp/Hyprland` |
 | `quickshell-git` | COPR `errornointernet/quickshell` |
-| `piper-tts` | pipx, no RPM exists |
 | JetBrains Mono Nerd Font | upstream release, pinned |
 
 ## The desktop
