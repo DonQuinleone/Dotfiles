@@ -84,6 +84,13 @@ and the session it starts is `start-hyprland` rather than
 compositor, which restarts it if it exits uncleanly. Hyprland
 warns at startup when it is launched without it.
 
+Starting a compositor straight from a greeter means nothing pulls
+in `graphical-session.target`, which refuses a manual start and
+which `xdg-desktop-portal` treats as a requisite. Hyprland starts
+`donbox-session.target` to reach it. Without that the portal
+never runs, and GTK applications have nobody to ask whether the
+palette is dark.
+
 The console font matters more here than it would elsewhere,
 because the login prompt is the one screen the magnifier cannot
 reach. `setfont` caps out at 32 pixels, so a readable size comes
