@@ -28,6 +28,8 @@ FloatingWindow {
         Accessibility.refresh();
         InputDevices.refresh();
         MonitorProfiles.refresh();
+        IdleProfile.refresh();
+        LidSwitch.refresh();
         KeyBindings.refresh();
         ThemeCatalogue.refresh();
         Motion.refresh();

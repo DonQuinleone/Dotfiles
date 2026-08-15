@@ -15,6 +15,7 @@ Singleton {
         { slug: "notifications", title: qsTr("Notifications"),
           glyph: "󰂚" },
         { slug: "devices", title: qsTr("Input devices"), glyph: "󰍽" },
+        { slug: "power", title: qsTr("Idle and power"), glyph: "󰐥" },
         { slug: "bindings", title: qsTr("Shortcuts"), glyph: "󰌌" }
     ]
 

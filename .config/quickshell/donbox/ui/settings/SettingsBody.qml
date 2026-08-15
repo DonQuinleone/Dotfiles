@@ -14,6 +14,7 @@ FocusScope {
         "bluetooth": bluetooth,
         "notifications": notifications,
         "devices": devices,
+        "power": power,
         "bindings": bindings
     })
 
@@ -95,6 +96,12 @@ FocusScope {
         id: devices
 
         DevicesPane {}
+    }
+
+    Component {
+        id: power
+
+        PowerPane {}
     }
 
     Component {
