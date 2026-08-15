@@ -7,17 +7,16 @@ Item {
 
     readonly property string timeFormat: "HH:mm"
     readonly property string dateFormat: "dddd d MMMM"
+    readonly property string prompt: "ember@lock"
+    readonly property string headline: "!! ACCESS DENIED"
 
     readonly property int shakeThrow: Theme.spacing.section ?? 0
     readonly property int shakeCycles: 2
-    readonly property real alarmWeight: 2
-
-    readonly property bool alarmed: Lock.notice !== ""
 
     property real nudge: 0
 
-    implicitWidth: card.implicitWidth
-    implicitHeight: card.implicitHeight
+    implicitWidth: frame.implicitWidth
+    implicitHeight: frame.implicitHeight
 
     SystemClock {
         id: clock
@@ -65,95 +64,108 @@ Item {
         }
     }
 
-    Rectangle {
-        id: card
+    CrtFrame {
+        id: frame
 
         anchors.centerIn: parent
         anchors.horizontalCenterOffset: root.nudge
-        implicitWidth: column.implicitWidth
-            + (Theme.spacing.section ?? 0) * 2
-        implicitHeight: column.implicitHeight
-            + (Theme.spacing.section ?? 0) * 2
-        radius: Theme.radii.large ?? 0
-        color: Theme.palette.bgAlt ?? "black"
-        border.width: (Theme.sizes.borderWidth ?? 0)
-            * (root.alarmed ? root.alarmWeight : 1)
-        border.color: root.alarmed
-            ? (Theme.palette.bad ?? "red")
-            : (Theme.palette.border ?? "grey")
+        width: this.implicitWidth
+        height: this.implicitHeight
+        title: root.prompt
+        status: Qt.formatDateTime(clock.date, root.dateFormat)
+        alarmed: Lock.denied
 
-        Behavior on border.color {
-            ColorAnimation {
-                duration: Theme.duration("quick")
-            }
+        Text {
+            text: Qt.formatDateTime(clock.date, root.timeFormat)
+            color: Theme.palette.fg ?? "white"
+            font.family: Theme.fonts.mono ?? ""
+            font.pixelSize: LockMetrics.clockSize
+            font.weight: Theme.fontWeights.bold ?? 0
+            font.features: ({ "tnum": 1 })
         }
 
-        Column {
-            id: column
+        Text {
+            text: LockMetrics.rule
+            color: Theme.palette.border ?? "grey"
+            font.family: Theme.fonts.mono ?? ""
+            font.pixelSize: LockMetrics.traceSize
+        }
 
-            anchors.centerIn: parent
-            spacing: Theme.spacing.loose ?? 0
+        LockTrace {}
+
+        LockPrompt {}
+
+        Row {
+            width: parent.width
+            spacing: Theme.spacing.tight ?? 0
+            visible: Lock.fingerprintReady
+                && Lock.fingerprintNote !== ""
 
             Text {
-                anchors.horizontalCenter: parent.horizontalCenter
-                text: Qt.formatDateTime(clock.date, root.timeFormat)
-                color: Theme.palette.fg ?? "white"
-                font.family: Theme.fonts.ui ?? ""
-                font.pixelSize: Metrics.lockClockSize
-                font.weight: Theme.fontWeights.bold ?? 0
-                font.features: ({ "tnum": 1 })
+                text: LockMetrics.fingerprintGlyph
+                color: Theme.palette.good ?? "white"
+                font.family: Theme.fonts.mono ?? ""
+                font.pixelSize: LockMetrics.traceSize
             }
 
             Text {
-                anchors.horizontalCenter: parent.horizontalCenter
-                text: Qt.formatDateTime(clock.date, root.dateFormat)
+                width: parent.width - this.x
+                text: Lock.fingerprintNote
                 color: Theme.palette.fgDim ?? "white"
-                font.family: Theme.fonts.ui ?? ""
-                font.pixelSize: Metrics.lockPromptSize
-            }
-
-            Item {
-                width: 1
-                height: Theme.spacing.section ?? 0
-            }
-
-            Text {
-                anchors.horizontalCenter: parent.horizontalCenter
-                width: Metrics.lockFieldWidth
-                text: Lock.instruction
-                color: Theme.palette.accent ?? "white"
-                horizontalAlignment: Text.AlignHCenter
                 wrapMode: Text.WordWrap
-                font.family: Theme.fonts.ui ?? ""
-                font.pixelSize: Metrics.lockPromptSize
-                font.weight: Theme.fontWeights.bold ?? 0
-            }
-
-            LockField {
-                anchors.horizontalCenter: parent.horizontalCenter
-            }
-
-            LockProgress {
-                anchors.horizontalCenter: parent.horizontalCenter
-                visible: Lock.working
-            }
-
-            Text {
-                anchors.horizontalCenter: parent.horizontalCenter
-                width: Metrics.lockFieldWidth
-                visible: root.alarmed
-                text: Lock.notice
-                color: Theme.palette.bad ?? "red"
-                horizontalAlignment: Text.AlignHCenter
-                wrapMode: Text.WordWrap
-                font.family: Theme.fonts.ui ?? ""
-                font.pixelSize: Metrics.lockPromptSize
-                font.weight: Theme.fontWeights.bold ?? 0
-            }
-
-            LockStatus {
-                anchors.horizontalCenter: parent.horizontalCenter
+                font.family: Theme.fonts.mono ?? ""
+                font.pixelSize: LockMetrics.traceSize
             }
         }
+
+        CrtSweep {
+            width: parent.width
+            visible: Lock.verifying
+        }
+
+        Rectangle {
+            width: parent.width
+            height: alert.implicitHeight
+                + (Theme.spacing.normal ?? 0) * 2
+            radius: Theme.radii.small ?? 0
+            color: Theme.palette.bad ?? "red"
+            visible: Lock.denied
+
+            Column {
+                id: alert
+
+                anchors.centerIn: parent
+                width: parent.width - (Theme.spacing.normal ?? 0) * 2
+                spacing: Theme.spacing.hair ?? 0
+
+                Text {
+                    text: root.headline
+                    color: Theme.readableOn(
+                        Theme.palette.bad ?? "red")
+                    font.family: Theme.fonts.mono ?? ""
+                    font.pixelSize: LockMetrics.headingSize
+                    font.weight: Theme.fontWeights.bold ?? 0
+                }
+
+                Text {
+                    width: parent.width
+                    text: Lock.notice
+                    color: Theme.readableOn(
+                        Theme.palette.bad ?? "red")
+                    wrapMode: Text.WordWrap
+                    font.family: Theme.fonts.mono ?? ""
+                    font.pixelSize: LockMetrics.traceSize
+                }
+            }
+        }
+
+        Text {
+            text: LockMetrics.rule
+            color: Theme.palette.border ?? "grey"
+            font.family: Theme.fonts.mono ?? ""
+            font.pixelSize: LockMetrics.traceSize
+        }
+
+        LockStatusLine {}
     }
 }

@@ -4,21 +4,17 @@ import qs.services
 Rectangle {
     id: root
 
-    readonly property real blockShare: 0.3
     readonly property int sweepMs: 900
 
-    implicitWidth: Metrics.lockFieldWidth
     implicitHeight: Theme.spacing.normal ?? 0
-    radius: height / 2
     color: Theme.palette.surface ?? "grey"
     clip: true
 
     Rectangle {
         id: block
 
-        width: root.width * root.blockShare
+        width: root.width * LockMetrics.sweepShare
         height: root.height
-        radius: root.radius
         color: Theme.palette.accent ?? "white"
     }
 
