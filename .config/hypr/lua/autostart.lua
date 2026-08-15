@@ -1,7 +1,13 @@
 local config = os.getenv("XDG_CONFIG_HOME")
     or (os.getenv("HOME") .. "/.config")
 
+-- graphical-session.target refuses a manual start, so the only
+-- way to reach it is a target bound to it. Nothing else pulls it
+-- in when the compositor is started straight from the greeter,
+-- and without it xdg-desktop-portal never runs: GTK then has
+-- nobody to ask for color-scheme and falls back to light.
 local commands = {
+    "systemctl --user start donbox-session.target",
     "gsettings set org.gnome.desktop.interface "
         .. "toolkit-accessibility true",
     config .. "/hypr/scripts/caret-follow",
