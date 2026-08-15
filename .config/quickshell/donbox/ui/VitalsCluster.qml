@@ -31,8 +31,6 @@ Item {
             highlighted: QuickSettings.shown
         }
 
-        BatteryIndicator {
-            highlighted: QuickSettings.shown
-        }
+        BatteryIndicator {}
     }
 }

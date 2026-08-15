@@ -1,4 +1,5 @@
 import QtQuick
+import Quickshell
 import Quickshell.Services.UPower
 import qs.services
 
@@ -21,6 +22,22 @@ BarPill {
         : Battery.tintFor(root.percent)
 
     visible: root.device.ready && root.device.isLaptopBattery
+    highlighted: panel.visible
+
+    MouseArea {
+        anchors.fill: parent
+        cursorShape: Qt.PointingHandCursor
+
+        onClicked: panel.visible = !panel.visible
+    }
+
+    PowerPanel {
+        id: panel
+
+        anchor.item: root
+        anchor.edges: Edges.Bottom
+        anchor.gravity: Edges.Bottom
+    }
 
     content: [
         PillText {
