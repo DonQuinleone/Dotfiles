@@ -1,7 +1,12 @@
 # shellcheck shell=bash
 
-readonly FASTFETCH_CONFIG_FILE="${CONFIG_HOME}/fastfetch/config.jsonc"
-readonly FASTFETCH_LOGO_FILE="${CONFIG_HOME}/fastfetch/logo/logo-color.txt"
+readonly FASTFETCH_DIR="${CONFIG_HOME}/fastfetch"
+readonly FASTFETCH_CONFIG_FILE="${FASTFETCH_DIR}/config.jsonc"
+readonly FASTFETCH_LOGO_FILE="${FASTFETCH_DIR}/logo/logo-color.txt"
+
+# /etc/os-release still says COSMIC, and fedora-release owns it,
+# so a root edit would be undone by the next update.
+readonly DESKTOP_FLAVOUR="donbox"
 
 write_fastfetch_config() {
     cat >"${FASTFETCH_CONFIG_FILE}" <<EOF
@@ -33,7 +38,10 @@ write_fastfetch_config() {
             "format": "{user-name}@{host-name}"
         },
         "separator",
-        "os",
+        {
+            "type": "os",
+            "format": "{name} {version-id} (${DESKTOP_FLAVOUR}) {arch}"
+        },
         "host",
         "kernel",
         "uptime",
