@@ -76,6 +76,33 @@ up a theme change at their next launch rather than immediately.
 
     ~/.config/hypr/scripts/mozilla-theme-loader
 
+## Logging in
+
+There is no graphical greeter. `greetd` runs `tuigreet` on VT 1,
+and the session it starts is `start-hyprland` rather than
+`Hyprland` itself: the watchdog Fedora ships beside the
+compositor, which restarts it if it exits uncleanly. Hyprland
+warns at startup when it is launched without it.
+
+The console font matters more here than it would elsewhere,
+because the login prompt is the one screen the magnifier cannot
+reach. `setfont` caps out at 32 pixels, so a readable size comes
+from doubling a Terminus face rather than from a larger one:
+`ter-v28b` drawn with `-d` is 28 pixels wide by 56 tall.
+`vconsole.conf` cannot express the doubling, so a small unit
+applies it to the first three VTs before greetd starts.
+
+The greeter does not remember the username.
+
+These three files sit outside the stow package, since they live
+under `/etc` rather than `$HOME`:
+
+| File | What it does |
+| --- | --- |
+| `/etc/greetd/config.toml` | runs tuigreet, picks the session |
+| `/etc/vconsole.conf` | names the console font |
+| `/etc/systemd/system/console-font-large.service` | doubles it |
+
 ## Packages
 
 Hyprland left the official Fedora repositories at Fedora 43, so
