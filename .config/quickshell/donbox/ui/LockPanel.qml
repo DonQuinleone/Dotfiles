@@ -7,7 +7,7 @@ Item {
 
     readonly property string timeFormat: "HH:mm"
     readonly property string dateFormat: "dddd d MMMM"
-    readonly property string prompt: "ember@lock"
+    readonly property string prompt: "donbox@lock"
     readonly property string headline: "!! ACCESS DENIED"
 
     readonly property int shakeThrow: Theme.spacing.section ?? 0
