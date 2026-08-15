@@ -237,34 +237,36 @@ for the passphrase again and no agent ever held the key. Both
 shells and `~/.config/environment.d` now override it with the
 path `gpgconf --list-dirs agent-ssh-socket` reports.
 
-The session then unlocks the keys at login, so nothing asks
-afterwards. `unlock-keys` reads the passphrase from the login
-keyring, which `pam_gnome_keyring` unlocked with the login
-password, and presets it into gpg-agent for every key under
-`~/.gnupg/private-keys-v1.d`. `unlock-keys.service` runs it with
-`graphical-session.target` and clears every preset when that
-target stops. Setting it up takes three commands, once:
+Hand the SSH key to that agent once per working day:
 
-    gpgconf --kill gpg-agent
     ssh-add ~/.ssh/id_ed25519
-    ~/.config/hypr/scripts/unlock-keys store
 
 gpg-agent reads its configuration once at start and outlives a
-logout, so the first command is what makes it read the new one.
-The second hands the SSH key to gpg-agent, which asks for a
-passphrase to protect it. The third stores that passphrase in
-the login keyring. Give both keys the same passphrase and one
-entry covers them; otherwise store one per key:
+logout, so `gpgconf --kill gpg-agent` is what makes it pick up a
+change. Prompts come from `pinentry-gnome3`, a real window the
+magnifier reaches, rather than a curses prompt inside whichever
+terminal happened to ask. The cache holds for eight hours, so a
+working day costs one prompt per key and a session left overnight
+asks again.
 
-    ~/.config/hypr/scripts/unlock-keys list
-    ~/.config/hypr/scripts/unlock-keys store <keygrip>
+The passphrases are deliberately not stored. A mechanism that
+unlocked both keys at login was built and then removed: it worked,
+but it left the passphrase readable in clear by anything running
+as me, which turns a stolen session into permanent theft of the
+signing key rather than its use while I am there. The signing key
+is going to a hardware token instead.
 
-Sign in with the password rather than the fingerprint. A
-fingerprint login leaves the keyring locked, so `unlock-keys`
-fails loudly in `systemctl --user status unlock-keys` and the
-first signature falls back to a pinentry window instead.
+The fingerprint answers the login, the lock screen and `sudo`,
+which `authselect`'s `with-fingerprint` feature already provides.
+It cannot answer for a key. fprintd reports a match or no match
+and derives no key material, so nothing it does can decrypt a
+passphrase; a fingerprint in front of signing would only be a
+helper holding the passphrase and releasing it on a match, which
+stops somebody at the keyboard and stops nothing at all running
+as me. A smartcard is the only thing that would make a signature
+need hardware present.
 
-### What that costs
+## What that costs
 
 Worth stating plainly, because it is a real reduction. Anyone who
 reaches the unlocked session can sign as me and reach whatever
