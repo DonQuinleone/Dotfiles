@@ -29,7 +29,7 @@ PanelWindow {
     anchors.right: true
 
     WlrLayershell.layer: WlrLayer.Overlay
-    WlrLayershell.namespace: "ember-flash"
+    WlrLayershell.namespace: "donbox-flash"
     WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
 
     mask: Region {}

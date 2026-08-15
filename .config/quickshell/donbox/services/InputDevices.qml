@@ -82,7 +82,7 @@ Singleton {
             root.pointers = parsed.mice ?? [];
             root.keyboards = parsed.keyboards ?? [];
         } catch (error) {
-            console.error("ember: hyprctl gave no device list:",
+            console.error("donbox: hyprctl gave no device list:",
                 error);
         }
     }

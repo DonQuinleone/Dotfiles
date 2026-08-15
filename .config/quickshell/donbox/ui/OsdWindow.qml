@@ -43,7 +43,7 @@ PanelWindow {
     margins.bottom: root.bottomGap
 
     WlrLayershell.layer: WlrLayer.Overlay
-    WlrLayershell.namespace: "ember-osd"
+    WlrLayershell.namespace: "donbox-osd"
     WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
 
     Rectangle {

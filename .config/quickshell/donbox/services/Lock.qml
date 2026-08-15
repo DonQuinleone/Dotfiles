@@ -16,7 +16,7 @@ Singleton {
     readonly property string runtimeDir:
         Quickshell.env("XDG_RUNTIME_DIR") ?? "/tmp"
     readonly property string markerPath:
-        `${root.runtimeDir}/ember-session-locked`
+        `${root.runtimeDir}/donbox-session-locked`
 
     readonly property var refusals: ({
         [PamResult.Failed]: "Not recognised. Try again.",

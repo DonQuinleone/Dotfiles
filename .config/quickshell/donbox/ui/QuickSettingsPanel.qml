@@ -28,7 +28,7 @@ PanelWindow {
     focusable: true
     implicitWidth: root.panelWidth + root.edge
     WlrLayershell.layer: WlrLayer.Top
-    WlrLayershell.namespace: "ember-quick-settings"
+    WlrLayershell.namespace: "donbox-quick-settings"
 
     anchors {
         top: true

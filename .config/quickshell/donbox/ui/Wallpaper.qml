@@ -14,7 +14,7 @@ PanelWindow {
     color: Theme.palette.bg ?? "black"
     exclusionMode: ExclusionMode.Ignore
     WlrLayershell.layer: WlrLayer.Background
-    WlrLayershell.namespace: "ember-wallpaper"
+    WlrLayershell.namespace: "donbox-wallpaper"
 
     anchors {
         top: true

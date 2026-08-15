@@ -30,7 +30,7 @@ PanelWindow {
     focusable: true
     implicitWidth: root.panelWidth
     WlrLayershell.layer: WlrLayer.Top
-    WlrLayershell.namespace: "ember-notifications"
+    WlrLayershell.namespace: "donbox-notifications"
 
     anchors {
         top: true

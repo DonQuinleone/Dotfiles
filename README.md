@@ -1,4 +1,4 @@
-# fedora-dots
+# donbox
 
 ```
  (        *
@@ -57,7 +57,7 @@ idempotent, so re-running it after an update is safe.
 ## Usage
 
     git clone \
-      ssh://git@forge.example.com/user/fedora-dots.git \
+      ssh://git@forge.example.com/user/donbox.git \
       ~/.dotfiles
     ~/.dotfiles/get_packages.sh
     ~/.dotfiles/bootstrap.sh
@@ -97,7 +97,7 @@ since 0.55. Keybindings live in one declarative table, so the
 whole scheme reads at a glance and the cheat sheet is generated
 from the same source.
 
-`.config/quickshell/ember` is the shell: a bar on every monitor,
+`.config/quickshell/donbox` is the shell: a bar on every monitor,
 launcher, notification centre, on-screen display, and a picker
 that any script can drive. Nothing in it hardcodes a colour or a
 size; every value comes from the active theme.

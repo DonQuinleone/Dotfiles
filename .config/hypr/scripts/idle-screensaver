@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-readonly SHELL_CONFIG="ember"
+readonly SHELL_CONFIG="donbox"
 
 case "${1:-}" in
     start | stop) ;;

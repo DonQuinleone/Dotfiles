@@ -112,7 +112,7 @@ Singleton {
             root.data = JSON.parse(source.text());
         } catch (error) {
             console.error(
-                `ember: ${source.path} is not valid JSON:`, error);
+                `donbox: ${source.path} is not valid JSON:`, error);
         }
     }
 
@@ -153,7 +153,7 @@ Singleton {
 
         onLoaded: if (root.usingFallback) root.reparse()
         onLoadFailed: error => console.error(
-            `ember: cannot read ${root.fallbackPath}:`,
+            `donbox: cannot read ${root.fallbackPath}:`,
             FileViewError.toString(error))
     }
 

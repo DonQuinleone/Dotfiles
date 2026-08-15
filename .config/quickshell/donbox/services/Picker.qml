@@ -84,7 +84,7 @@ Singleton {
         try {
             root.request = JSON.parse(requestFile.text());
         } catch (error) {
-            console.error(`ember: ${path} is not valid JSON:`, error);
+            console.error(`donbox: ${path} is not valid JSON:`, error);
             return root.unreadableReply;
         }
         root.query = "";

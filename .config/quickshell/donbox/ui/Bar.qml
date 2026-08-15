@@ -19,7 +19,7 @@ PanelWindow {
     exclusionMode: ExclusionMode.Auto
     implicitHeight: Theme.sizes.barHeight ?? 0
     WlrLayershell.layer: WlrLayer.Top
-    WlrLayershell.namespace: "ember-bar"
+    WlrLayershell.namespace: "donbox-bar"
 
     anchors {
         top: true

@@ -125,7 +125,7 @@ Singleton {
             root.entries = JSON.parse(payload)
                 .filter(bind => bind.submap === "");
         } catch (error) {
-            console.error("ember: hyprctl gave no bindings:", error);
+            console.error("donbox: hyprctl gave no bindings:", error);
         }
     }
 

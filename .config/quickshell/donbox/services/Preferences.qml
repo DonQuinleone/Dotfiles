@@ -166,7 +166,7 @@ Singleton {
         stderr: StdioCollector {
             onStreamFinished: {
                 if (!this.text.trim()) return;
-                console.error("ember: hyprctl refused the settings:",
+                console.error("donbox: hyprctl refused the settings:",
                     this.text.trim());
             }
         }

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-readonly SHELL_CONFIG="ember"
+readonly SHELL_CONFIG="donbox"
 readonly LOCK_NOTIFY_URGENCY="critical"
 
 if qs -c "${SHELL_CONFIG}" ipc call lock lock >/dev/null 2>&1; then

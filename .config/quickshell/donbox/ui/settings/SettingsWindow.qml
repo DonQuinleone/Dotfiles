@@ -7,7 +7,7 @@ FloatingWindow {
 
     readonly property int divider: Theme.sizes.borderWidth ?? 0
 
-    title: qsTr("Ember settings")
+    title: qsTr("Donbox settings")
     visible: Settings.shown
     color: Theme.palette.bg ?? "black"
     implicitWidth: Metrics.settingsWidth

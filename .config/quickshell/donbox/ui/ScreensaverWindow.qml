@@ -19,7 +19,7 @@ PanelWindow {
     exclusionMode: ExclusionMode.Ignore
 
     WlrLayershell.layer: WlrLayer.Overlay
-    WlrLayershell.namespace: "ember-screensaver"
+    WlrLayershell.namespace: "donbox-screensaver"
     WlrLayershell.keyboardFocus: WlrKeyboardFocus.Exclusive
 
     anchors {

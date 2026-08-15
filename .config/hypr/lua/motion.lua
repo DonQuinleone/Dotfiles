@@ -7,7 +7,7 @@ local MINIMUM_SPEED_DS = 0.2
 local MAXIMUM_SPEED_DS = 100
 local POPIN_STYLE = "popin 87%"
 local SPECIAL_STYLE = "slidefadevert 15%"
-local SCALED_CURVE = "emberOut"
+local SCALED_CURVE = "donboxOut"
 
 -- Deciseconds for one full turn of the focused window's border
 -- gradient, at the slowest Hyprland will accept. Looping an angle
@@ -17,11 +17,11 @@ local SCALED_CURVE = "emberOut"
 local BORDER_TURN_DS = 100
 
 local curves = {
-    { "emberOut", { type = "bezier",
+    { "donboxOut", { type = "bezier",
         points = { { 0.16, 1.0 }, { 0.3, 1.0 } } } },
-    { "emberQuick", { type = "bezier",
+    { "donboxQuick", { type = "bezier",
         points = { { 0.15, 0.0 }, { 0.1, 1.0 } } } },
-    { "emberSoft", { type = "spring", mass = 1,
+    { "donboxSoft", { type = "spring", mass = 1,
         stiffness = 238.1191, dampening = 24.21279333 } },
 }
 
@@ -30,26 +30,26 @@ local curves = {
 -- by its constants alone and ignores its speed, which is why the
 -- reduced profile has to swap the curve rather than shorten it.
 local animations = {
-    { leaf = "global", speed = 2.0, bezier = "emberOut" },
-    { leaf = "border", speed = 3.0, bezier = "emberOut" },
+    { leaf = "global", speed = 2.0, bezier = "donboxOut" },
+    { leaf = "border", speed = 3.0, bezier = "donboxOut" },
     { leaf = "borderangle", speed = BORDER_TURN_DS,
       bezier = "linear", style = "loop", loops = true },
-    { leaf = "windows", speed = 2.5, spring = "emberSoft" },
-    { leaf = "windowsIn", speed = 2.0, spring = "emberSoft",
+    { leaf = "windows", speed = 2.5, spring = "donboxSoft" },
+    { leaf = "windowsIn", speed = 2.0, spring = "donboxSoft",
       style = POPIN_STYLE },
-    { leaf = "windowsOut", speed = 1.5, bezier = "emberQuick",
+    { leaf = "windowsOut", speed = 1.5, bezier = "donboxQuick",
       style = POPIN_STYLE },
-    { leaf = "fade", speed = 1.8, bezier = "emberQuick" },
-    { leaf = "layers", speed = 2.0, bezier = "emberOut",
+    { leaf = "fade", speed = 1.8, bezier = "donboxQuick" },
+    { leaf = "layers", speed = 2.0, bezier = "donboxOut",
       style = "fade" },
-    { leaf = "layersOut", speed = 1.5, bezier = "emberQuick" },
-    { leaf = "fadeLayersIn", speed = 2.0, bezier = "emberOut" },
-    { leaf = "fadeLayersOut", speed = 1.5, bezier = "emberQuick" },
-    { leaf = "workspaces", speed = 2.0, bezier = "emberOut",
+    { leaf = "layersOut", speed = 1.5, bezier = "donboxQuick" },
+    { leaf = "fadeLayersIn", speed = 2.0, bezier = "donboxOut" },
+    { leaf = "fadeLayersOut", speed = 1.5, bezier = "donboxQuick" },
+    { leaf = "workspaces", speed = 2.0, bezier = "donboxOut",
       style = "slide" },
-    { leaf = "specialWorkspace", speed = 1.8, bezier = "emberOut",
+    { leaf = "specialWorkspace", speed = 1.8, bezier = "donboxOut",
       style = SPECIAL_STYLE },
-    { leaf = "zoomFactor", speed = 1.5, bezier = "emberQuick" },
+    { leaf = "zoomFactor", speed = 1.5, bezier = "donboxQuick" },
 }
 
 -- The drift is ambient rather than responsive, so the scale

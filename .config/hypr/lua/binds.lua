@@ -27,16 +27,16 @@ local binds = {
     { "SUPER",           "e",                     hl.dsp.workspace.toggle_special("mail")                },
 
     -- Shell
-    { "SUPER + SHIFT",   "b",                     hl.dsp.exec_cmd("qs -c ember ipc call bar toggleFocused") },
-    { "SUPER",           "space",                 hl.dsp.exec_cmd("qs -c ember ipc call launcher toggle") },
+    { "SUPER + SHIFT",   "b",                     hl.dsp.exec_cmd("qs -c donbox ipc call bar toggleFocused") },
+    { "SUPER",           "space",                 hl.dsp.exec_cmd("qs -c donbox ipc call launcher toggle") },
     { "SUPER + SHIFT",   "t",                     hl.dsp.exec_cmd(scripts .. "/theme-menu")              },
     { "SUPER + CTRL",    "t",                     hl.dsp.exec_cmd(scripts .. "/theme-menu accent")       },
-    { "SUPER + SHIFT",   "s",                     hl.dsp.exec_cmd("qs -c ember ipc call quickSettings toggle") },
+    { "SUPER + SHIFT",   "s",                     hl.dsp.exec_cmd("qs -c donbox ipc call quickSettings toggle") },
 
     -- Notifications
-    { "SUPER",           "n",                     hl.dsp.exec_cmd("qs -c ember ipc call notifications toggleCentre") },
-    { "SUPER + SHIFT",   "n",                     hl.dsp.exec_cmd("qs -c ember ipc call notifications toggleDnd")    },
-    { "SUPER + CTRL",    "n",                     hl.dsp.exec_cmd("qs -c ember ipc call notifications dismissAll")   },
+    { "SUPER",           "n",                     hl.dsp.exec_cmd("qs -c donbox ipc call notifications toggleCentre") },
+    { "SUPER + SHIFT",   "n",                     hl.dsp.exec_cmd("qs -c donbox ipc call notifications toggleDnd")    },
+    { "SUPER + CTRL",    "n",                     hl.dsp.exec_cmd("qs -c donbox ipc call notifications dismissAll")   },
 
     -- Windows
     { "SUPER",           "q",                     hl.dsp.window.close()                                  },
@@ -81,7 +81,7 @@ local binds = {
     { "SUPER + SHIFT",   "z",                     actions.caret_follow_toggle                            },
     { "SUPER + CTRL",    "m",                     hl.dsp.exec_cmd(scripts .. "/motion reduced toggle")   },
     { "SUPER + SHIFT",   "w",                     hl.dsp.exec_cmd(scripts .. "/night-shift toggle")     },
-    { "SUPER",           "c",                     hl.dsp.exec_cmd("qs -c ember ipc call settings toggle")            },
+    { "SUPER",           "c",                     hl.dsp.exec_cmd("qs -c donbox ipc call settings toggle")            },
     { "SUPER",           "mouse_up",              actions.zoom(step)                                     },
     { "SUPER",           "mouse_down",            actions.zoom(-step)                                    },
 

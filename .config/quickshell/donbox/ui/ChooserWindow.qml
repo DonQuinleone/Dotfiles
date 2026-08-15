@@ -33,7 +33,7 @@ PanelWindow {
         Theme.opacities.dim ?? 0)
     exclusionMode: ExclusionMode.Ignore
     WlrLayershell.layer: WlrLayer.Overlay
-    WlrLayershell.namespace: "ember-chooser"
+    WlrLayershell.namespace: "donbox-chooser"
     WlrLayershell.keyboardFocus: WlrKeyboardFocus.Exclusive
 
     anchors {

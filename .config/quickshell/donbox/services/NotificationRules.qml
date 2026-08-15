@@ -105,7 +105,7 @@ Singleton {
             root.data = JSON.parse(file.text());
         } catch (error) {
             console.error(
-                `ember: ${root.path} is not valid JSON:`, error);
+                `donbox: ${root.path} is not valid JSON:`, error);
         }
     }
 
@@ -121,7 +121,7 @@ Singleton {
         onFileChanged: this.reload()
         onLoaded: root.reparse()
         onLoadFailed: error => console.error(
-            `ember: cannot read ${root.path}:`,
+            `donbox: cannot read ${root.path}:`,
             FileViewError.toString(error))
     }
 }

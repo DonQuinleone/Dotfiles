@@ -24,7 +24,7 @@ PanelWindow {
     exclusiveZone: 0
     implicitWidth: root.toastWidth + root.edge
     WlrLayershell.layer: WlrLayer.Overlay
-    WlrLayershell.namespace: "ember-toasts"
+    WlrLayershell.namespace: "donbox-toasts"
 
     mask: Region {
         item: stack

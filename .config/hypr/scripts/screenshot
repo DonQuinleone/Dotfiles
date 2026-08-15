@@ -38,7 +38,7 @@ region)
 esac
 
 flash() {
-    qs -c ember ipc call screenshot flash >/dev/null 2>&1 || true
+    qs -c donbox ipc call screenshot flash >/dev/null 2>&1 || true
     "$(dirname "$0")/notify-sound" shutter >/dev/null 2>&1 || true
 }
 

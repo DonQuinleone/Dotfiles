@@ -10,7 +10,7 @@ Singleton {
 
     readonly property int indent: 2
     readonly property string silent: ""
-    readonly property string testApp: qsTr("Ember settings")
+    readonly property string testApp: qsTr("Donbox settings")
     readonly property string testSummary: qsTr("Test notification")
     readonly property string testBody:
         qsTr("This is how %1 will sound and speak.")

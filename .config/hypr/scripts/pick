@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-readonly SHELL_CONFIG=ember
+readonly SHELL_CONFIG=donbox
 readonly IPC_TARGET=pick
 readonly GRID_MODE=grid
 readonly LIST_MODE=list

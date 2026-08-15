@@ -5,7 +5,7 @@ local commands = {
     "gsettings set org.gnome.desktop.interface "
         .. "toolkit-accessibility true",
     config .. "/hypr/scripts/caret-follow",
-    "qs -c ember",
+    "qs -c donbox",
     config .. "/hypr/scripts/theme-daemon",
     config .. "/hypr/scripts/idle-profile",
     config .. "/hypr/scripts/night-shift-daemon",

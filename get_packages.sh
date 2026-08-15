@@ -125,7 +125,7 @@ write_qt6ct_config() {
     mkdir -p "$(dirname "$config")"
     cat > "$config" <<EOF
 [Appearance]
-color_scheme_path=$HOME/.config/qt6ct/colors/ember.conf
+color_scheme_path=$HOME/.config/qt6ct/colors/current.conf
 custom_palette=true
 standard_dialogs=default
 style=Fusion

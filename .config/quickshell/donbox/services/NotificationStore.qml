@@ -25,7 +25,7 @@ Singleton {
         Quickshell.env("XDG_STATE_HOME")
         ?? `${Quickshell.env("HOME")}/.local/state`
 
-    readonly property string directory: `${root.stateHome}/ember`
+    readonly property string directory: `${root.stateHome}/donbox`
 
     readonly property string path:
         `${root.directory}/notifications.json`

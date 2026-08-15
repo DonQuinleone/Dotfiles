@@ -28,7 +28,7 @@ hl.window_rule({
 })
 
 hl.window_rule({
-    match = { class = "org.quickshell", title = "Ember settings" },
+    match = { class = "org.quickshell", title = "Donbox settings" },
     float = true,
     size = {
         "(monitor_w*" .. SETTINGS_WIDTH_FRACTION .. ")",
@@ -44,17 +44,17 @@ hl.window_rule({
 -- travels, and the screenshot flash is left to the shell, whose
 -- own ramp is gentler than anything the compositor would add.
 local layers = {
-    { namespace = "^ember-bar$", animation = "slide top" },
-    { namespace = "^ember-toasts$", animation = "slide right" },
-    { namespace = "^ember-notifications$",
+    { namespace = "^donbox-bar$", animation = "slide top" },
+    { namespace = "^donbox-toasts$", animation = "slide right" },
+    { namespace = "^donbox-notifications$",
       animation = "slide right" },
-    { namespace = "^ember-quick-settings$",
+    { namespace = "^donbox-quick-settings$",
       animation = "slide right" },
-    { namespace = "^ember-osd$", animation = "slide bottom" },
-    { namespace = "^ember-chooser$", animation = "popin 92%" },
-    { namespace = "^ember-screensaver$", animation = "fade" },
-    { namespace = "^ember-wallpaper$", no_anim = true },
-    { namespace = "^ember-flash$", no_anim = true },
+    { namespace = "^donbox-osd$", animation = "slide bottom" },
+    { namespace = "^donbox-chooser$", animation = "popin 92%" },
+    { namespace = "^donbox-screensaver$", animation = "fade" },
+    { namespace = "^donbox-wallpaper$", no_anim = true },
+    { namespace = "^donbox-flash$", no_anim = true },
 }
 
 for _, layer in ipairs(layers) do
