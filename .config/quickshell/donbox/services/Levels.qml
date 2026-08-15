@@ -17,13 +17,6 @@ Singleton {
         { floor: 0.0, word: "SILENT" }
     ]
 
-    readonly property var brightnessWords: [
-        { floor: 0.85, word: "BRIGHT" },
-        { floor: 0.55, word: "NORMAL" },
-        { floor: 0.25, word: "DIM" },
-        { floor: 0.0, word: "DARK" }
-    ]
-
     function wordFor(scale: var, level: real): string {
         return scale.find(band => level >= band.floor).word;
     }
