@@ -58,6 +58,13 @@ hl.config({
         force_default_wallpaper = 0,
         allow_session_lock_restore = true,
     },
+    -- A passphrase prompt grabs the keyboard, which otherwise
+    -- takes the magnifier away at exactly the moment there is
+    -- something small to read. The locker holds the session
+    -- lock rather than a grab, so it is unaffected.
+    binds = {
+        disable_keybind_grabbing = true,
+    },
     animations = {
         enabled = true,
     },
