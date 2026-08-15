@@ -224,6 +224,67 @@ Both prompts colour the username from the active theme and
 re-read it on every draw, so switching theme repaints the next
 prompt without restarting the shell.
 
+## Keys
+
+Signing and SSH run through one agent. gpg-agent serves the SSH
+socket as well as its own, so a single passphrase, a single cache
+and a single prompt cover a `git commit` and a `git push` alike.
+`pam_gnome_keyring` exports `SSH_AUTH_SOCK` whether or not there
+is an agent behind it, and gnome-keyring's own ssh component
+autostarts only under GNOME, Unity and MATE, so on this session
+nothing ever served that socket: which is why every push asked
+for the passphrase again and no agent ever held the key. Both
+shells and `~/.config/environment.d` now override it with the
+path `gpgconf --list-dirs agent-ssh-socket` reports.
+
+The session then unlocks the keys at login, so nothing asks
+afterwards. `unlock-keys` reads the passphrase from the login
+keyring, which `pam_gnome_keyring` unlocked with the login
+password, and presets it into gpg-agent for every key under
+`~/.gnupg/private-keys-v1.d`. `unlock-keys.service` runs it with
+`graphical-session.target` and clears every preset when that
+target stops. Setting it up takes three commands, once:
+
+    gpgconf --kill gpg-agent
+    ssh-add ~/.ssh/id_ed25519
+    ~/.config/hypr/scripts/unlock-keys store
+
+gpg-agent reads its configuration once at start and outlives a
+logout, so the first command is what makes it read the new one.
+The second hands the SSH key to gpg-agent, which asks for a
+passphrase to protect it. The third stores that passphrase in
+the login keyring. Give both keys the same passphrase and one
+entry covers them; otherwise store one per key:
+
+    ~/.config/hypr/scripts/unlock-keys list
+    ~/.config/hypr/scripts/unlock-keys store <keygrip>
+
+Sign in with the password rather than the fingerprint. A
+fingerprint login leaves the keyring locked, so `unlock-keys`
+fails loudly in `systemctl --user status unlock-keys` and the
+first signature falls back to a pinentry window instead.
+
+### What that costs
+
+Worth stating plainly, because it is a real reduction. Anyone who
+reaches the unlocked session can sign as me and reach whatever
+the SSH key opens, without knowing a passphrase. The passphrase
+itself sits in `~/.local/share/keyrings/login.keyring`, encrypted
+at rest under the login password, readable by anything running as
+me once the session is up. The keys themselves stay encrypted on
+disk, and a suspended machine is worth exactly what its lock
+screen is worth.
+
+The fingerprint answers the login, the lock screen and `sudo`,
+which `authselect`'s `with-fingerprint` feature already provides.
+It cannot answer for a key. fprintd reports a match or no match
+and derives no key material, so nothing it does can decrypt a
+passphrase; a fingerprint in front of signing would only be a
+helper holding the passphrase and releasing it on a match, which
+stops somebody at the keyboard and stops nothing at all running
+as me. A smartcard is the only thing that would make a signature
+genuinely need the hardware.
+
 ## Fetch
 
 `fastfetch` shows the windmill logo beside system information.
