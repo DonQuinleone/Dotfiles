@@ -15,6 +15,9 @@ Singleton {
         { floor: 0.0, glyph: "󰤯" }
     ]
 
+    readonly property var passwordFreeSecurities:
+        [WifiSecurityType.Open, WifiSecurityType.Owe]
+
     readonly property string wiredGlyph: "󰈀"
     readonly property string radioOffGlyph: "󰤮"
     readonly property string noAdapterGlyph: "󰲛"
@@ -35,8 +38,19 @@ Singleton {
     readonly property bool wifiBlocked: !Networking.wifiHardwareEnabled
     readonly property bool wired: root.wiredDevice?.connected ?? false
 
-    readonly property var network: root.wifiDevice?.networks?.values
+    readonly property var wifiNetworks:
+        root.wifiDevice?.networks?.values ?? []
+
+    readonly property var network: root.wifiNetworks
         .find(candidate => candidate.connected) ?? null
+
+    readonly property var inRange: root.wifiNetworks
+        .filter(candidate => candidate.name !== "")
+        .sort((first, second) =>
+            Number(second.connected) - Number(first.connected)
+            || second.signalStrength - first.signalStrength)
+        .filter((candidate, place, all) => all.findIndex(
+            other => other.name === candidate.name) === place)
 
     readonly property string ssid: root.network?.name ?? ""
     readonly property real strength: root.network?.signalStrength ?? 0
@@ -57,8 +71,7 @@ Singleton {
         if (!root.wifiPresent) return root.noAdapterGlyph;
         if (!root.wifiEnabled) return root.radioOffGlyph;
         if (root.busy) return root.busyGlyph;
-        return root.signalLevels.find(
-            level => root.strength >= level.floor).glyph;
+        return root.glyphFor(root.strength);
     }
 
     readonly property string label: {
@@ -86,6 +99,45 @@ Singleton {
         if (root.connected) return Theme.palette.fg ?? "white";
         if (!root.wifiEnabled) return Theme.palette.fgDim ?? "white";
         return Theme.palette.warn ?? "white";
+    }
+
+    function glyphFor(strength: real): string {
+        return root.signalLevels.find(
+            level => strength >= level.floor).glyph;
+    }
+
+    function percentFor(strength: real): int {
+        return Math.round(strength * 100);
+    }
+
+    function secured(candidate: var): bool {
+        return !root.passwordFreeSecurities.includes(
+            candidate.security);
+    }
+
+    function joinable(candidate: var): bool {
+        if (candidate.connected || candidate.stateChanging) {
+            return false;
+        }
+        return candidate.known || !root.secured(candidate);
+    }
+
+    function statusOf(candidate: var): string {
+        if (candidate.connected) return "Connected";
+        if (candidate.stateChanging) return "Connecting";
+        if (candidate.known) return "Saved";
+        if (root.secured(candidate)) return "Needs a password";
+        return "Open";
+    }
+
+    function join(candidate: var): void {
+        if (!root.joinable(candidate)) return;
+        candidate.connect();
+    }
+
+    function setScanning(wanted: bool): void {
+        if (!root.wifiDevice) return;
+        root.wifiDevice.scannerEnabled = wanted;
     }
 
     function toggleWifi(): void {

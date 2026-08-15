@@ -76,6 +76,7 @@ PACKAGES=(
     pipx
     playerctl
     kvantum
+    qrencode
     qt6-qtimageformats
     qt6-qtmultimedia
     qt6-qtsvg
