@@ -257,11 +257,44 @@ unsaved secured network, which would need a password field, and
 reading the clipboard through Qt, so copying goes through
 `wl-copy` instead.
 
+## Shortcuts
+
+Each modifier carries one meaning, so a binding can be guessed
+rather than looked up:
+
+| Modifier | Meaning |
+| --- | --- |
+| `Super` | go to or open something |
+| `Super+Shift` | act on the focused window |
+| `Super+Ctrl` | adjust |
+| `Super+Alt` | hardware and the session |
+
+`Super+H` moves the focus, `Super+Shift+H` moves the window,
+`Super+Ctrl+H` resizes it. Layouts and gaps sit with the window
+actions because they arrange windows; theme, accent and wallpaper
+sit with the adjustments; volume and brightness are on
+`Super+Alt` with the arrow keys.
+
+The magnifier breaks the rule on purpose. `Super` with `=`, `-`,
+`0`, `z` and the scroll wheel is the shortest reach on the
+keyboard, and it is the control this desktop exists to make
+usable.
+
+Two families use `Shift` and `Ctrl` as variants of their own
+action rather than in the sense above, because neither has a
+window to act on: screenshots (`Shift` for a region, `Ctrl` to
+save) and notifications (`Shift` for do not disturb, `Ctrl` to
+dismiss everything).
+
+Quitting is `Super+Alt+E`. It used to be `Super+Shift+E`, one
+modifier from the mail scratchpad on `Super+E`, which is too
+close for something that cannot be undone.
+
 ## Settings
 
-`Super+C` opens the settings window, and `qs -c donbox ipc call
-settings pane <slug>` opens it at one pane. Eleven panes cover
-what the desktop can be told:
+`Super+Ctrl+C` opens the settings window, and `qs -c donbox ipc
+call settings pane <slug>` opens it at one pane. Eleven panes
+cover what the desktop can be told:
 
 | Pane | What it holds |
 | --- | --- |
@@ -292,7 +325,7 @@ unexpected.
 ## Night shift
 
 `night-shift` warms the display through `hyprsunset`, ramping
-over ninety minutes rather than stepping, and `Super+Shift+W`
+over ninety minutes rather than stepping, and `Super+Alt+W`
 overrides it either way until the next scheduled change. Times
 come from a local sunrise and sunset worked out offline by the
 NOAA solar algorithm, so it needs no network and no address in a

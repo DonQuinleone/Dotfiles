@@ -41,6 +41,7 @@ PACKAGES=(
     ShellCheck
     ansible
     brightnessctl
+    btop
     claude-code
     claude-desktop
     fastfetch
@@ -76,6 +77,7 @@ PACKAGES=(
     kvantum
     qt6-qtimageformats
     qt6-qtmultimedia
+    qt6-qtshadertools
     qt6-qtsvg
     qt6ct
     quickshell-git
