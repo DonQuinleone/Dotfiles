@@ -36,6 +36,7 @@ PanelWindow {
     function load(): void {
         if (root.incoming.source === root.source) return;
         root.flipped = !root.flipped;
+        blend.hold();
         root.incoming.source = root.source;
     }
 

@@ -52,6 +52,14 @@ ShaderEffect {
         root.progress = 1;
     }
 
+    // Swapping the slots hands the incoming role to a picture
+    // that is still loading, and the shader would spend those
+    // frames drawing an empty texture.
+    function hold(): void {
+        sweep.stop();
+        root.progress = 0;
+    }
+
     NumberAnimation {
         id: sweep
 
