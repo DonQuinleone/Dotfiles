@@ -10,6 +10,10 @@ readonly GTK4_SETTINGS="${CONFIG_HOME}/gtk-4.0/settings.ini"
 # only cut how much text fits under the lens.
 readonly GTK_FONT_POINTS=10
 
+# Named here rather than left to whatever a desktop happened to
+# set, so removing that desktop cannot take the icons with it.
+readonly GTK_ICON_THEME="Adwaita"
+
 replace_with_regular_file() {
     mkdir -p "$(dirname "$1")"
     if [[ -L "$1" ]]; then
@@ -51,6 +55,7 @@ write_gtk_settings() {
     cat >"$1" <<EOF
 [Settings]
 gtk-font-name=${FONTS[ui]} ${GTK_FONT_POINTS}
+gtk-icon-theme-name=${GTK_ICON_THEME}
 EOF
 }
 
@@ -58,6 +63,8 @@ announce_gtk_font() {
     command -v gsettings >/dev/null 2>&1 || return 0
     gsettings set org.gnome.desktop.interface font-name \
         "${FONTS[ui]} ${GTK_FONT_POINTS}" >/dev/null 2>&1 || true
+    gsettings set org.gnome.desktop.interface icon-theme \
+        "${GTK_ICON_THEME}" >/dev/null 2>&1 || true
 }
 
 apply_gtk() {
