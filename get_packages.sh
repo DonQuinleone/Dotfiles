@@ -53,6 +53,7 @@ PACKAGES=(
     git
     gnupg2
     golang
+    greetd
     grim
     htop
     inotify-tools
@@ -83,9 +84,11 @@ PACKAGES=(
     rbw
     slurp
     stow
+    terminus-fonts-console
     thunderbird
     tldr
     tree
+    tuigreet
     wireshark
     wl-clipboard
     xdg-desktop-portal-hyprland
