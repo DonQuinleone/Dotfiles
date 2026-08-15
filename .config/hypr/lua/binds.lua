@@ -82,6 +82,7 @@ local binds = {
     { "SUPER + CTRL",    "m",                     hl.dsp.exec_cmd(scripts .. "/motion reduced toggle")   },
     { "SUPER + SHIFT",   "w",                     hl.dsp.exec_cmd(scripts .. "/night-shift toggle")     },
     { "SUPER",           "c",                     hl.dsp.exec_cmd("qs -c donbox ipc call settings toggle")            },
+    { "SUPER",           "v",                     hl.dsp.exec_cmd("qs -c donbox ipc call panels toggle glance")       },
     { "SUPER",           "mouse_up",              actions.zoom(step)                                     },
     { "SUPER",           "mouse_down",            actions.zoom(-step)                                    },
 

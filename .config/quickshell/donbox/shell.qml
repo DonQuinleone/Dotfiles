@@ -92,6 +92,14 @@ ShellRoot {
     }
 
     IpcHandler {
+        target: "panels"
+
+        function toggle(name: string): void {
+            Panels.toggle(name);
+        }
+    }
+
+    IpcHandler {
         target: "lock"
 
         function lock(): void {

@@ -28,7 +28,23 @@ BarPill {
         anchors.fill: parent
         cursorShape: Qt.PointingHandCursor
 
-        onClicked: panel.visible = !panel.visible
+        onClicked: Panels.toggle("power")
+    }
+
+    Connections {
+        target: Panels
+
+        function onRequested(name: string): void {
+            panel.visible = name === "power" && !panel.visible;
+        }
+    }
+
+    Connections {
+        target: panel
+
+        function onVisibleChanged(): void {
+            if (!panel.visible) Panels.noteClosed();
+        }
     }
 
     PowerPanel {
