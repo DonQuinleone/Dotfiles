@@ -328,6 +328,26 @@ The keybindings, hypridle and the shell all call through it, so
 a command can be renamed without hunting for the places that
 knew where it used to live.
 
+## Web apps
+
+A page that earns a window of its own gets one:
+
+    donbox webapp install "Forgejo" forge.example.com
+    donbox webapp list
+    donbox webapp remove
+
+Brave Origin draws it, since Chromium's app mode is the only one
+that gives a window with no browser around it, and Firefox stays
+the default for everything else. The icon comes from the site's
+own favicon rather than an icon service, so asking for it tells
+nobody but the site. Each window arrives with a class of its
+own, `brave-<host>__-Default`, which is what a rule in
+`rules.lua` can match on to place it.
+
+Entries live in `~/.local/share/applications` and carry
+`X-Donbox-Webapp=true`, which is what `remove` goes by, so
+nothing else in that directory can be deleted by mistake.
+
 ## Shortcuts
 
 Each modifier carries one meaning, so a binding can be guessed
