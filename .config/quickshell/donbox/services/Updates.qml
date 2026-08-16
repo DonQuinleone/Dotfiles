@@ -11,6 +11,11 @@ Singleton {
     readonly property int checkIntervalHours: 3
     readonly property int settleDelayMs: 120000
     readonly property int saveDelayMs: 1000
+    readonly property int watchIntervalMs: 20000
+
+    // Every transaction rewrites this, so its timestamp is how a
+    // count that was true three hours ago finds out it is not.
+    readonly property string databasePath: "/var/lib/rpm/rpmdb.sqlite"
 
     readonly property int checkIntervalMs:
         root.checkIntervalHours * root.millisecondsPerHour
@@ -37,6 +42,7 @@ Singleton {
     property string harvest: ""
     property real checkedAtMs: 0
     property bool checking: false
+    property string stamp: ""
 
     readonly property bool offered: root.pending > 0
 
@@ -70,9 +76,27 @@ Singleton {
     }
 
     function check(): void {
+        root.ask(["dnf", "--quiet", "check-update"]);
+    }
+
+    // After a transaction the local metadata is already right,
+    // so the count can be corrected without a network trip.
+    function recheck(): void {
+        root.ask(["dnf", "--quiet", "--cacheonly", "check-update"]);
+    }
+
+    function ask(command: var): void {
         if (root.checking) return;
         root.checking = true;
+        reader.command = command;
         reader.running = true;
+    }
+
+    function noteStamp(seen: string): void {
+        if (seen === "" || seen === root.stamp) return;
+        const known = root.stamp !== "";
+        root.stamp = seen;
+        if (known) root.recheck();
     }
 
     function save(): void {
@@ -116,10 +140,30 @@ Singleton {
         onTriggered: root.save()
     }
 
+    Timer {
+        running: true
+        repeat: true
+        interval: root.watchIntervalMs
+        triggeredOnStart: true
+
+        onTriggered: {
+            if (clock.running) return;
+            clock.running = true;
+        }
+    }
+
+    Process {
+        id: clock
+
+        command: ["stat", "-c", "%Y", root.databasePath]
+
+        stdout: StdioCollector {
+            onStreamFinished: root.noteStamp(this.text.trim())
+        }
+    }
+
     Process {
         id: reader
-
-        command: ["dnf", "--quiet", "check-update"]
 
         onExited: code => root.settle(code)
 
