@@ -459,13 +459,14 @@ its profile already lives in. `MOZ_DISABLE_LANGPACKS=1` skips
 that block in both launchers. The profile itself is untouched at
 `$XDG_CONFIG_HOME/mozilla/firefox`.
 
-Two directories stay where they are, both checked rather than
+Three directories stay where they are, each checked rather than
 assumed:
 
 | Directory | Why it cannot move |
 | --- | --- |
 | `~/.pki` | the path is compiled in |
 | `~/.thunderbird` | the XDG patch is Firefox-only |
+| `~/.var` | flatpak hardcodes it |
 
 NSS carries `/.pki/nssdb` as a literal inside
 `libnsssysinit.so`, so no variable reaches it. Thunderbird writes
@@ -475,6 +476,13 @@ against a throwaway home confirms. Its profile can be pointed
 somewhere else through an absolute `Path` in `profiles.ini`, but
 that moves the mail without removing the directory, so it buys
 nothing here.
+
+`.var/app` is a literal in both `flatpak` and `libflatpak`, and
+`FLATPAK_USER_DIR` is no help: it moves the installation, which
+already defaults to `$XDG_DATA_HOME/flatpak`. The direction is
+the other way round, since flatpak sets the four `XDG_*`
+variables inside the sandbox to point at `~/.var/app/$APPID`, so
+they are what that path produces rather than what places it.
 
 ## Keys
 
