@@ -37,6 +37,14 @@ ${REPO_EXPIRY}
 gpgkey=https://pkgs.netbird.io/yum/repodata/repomd.xml.key
 repo_gpgcheck=1"
 
+BRAVE_REPO="[brave-browser]
+name=Brave Browser
+baseurl=https://brave-browser-rpm-release.s3.brave.com/\$basearch
+enabled=1
+gpgcheck=1
+${REPO_EXPIRY}
+gpgkey=https://brave-browser-rpm-release.s3.brave.com/brave-core.asc"
+
 COPRS=(
     donquinleone/claude-desktop
     scottames/ghostty
@@ -49,10 +57,12 @@ PACKAGES=(
     bind-utils
     bluez-tools
     bolt
+    brave-origin
     brightnessctl
     btop
     claude-code
     claude-desktop
+    cliphist
     fastfetch
     firefox
     fish
@@ -76,8 +86,8 @@ PACKAGES=(
     ibm-plex-sans-fonts
     iio-sensor-proxy
     inotify-tools
-    jq
     jetbrains-mono-fonts-all
+    jq
     kvantum
     libsecret
     lsd
@@ -121,6 +131,7 @@ PACKAGES=(
     tldr
     tree
     tuigreet
+    unicode-emoji
     wiremix
     wireshark
     wl-clipboard
@@ -198,6 +209,7 @@ EOF
 
 ensure_repo claude-code "$CLAUDE_CODE_REPO"
 ensure_repo netbird "$NETBIRD_REPO"
+ensure_repo brave-browser "$BRAVE_REPO"
 
 for copr in "${COPRS[@]}"; do
     say "enabling copr $copr"
