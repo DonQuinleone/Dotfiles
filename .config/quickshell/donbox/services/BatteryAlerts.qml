@@ -5,10 +5,14 @@ Scope {
     id: root
 
     readonly property string appName: "Battery"
+    readonly property string plugSound: "added"
     readonly property int settleMs: 700
 
     readonly property int lowWarningPercent: 20
     readonly property int criticalWarningPercent: 10
+
+    readonly property string soundScript:
+        `${Preferences.configHome}/hypr/scripts/notify-sound`
 
     readonly property var warnings: [
         {
@@ -30,6 +34,7 @@ Scope {
     readonly property bool percentKnown: Battery.percent > 0
 
     property bool settled: false
+    property bool wasPluggedIn: false
     property var armed: ({})
 
     function armedFor(floor: int): bool {
@@ -69,6 +74,19 @@ Scope {
         root.armed = next;
     }
 
+    function chime(): void {
+        Quickshell.execDetached([root.soundScript, root.plugSound]);
+    }
+
+    // Only the crossing from battery to mains earns a sound, and
+    // the state already standing at startup is not a crossing.
+    function reviewPower(): void {
+        if (!root.settled) return;
+        const was = root.wasPluggedIn;
+        root.wasPluggedIn = Battery.pluggedIn;
+        if (Battery.pluggedIn && !was) root.chime();
+    }
+
     Connections {
         target: Battery
 
@@ -79,6 +97,10 @@ Scope {
         function onChargingChanged(): void {
             root.review();
         }
+
+        function onPluggedInChanged(): void {
+            root.reviewPower();
+        }
     }
 
     Timer {
@@ -86,6 +108,7 @@ Scope {
         interval: root.settleMs
 
         onTriggered: {
+            root.wasPluggedIn = Battery.pluggedIn;
             root.settled = true;
             root.review();
         }

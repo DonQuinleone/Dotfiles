@@ -241,6 +241,11 @@ carries through do not disturb. Neither fires while the machine
 is charging, and each rearms only once the charge has climbed
 back over its line.
 
+Plugging in sounds a short cue, the freedesktop device-added
+tone the shell already bundles, on the crossing from battery to
+mains rather than on every reading of it: a machine that starts
+up already plugged in stays silent, and unplugging says nothing.
+
 The clock in the middle of the bar opens a dropdown of its own,
 carrying the month, alarms and the time elsewhere. Alarms are set
 with steppers rather than typing, since a dropdown never takes

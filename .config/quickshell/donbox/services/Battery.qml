@@ -132,6 +132,8 @@ Singleton {
         root.chargeState === UPowerDeviceState.Charging
         || root.chargeState === UPowerDeviceState.FullyCharged
 
+    readonly property bool pluggedIn: !UPower.onBattery
+
     readonly property int percent:
         Math.round((root.device?.percentage ?? 0) * root.wholePercent)
 
