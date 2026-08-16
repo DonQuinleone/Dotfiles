@@ -7,8 +7,12 @@ set -gx EDITOR nvim
 set -gx VISUAL nvim
 set -gx PAGER most
 
+set -gx GNUPGHOME $XDG_DATA_HOME/gnupg
+set -gx NPM_CONFIG_CACHE $XDG_CACHE_HOME/npm
+
 # gpg-agent serves SSH too, and a terminal started by the
-# compositor never sees ~/.config/environment.d.
+# compositor never sees ~/.config/environment.d. The socket
+# path derives from GNUPGHOME, so that has to be set first.
 if command -q gpgconf
     set -gx SSH_AUTH_SOCK (gpgconf --list-dirs agent-ssh-socket)
 end
