@@ -14,21 +14,28 @@ command -v dnf >/dev/null 2>&1 || die "dnf not found"
 command -v curl >/dev/null 2>&1 || die "curl not found"
 sudo -v || die "sudo authentication required"
 
-CLAUDE_CODE_REPO='[claude-code]
+# A repo that names no expiry inherits dnf's default of 48
+# hours, so a release published this morning stays invisible
+# until Tuesday. Fedora's own updates repo asks for six.
+REPO_EXPIRY='metadata_expire=6h'
+
+CLAUDE_CODE_REPO="[claude-code]
 name=Claude Code
 baseurl=https://downloads.claude.ai/claude-code/rpm/latest
 enabled=1
 gpgcheck=1
 repo_gpgcheck=0
-gpgkey=https://downloads.claude.ai/keys/claude-code.asc'
+${REPO_EXPIRY}
+gpgkey=https://downloads.claude.ai/keys/claude-code.asc"
 
-NETBIRD_REPO='[netbird]
+NETBIRD_REPO="[netbird]
 name=netbird
 baseurl=https://pkgs.netbird.io/yum/
 enabled=1
 gpgcheck=1
+${REPO_EXPIRY}
 gpgkey=https://pkgs.netbird.io/yum/repodata/repomd.xml.key
-repo_gpgcheck=1'
+repo_gpgcheck=1"
 
 COPRS=(
     donquinleone/claude-desktop
@@ -103,11 +110,14 @@ NERD_FONT_URL+=/JetBrainsMono.tar.xz
 FONT_DIR=$HOME/.local/share/fonts/JetBrainsMonoNerd
 FONT_STAMP=$FONT_DIR/.installed-$NERD_FONT_TAG
 
+# Rewritten when it differs rather than skipped when it exists,
+# or a machine installed before a repo definition changed would
+# never see the change.
 ensure_repo() {
     local name=$1 content=$2
     local path=/etc/yum.repos.d/$name.repo
-    [ -f "$path" ] && return 0
-    say "adding repo $name"
+    [ -f "$path" ] && [ "$(cat "$path")" = "$content" ] && return 0
+    say "writing repo $name"
     printf '%s\n' "$content" | sudo tee "$path" >/dev/null
 }
 
