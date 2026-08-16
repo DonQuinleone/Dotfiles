@@ -3,6 +3,7 @@ pragma Singleton
 import QtQuick
 import Quickshell
 import Quickshell.Bluetooth
+import Quickshell.Io
 import Quickshell.Services.UPower
 
 Singleton {
@@ -10,6 +11,16 @@ Singleton {
 
     readonly property int maxListedDevices: 4
     readonly property real unknownLevel: -1
+
+    // Every reading costs a GATT round trip that wakes the
+    // peripheral, so this is slow on purpose; the pane asks for
+    // a fresh one when it opens.
+    readonly property int cellPollMs: 300000
+
+    readonly property string cellReader:
+        `${Preferences.configHome}/hypr/scripts/bt-battery`
+
+    property var cellsByAddress: ({})
 
     readonly property string offGlyph: "󰂲"
     readonly property string idleGlyph: "󰂯"
@@ -42,8 +53,12 @@ Singleton {
     readonly property var known:
         root.paired.slice(0, root.maxListedDevices)
 
+    // A scan turns up far more beacons and privacy addresses
+    // than real peripherals, and Quickshell names those after
+    // their own address, which is the tell. Listing them buries
+    // the one device actually waiting to be paired.
     readonly property var nearby: root.devices
-        .filter(device => !root.isPaired(device))
+        .filter(device => !root.isPaired(device) && root.named(device))
         .sort((first, second) => first.name.localeCompare(second.name))
 
     readonly property int linkedCount: root.linked.length
@@ -62,6 +77,26 @@ Singleton {
         }))
         .filter(reading => reading.level >= 0)
         .sort((first, second) => first.level - second.level)
+
+    // One entry per cell rather than per device, so a split
+    // keyboard is two things to warn about and not one. Built
+    // by hand because the list Quickshell hands back carries
+    // only some of the array methods, flatMap not among them.
+    readonly property var cellReadings: {
+        const found = [];
+        for (let index = 0; index < root.linked.length; index++) {
+            const device = root.linked[index];
+            const cells = root.cellsOf(device);
+            for (let cell = 0; cell < cells.length; cell++)
+                found.push({
+                    address: device.address,
+                    name: device.name,
+                    label: cells[cell].label,
+                    percent: cells[cell].percent
+                });
+        }
+        return found;
+    }
 
     readonly property var lowestReading: root.readings[0] ?? null
 
@@ -95,17 +130,44 @@ Singleton {
         return device.paired || device.bonded;
     }
 
+    function bare(value: string): string {
+        return value.replace(/[:-]/g, "").toLowerCase();
+    }
+
+    function named(device: var): bool {
+        return root.bare(device.name) !== root.bare(device.address);
+    }
+
     function peripheralFor(address: string): var {
         const key = address.toLowerCase();
         return root.peripherals.find(device =>
             device.nativePath.toLowerCase().includes(key)) ?? null;
     }
 
-    function levelOf(device: var): real {
+    function reportedLevel(device: var): real {
         if (device.batteryAvailable) return device.battery;
         const peripheral = root.peripheralFor(device.address);
         if (!peripheral) return root.unknownLevel;
         return peripheral.percentage;
+    }
+
+    // A device reporting each cell over GATT is described by
+    // those; anything else is the one figure BlueZ or UPower
+    // hands over, wrapped as a single unnamed cell so the rest
+    // of this file only ever deals in cells.
+    function cellsOf(device: var): var {
+        const named =
+            root.cellsByAddress[device.address.toUpperCase()] ?? [];
+        if (named.length > 0) return named;
+        const level = root.reportedLevel(device);
+        if (level < 0) return [];
+        return [{ label: "", percent: Math.round(level * 100) }];
+    }
+
+    function levelOf(device: var): real {
+        const cells = root.cellsOf(device);
+        if (cells.length === 0) return root.unknownLevel;
+        return Math.min(...cells.map(cell => cell.percent)) / 100;
     }
 
     function reports(device: var): bool {
@@ -116,9 +178,32 @@ Singleton {
         return Math.round(root.levelOf(device) * 100);
     }
 
+    function cellText(cell: var): string {
+        if (cell.label === "") return `${cell.percent}%`;
+        return `${cell.label.charAt(0)} ${cell.percent}%`;
+    }
+
     function batteryLabel(device: var): string {
-        if (!root.reports(device)) return "";
-        return `${root.percentOf(device)}%`;
+        return root.cellsOf(device)
+            .map(cell => root.cellText(cell))
+            .join(" · ");
+    }
+
+    function absorbCells(payload: string): void {
+        try {
+            const seen = JSON.parse(payload);
+            const next = ({});
+            for (const device of seen.devices ?? [])
+                next[device.address.toUpperCase()] = device.cells;
+            root.cellsByAddress = next;
+        } catch (error) {
+            root.cellsByAddress = ({});
+        }
+    }
+
+    function readCells(): void {
+        if (!root.powered) return;
+        cellReaderProcess.running = true;
     }
 
     function statusOf(device: var): string {
@@ -136,6 +221,14 @@ Singleton {
     function toggleScanning(): void {
         if (!root.adapter) return;
         root.adapter.discovering = !root.adapter.discovering;
+    }
+
+    // Discovery is what makes a device in pairing mode visible
+    // at all, and it costs power and airtime while it runs, so
+    // the pane holds it open only for as long as it is shown.
+    function setScanning(wanted: bool): void {
+        if (!root.adapter || !root.powered) return;
+        root.adapter.discovering = wanted;
     }
 
     function toggleDiscoverable(): void {
@@ -165,5 +258,26 @@ Singleton {
 
     function forget(device: var): void {
         device.forget();
+    }
+
+    onLinkedCountChanged: root.readCells()
+
+    Process {
+        id: cellReaderProcess
+
+        command: [root.cellReader]
+
+        stdout: StdioCollector {
+            onStreamFinished: root.absorbCells(this.text)
+        }
+    }
+
+    Timer {
+        running: root.powered
+        interval: root.cellPollMs
+        repeat: true
+        triggeredOnStart: true
+
+        onTriggered: root.readCells()
     }
 }

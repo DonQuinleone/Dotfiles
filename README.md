@@ -234,7 +234,7 @@ display:
 | Updates | none; the count is the whole message |
 | VPN | NetBird with its peers and address, and any NetworkManager tunnel, each with a connect and disconnect |
 | Network | throughput, latency and loss to router and internet, addresses and DNS with copy buttons, a provider picker, and the networks in range |
-| Bluetooth | the radio, and the devices that can be connected, with their battery where they report one |
+| Bluetooth | the radio, the paired devices with the charge of every cell they report, and whatever is in pairing range |
 | Microphone | live or muted, the input level, and which device records |
 | Sound | a per-application mixer to 150%, and which device plays |
 | Battery | health against design capacity, charge cycles, time to empty or full, and the power profile |
@@ -242,6 +242,23 @@ display:
 The power profile is remembered separately for AC and battery, so
 plugging in restores the profile last chosen on AC and unplugging
 restores the one chosen on battery.
+
+Bluetooth discovery runs only while its pane is open, since it
+costs power and airtime and can disturb a connected headset. A
+device advertising itself appears within a second or two of
+opening the pane. Anything that does not name itself is left
+out: a scan turns up far more privacy addresses and beacons than
+peripherals, and BlueZ names those after their own address.
+
+BlueZ reports one percentage per device, which is not enough for
+a split keyboard that meters each half. `scripts/bt-battery`
+reads the Battery Level characteristics straight out of GATT
+instead, so every cell a device exposes is listed and warned
+about separately: normal at twenty per cent, critical at five.
+Devices reporting a single figure keep coming through BlueZ or
+UPower as before. Apple's headsets report over a protocol of
+their own that BlueZ does not implement, so they pair and
+connect but show no charge.
 
 The shell warns as the charge falls, once each time it crosses
 a line rather than repeatedly while it sits below one: a normal

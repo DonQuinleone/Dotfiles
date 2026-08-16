@@ -64,6 +64,8 @@ ShellRoot {
 
     BatteryAlerts {}
 
+    BluetoothAlerts {}
+
     IpcHandler {
         target: "panels"
 
