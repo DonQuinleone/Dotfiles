@@ -9,6 +9,11 @@ Item {
 
     signal activated
 
+    readonly property string picture:
+        (root.item.value ?? "").startsWith("/")
+            ? `file://${root.item.value}`
+            : ""
+
     implicitWidth: Metrics.cellWidth
     implicitHeight: Metrics.cellHeight
 
@@ -36,7 +41,8 @@ Item {
             sourceSize.width: Metrics.thumbnailWidth
             asynchronous: true
             clip: true
-            source: `file://${root.item.value}`
+            visible: root.picture !== ""
+            source: root.picture
         }
 
         Rectangle {
