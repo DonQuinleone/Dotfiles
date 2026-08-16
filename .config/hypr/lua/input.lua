@@ -3,9 +3,17 @@ local REPEAT_RATE_HZ = 25
 local FOLLOW_MOUSE_ALWAYS = 1
 local TOUCHPAD_SCROLL_FACTOR = 0.6
 
+-- On the British layout the right Alt is AltGr, which is a
+-- different modifier from Alt: it selects a third level rather
+-- than setting Mod1, so a binding asking for Alt never sees it
+-- and pressing it does nothing at all. The keyboard here has one
+-- under each thumb and neither is decorative.
+local ALT_ON_BOTH_SIDES = "lv3:ralt_alt"
+
 hl.config({
     input = {
         kb_layout = "gb",
+        kb_options = ALT_ON_BOTH_SIDES,
         repeat_delay = REPEAT_DELAY_MS,
         repeat_rate = REPEAT_RATE_HZ,
         follow_mouse = FOLLOW_MOUSE_ALWAYS,
