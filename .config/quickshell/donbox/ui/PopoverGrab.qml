@@ -1,4 +1,5 @@
 import Quickshell.Hyprland
+import qs.services
 
 HyprlandFocusGrab {
     id: root
@@ -9,7 +10,7 @@ HyprlandFocusGrab {
 
     signal dismissed
 
-    windows: [root.surface]
+    windows: [root.surface, Panels.keySurface].filter(window => window)
     active: root.shown
 
     onCleared: root.dismissed()

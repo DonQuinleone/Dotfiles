@@ -17,12 +17,13 @@ BarPill {
     ]
 
     PanelToggle {
-        name: "vpn"
         surface: panel
     }
 
     VpnPanel {
         id: panel
+
+        name: "vpn"
 
         anchor.item: root
         anchor.edges: Edges.Bottom

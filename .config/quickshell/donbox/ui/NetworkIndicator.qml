@@ -17,12 +17,13 @@ BarPill {
     ]
 
     PanelToggle {
-        name: "network"
         surface: panel
     }
 
     NetworkPanel {
         id: panel
+
+        name: "network"
 
         anchor.item: root
         anchor.edges: Edges.Bottom

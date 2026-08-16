@@ -17,12 +17,13 @@ BarPill {
     ]
 
     PanelToggle {
-        name: "bluetooth"
         surface: panel
     }
 
     BluetoothPanel {
         id: panel
+
+        name: "bluetooth"
 
         anchor.item: root
         anchor.edges: Edges.Bottom

@@ -53,15 +53,14 @@ Item {
         }
     }
 
-    MouseArea {
-        anchors.fill: parent
-        cursorShape: Qt.PointingHandCursor
-
-        onClicked: dropdown.visible = !dropdown.visible
+    PanelToggle {
+        surface: dropdown
     }
 
     ClockPopup {
         id: dropdown
+
+        name: "clock"
 
         today: clock.date
         anchor.item: root

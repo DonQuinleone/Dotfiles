@@ -7,8 +7,13 @@ PopupWindow {
 
     default property alias body: content.data
 
+    // Every pane answers to the same name the pill toggles, so
+    // this is the only place a pane decides it is on screen.
+    required property string name
+
     property real widthFactor: 1.5
     property real screenShare: 0.7
+    property int contentSpacing: Theme.spacing.loose ?? 0
 
     readonly property int panelWidth:
         (Theme.sizes.menuWidth ?? 0) * root.widthFactor
@@ -22,14 +27,15 @@ PopupWindow {
     color: Qt.alpha(Theme.palette.bg ?? "black", 0)
     implicitWidth: root.panelWidth
     implicitHeight: frame.implicitHeight + root.gap
-    visible: false
+    visible: Panels.isOpen(root.name)
 
     PopoverGrab {
         surface: root
         shown: root.visible
 
-        onDismissed: root.visible = false
+        onDismissed: Panels.close()
     }
+
 
     Rectangle {
         id: frame
@@ -60,7 +66,7 @@ PopupWindow {
                 id: content
 
                 width: scroller.width
-                spacing: Theme.spacing.loose ?? 0
+                spacing: root.contentSpacing
             }
         }
 

@@ -40,7 +40,6 @@ BarPill {
     }
 
     PanelToggle {
-        name: "audio"
         surface: panel
 
         onStepped: direction =>
@@ -49,6 +48,8 @@ BarPill {
 
     AudioPanel {
         id: panel
+
+        name: "audio"
 
         anchor.item: root
         anchor.edges: Edges.Bottom

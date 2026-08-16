@@ -42,7 +42,7 @@ Row {
 
                 onClicked: mouse => {
                     if (mouse.button === Qt.RightButton) {
-                        menu.visible = !menu.visible;
+                        Panels.toggle(menu.name);
                         return;
                     }
                     slot.modelData.activate();
@@ -51,6 +51,10 @@ Row {
 
             TrayMenuPopup {
                 id: menu
+
+                // One tray item's menu is a pane like any other,
+                // so it needs a name no other item can claim.
+                name: `tray.${slot.modelData.id}`
 
                 handle: slot.modelData.menu
                 anchor.item: slot

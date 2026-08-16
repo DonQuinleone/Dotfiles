@@ -24,31 +24,14 @@ BarPill {
     visible: root.device.ready && root.device.isLaptopBattery
     highlighted: panel.visible
 
-    MouseArea {
-        anchors.fill: parent
-        cursorShape: Qt.PointingHandCursor
-
-        onClicked: Panels.toggle("power")
-    }
-
-    Connections {
-        target: Panels
-
-        function onRequested(name: string): void {
-            panel.visible = name === "power" && !panel.visible;
-        }
-    }
-
-    Connections {
-        target: panel
-
-        function onVisibleChanged(): void {
-            if (!panel.visible) Panels.noteClosed();
-        }
+    PanelToggle {
+        surface: panel
     }
 
     PowerPanel {
         id: panel
+
+        name: "power"
 
         anchor.item: root
         anchor.edges: Edges.Bottom

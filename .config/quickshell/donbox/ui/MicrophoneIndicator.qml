@@ -30,12 +30,13 @@ BarPill {
     }
 
     PanelToggle {
-        name: "microphone"
         surface: panel
     }
 
     MicrophonePanel {
         id: panel
+
+        name: "microphone"
 
         anchor.item: root
         anchor.edges: Edges.Bottom
