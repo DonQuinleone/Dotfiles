@@ -2,6 +2,8 @@
 
 readonly HYPR_LOOK_FILE="${STATE_DIR}/hyprland.lua"
 readonly BORDER_GRADIENT_ANGLE=45
+readonly SHADOW_DARKEN=88
+readonly SHADOW_ALPHA=aa
 
 readonly HYPR_LOOK_LOADER='dofile((os.getenv("XDG_STATE_HOME")'\
 ' or (os.getenv("HOME") .. "/.local/state"))'\
@@ -13,6 +15,14 @@ hypr_font() {
 
 hypr_colour() {
     printf 'rgba(%sff)\n' "$(bare_hex "$1")"
+}
+
+# Tinted by the palette rather than plain black, so a warm theme
+# does not sit on a cold shadow.
+hypr_shadow_colour() {
+    printf 'rgba(%s%s)\n' \
+        "$(bare_hex "$(darken "${COLOURS[bg]}" "${SHADOW_DARKEN}")")" \
+        "${SHADOW_ALPHA}"
 }
 
 write_hyprland_look() {
@@ -55,6 +65,11 @@ hl.config({
                 "$(hypr_colour "${COLOURS[onAccent]}")",
             text_color_inactive =
                 "$(hypr_colour "${COLOURS[fg]}")",
+        },
+    },
+    decoration = {
+        shadow = {
+            color = "$(hypr_shadow_colour)",
         },
     },
     misc = {

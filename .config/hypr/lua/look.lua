@@ -7,6 +7,10 @@ local CORNER_RADIUS = 10
 local BLUR_RADIUS = 8
 local BLUR_PASSES = 2
 
+local SHADOW_RANGE = 26
+local SHADOW_DROP = 10
+local SHADOW_RENDER_POWER = 3
+
 local MASTER_AREA_FRACTION = 0.6
 local SCROLLING_COLUMN_FRACTION = 0.5
 
@@ -35,6 +39,12 @@ hl.config({
             enabled = true,
             size = BLUR_RADIUS,
             passes = BLUR_PASSES,
+        },
+        shadow = {
+            enabled = true,
+            range = SHADOW_RANGE,
+            render_power = SHADOW_RENDER_POWER,
+            offset = { 0, SHADOW_DROP },
         },
     },
     master = {
