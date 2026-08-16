@@ -1,5 +1,6 @@
 \.git
 \.gitignore
+\.gitmodules
 \.stow-local-ignore
 README\.md
 bootstrap\.sh

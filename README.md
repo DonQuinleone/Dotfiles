@@ -417,6 +417,49 @@ Both prompts colour the username from the active theme and
 re-read it on every draw, so switching theme repaints the next
 prompt without restarting the shell.
 
+## Home directory
+
+Anything that can be told to live under `$XDG_*` does, so `$HOME`
+holds this repository, the links stow makes and very little else.
+The variables are set twice on purpose: `~/.config/environment.d`
+covers the systemd user session, and both shells set them again
+because environment.d never reaches a TTY or an SSH login, which
+would otherwise find the old defaults and recreate them.
+
+Two of the moves have a catch worth recording.
+
+Moving the GnuPG home moves its sockets with it, into a runtime
+directory named after a hash of the new path. Nothing can spell
+that out portably, so `gpg-agent-ssh-socket.service` asks
+`gpgconf --list-dirs agent-ssh-socket` and publishes the answer
+to the session; the shells ask the same question themselves, and
+both set `GNUPGHOME` before they do.
+
+`~/.mozilla` came back after every deletion. Fedora's Firefox and
+Thunderbird launchers both `mkdir -p` an extensions directory
+under it to hang langpack symlinks off, before either program
+starts, and Firefox then prefers that directory over the XDG one
+its profile already lives in. `MOZ_DISABLE_LANGPACKS=1` skips
+that block in both launchers. The profile itself is untouched at
+`$XDG_CONFIG_HOME/mozilla/firefox`.
+
+Two directories stay where they are, both checked rather than
+assumed:
+
+| Directory | Why it cannot move |
+| --- | --- |
+| `~/.pki` | the path is compiled in |
+| `~/.thunderbird` | the XDG patch is Firefox-only |
+
+NSS carries `/.pki/nssdb` as a literal inside
+`libnsssysinit.so`, so no variable reaches it. Thunderbird writes
+`~/.thunderbird/profiles.ini` even when `$XDG_CONFIG_HOME` and a
+`thunderbird` directory inside it both already exist, which a run
+against a throwaway home confirms. Its profile can be pointed
+somewhere else through an absolute `Path` in `profiles.ini`, but
+that moves the mail without removing the directory, so it buys
+nothing here.
+
 ## Keys
 
 Signing and SSH run through one agent. gpg-agent serves the SSH
