@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# donbox:summary=React to the laptop lid opening and closing
+# donbox:args=<open|close>
+# donbox:hidden=true
 set -euo pipefail
 
 ACTION=${1:-}
@@ -9,7 +12,7 @@ INHIBITOR_WHO="hypr-lid"
 INHIBITOR_WHY="external display connected"
 
 die() {
-    printf 'lid: %s\n' "$1" >&2
+    printf 'donbox lid: %s\n' "$1" >&2
     exit 1
 }
 
@@ -87,6 +90,6 @@ sync)
     cmd_sync
     ;;
 *)
-    die "usage: lid close|open|sync"
+    die "usage: donbox lid close|open|sync"
     ;;
 esac

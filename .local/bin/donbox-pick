@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# donbox:summary=Show a chooser and print what was selected
+# donbox:args=[options]
 set -euo pipefail
 
 readonly SHELL_CONFIG=donbox
@@ -18,7 +20,7 @@ theme_preview=false
 workspace=""
 
 die() {
-    printf 'pick: %s\n' "$*" >&2
+    printf 'donbox pick: %s\n' "$*" >&2
     exit 1
 }
 
@@ -40,7 +42,7 @@ require_command() {
 
 usage() {
     cat >&2 <<'EOF'
-usage: pick [--prompt LABEL] [--current VALUE] [--grid]
+usage: donbox pick [--prompt LABEL] [--current VALUE] [--grid]
             [--preview-cmd COMMAND] [--theme-preview]
 
 Shows the items read from stdin in the donbox chooser, prints

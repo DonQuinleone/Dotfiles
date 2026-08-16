@@ -31,8 +31,7 @@ Singleton {
     readonly property real neutralScale: 1.0
     readonly property int scaleDigits: 2
 
-    readonly property string script:
-        `${Preferences.configHome}/hypr/scripts/motion`
+    readonly property var script: [Preferences.donbox, "motion"]
 
     property real scale: root.neutralScale
     property bool drift: false
@@ -61,7 +60,7 @@ Singleton {
     function run(args: var): void {
         if (command.running) return;
         root.message = "";
-        command.command = [root.script].concat(args);
+        command.command = root.script.concat(args);
         command.running = true;
     }
 
@@ -92,7 +91,7 @@ Singleton {
     Process {
         id: status
 
-        command: [root.script].concat(root.verbs.read)
+        command: root.script.concat(root.verbs.read)
 
         stdout: StdioCollector {
             onStreamFinished: root.absorb(this.text)

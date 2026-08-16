@@ -96,8 +96,8 @@ Singleton {
     }
 
     function applyAccent(name: string): void {
-        accentSwitch.command = [
-            `${root.configHome}/hypr/scripts/theme`, "accent", name];
+        accentSwitch.command =
+            [Preferences.donbox, "theme", "accent", name];
         accentSwitch.running = true;
     }
 

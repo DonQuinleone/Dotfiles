@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# donbox:summary=Capture a screen, a window or a region
+# donbox:args=[mode] [target]
 set -euo pipefail
 
 MODE=${1:-output}
@@ -6,7 +8,7 @@ TARGET=${2:-clipboard}
 SHOTS=${XDG_PICTURES_DIR:-$HOME/Pictures}/Screenshots
 
 die() {
-    printf 'screenshot: %s\n' "$1" >&2
+    printf 'donbox screenshot: %s\n' "$1" >&2
     exit 1
 }
 
@@ -39,7 +41,8 @@ esac
 
 flash() {
     qs -c donbox ipc call screenshot flash >/dev/null 2>&1 || true
-    "$(dirname "$0")/notify-sound" shutter >/dev/null 2>&1 || true
+    "$(dirname "$(readlink -f "$0")")/donbox-notify-sound" shutter \
+        >/dev/null 2>&1 || true
 }
 
 if [ "$TARGET" = "save" ]; then

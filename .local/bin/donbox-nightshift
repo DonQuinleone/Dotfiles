@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
+# donbox:summary=Warm the display on a schedule
+# donbox:args=<command>
 set -euo pipefail
 
-SCRIPT_DIR=$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")
-readonly SCRIPT_DIR
-readonly SUN_HELPER="${SCRIPT_DIR}/night-shift-sun"
+BIN_DIR=$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")
+readonly BIN_DIR
+readonly SUN_HELPER="${BIN_DIR}/donbox-nightshift-sun"
 
 readonly CONFIG_HOME="${XDG_CONFIG_HOME:-${HOME}/.config}"
 readonly STATE_HOME="${XDG_STATE_HOME:-${HOME}/.local/state}"
@@ -42,12 +44,12 @@ NIGHT_END="${DEFAULT_NIGHT_END}"
 [[ -r "${USER_CONFIG}" ]] && source "${USER_CONFIG}"
 
 die() {
-    printf 'night-shift: %s\n' "$*" >&2
+    printf 'donbox nightshift: %s\n' "$*" >&2
     exit 1
 }
 
 warn() {
-    printf 'night-shift: %s\n' "$*" >&2
+    printf 'donbox nightshift: %s\n' "$*" >&2
 }
 
 require_command() {
@@ -57,10 +59,10 @@ require_command() {
 
 usage() {
     cat >&2 <<'EOF'
-usage: night-shift status
-       night-shift apply
-       night-shift defaults
-       night-shift on|off|auto|toggle
+usage: donbox nightshift status
+       donbox nightshift apply
+       donbox nightshift defaults
+       donbox nightshift on|off|auto|toggle
 EOF
     exit 1
 }
@@ -233,7 +235,7 @@ cmd_apply() {
     hyprctl hyprsunset temperature "${temperature}" >/dev/null ||
         die "hyprctl could not reach hyprsunset" \
             "(is night-shift-daemon running?)"
-    printf 'night-shift: %sK (%s)\n' "${temperature}" "${phase}"
+    printf 'donbox nightshift: %sK (%s)\n' "${temperature}" "${phase}"
 }
 
 cmd_status() {

@@ -56,6 +56,16 @@ assert_equal "a flag after -- belongs to the command" \
 assert_status "an unknown route exits ${UNKNOWN_ROUTE_STATUS}" \
     "${UNKNOWN_ROUTE_STATUS}" router nonesuch
 
+suggestions() {
+    router them 2>&1 >/dev/null | tail -n +2
+}
+
+assert_equal "every suggestion names the router" \
+    "$(suggestions | grep -cv '^  donbox ')" "0"
+
+assert_equal "suggestions leave out hidden commands" \
+    "$(suggestions | grep -c 'daemon')" "0"
+
 listed() {
     router commands "$@" | grep -c 'donbox theme daemon' || true
 }

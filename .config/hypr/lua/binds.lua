@@ -2,7 +2,7 @@ local actions = require("actions")
 local gaps = require("gaps")
 local layouts = require("layouts")
 
-local scripts = "$HOME/.config/hypr/scripts"
+local donbox = "$HOME/.local/bin/donbox"
 local RESIZE_STEP = 60
 
 local held = { locked = true, repeating = true }
@@ -18,7 +18,7 @@ local binds = {
     { "SUPER",           "Return",                hl.dsp.exec_cmd("ghostty")                             },
     { "SUPER",           "b",                     hl.dsp.exec_cmd("firefox")                             },
     { "SUPER",           "f",                     hl.dsp.exec_cmd("nautilus")                            },
-    { "SUPER",           "a",                     hl.dsp.exec_cmd(scripts .. "/activity")                },
+    { "SUPER",           "a",                     hl.dsp.exec_cmd(donbox .. " activity")                 },
 
     -- Scratchpads
     { "SUPER",           "d",                     hl.dsp.workspace.toggle_special("term")                },
@@ -27,7 +27,7 @@ local binds = {
     -- Shell
     { "SUPER",           "space",                 hl.dsp.exec_cmd("qs -c donbox ipc call launcher toggle") },
     { "SUPER + CTRL",    "b",                     hl.dsp.exec_cmd("qs -c donbox ipc call bar toggleFocused") },
-    { "SUPER + CTRL",    "c",                     hl.dsp.exec_cmd(scripts .. "/settings-menu")           },
+    { "SUPER + CTRL",    "c",                     hl.dsp.exec_cmd(donbox .. " menu settings")            },
 
     -- Notifications
     { "SUPER",           "n",                     hl.dsp.exec_cmd("qs -c donbox ipc call notifications toggleCentre") },
@@ -35,9 +35,9 @@ local binds = {
     { "SUPER + CTRL",    "n",                     hl.dsp.exec_cmd("qs -c donbox ipc call notifications dismissAll")   },
 
     -- Appearance
-    { "SUPER + CTRL",    "t",                     hl.dsp.exec_cmd(scripts .. "/theme-menu")              },
-    { "SUPER + CTRL",    "a",                     hl.dsp.exec_cmd(scripts .. "/theme-menu accent")       },
-    { "SUPER + CTRL",    "w",                     hl.dsp.exec_cmd(scripts .. "/wallpaper-menu")          },
+    { "SUPER + CTRL",    "t",                     hl.dsp.exec_cmd(donbox .. " menu theme")               },
+    { "SUPER + CTRL",    "a",                     hl.dsp.exec_cmd(donbox .. " menu theme accent")        },
+    { "SUPER + CTRL",    "w",                     hl.dsp.exec_cmd(donbox .. " menu wallpaper")           },
 
     -- Windows
     { "SUPER + SHIFT",   "q",                     hl.dsp.window.close()                                  },
@@ -84,13 +84,13 @@ local binds = {
     { "SUPER",           "mouse_down",            actions.zoom_out                                       },
 
     -- Comfort
-    { "SUPER + CTRL",    "m",                     hl.dsp.exec_cmd(scripts .. "/motion reduced toggle")   },
-    { "SUPER + ALT",     "w",                     hl.dsp.exec_cmd(scripts .. "/night-shift toggle")      },
+    { "SUPER + CTRL",    "m",                     hl.dsp.exec_cmd(donbox .. " motion reduced toggle")    },
+    { "SUPER + ALT",     "w",                     hl.dsp.exec_cmd(donbox .. " nightshift toggle")        },
 
     -- Session
-    { "SUPER",           "Escape",                hl.dsp.exec_cmd(scripts .. "/power-menu")              },
+    { "SUPER",           "Escape",                hl.dsp.exec_cmd(donbox .. " menu power")               },
     { "SUPER + SHIFT",   "Escape",                hl.dsp.exec_cmd("loginctl lock-session")               },
-    { "SUPER + CTRL",    "Escape",                hl.dsp.exec_cmd(scripts .. "/idle-screensaver start")  },
+    { "SUPER + CTRL",    "Escape",                hl.dsp.exec_cmd(donbox .. " idle screensaver start")   },
     { "SUPER + ALT",     "e",                     hl.dsp.exit()                                          },
 
     -- Volume and brightness
@@ -113,14 +113,14 @@ local binds = {
     { "",                "XF86AudioPrev",         hl.dsp.exec_cmd("playerctl previous"),                             locked },
 
     -- Screenshots
-    { "SUPER",                  "p",              hl.dsp.exec_cmd(scripts .. "/screenshot output")       },
-    { "SUPER + SHIFT",          "p",              hl.dsp.exec_cmd(scripts .. "/screenshot region")       },
-    { "SUPER + CTRL",           "p",              hl.dsp.exec_cmd(scripts .. "/screenshot output save")  },
-    { "SUPER + CTRL + SHIFT",   "p",              hl.dsp.exec_cmd(scripts .. "/screenshot region save")  },
-    { "",                       "Print",          hl.dsp.exec_cmd(scripts .. "/screenshot output")       },
-    { "SHIFT",                  "Print",          hl.dsp.exec_cmd(scripts .. "/screenshot region")       },
-    { "CTRL",                   "Print",          hl.dsp.exec_cmd(scripts .. "/screenshot output save")  },
-    { "CTRL + SHIFT",           "Print",          hl.dsp.exec_cmd(scripts .. "/screenshot region save")  },
+    { "SUPER",                  "p",              hl.dsp.exec_cmd(donbox .. " screenshot output")        },
+    { "SUPER + SHIFT",          "p",              hl.dsp.exec_cmd(donbox .. " screenshot region")        },
+    { "SUPER + CTRL",           "p",              hl.dsp.exec_cmd(donbox .. " screenshot output save")   },
+    { "SUPER + CTRL + SHIFT",   "p",              hl.dsp.exec_cmd(donbox .. " screenshot region save")   },
+    { "",                       "Print",          hl.dsp.exec_cmd(donbox .. " screenshot output")        },
+    { "SHIFT",                  "Print",          hl.dsp.exec_cmd(donbox .. " screenshot region")        },
+    { "CTRL",                   "Print",          hl.dsp.exec_cmd(donbox .. " screenshot output save")   },
+    { "CTRL + SHIFT",           "Print",          hl.dsp.exec_cmd(donbox .. " screenshot region save")   },
 
     -- Pointer
     { "SUPER",           "mouse:272",             hl.dsp.window.drag(),                                              mouse },

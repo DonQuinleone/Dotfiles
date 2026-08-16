@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# donbox:summary=Select docked or undocked idle timings
+# donbox:hidden=true
 set -euo pipefail
 
 readonly LAPTOP_PANEL_NAME="eDP-1"
@@ -15,7 +17,7 @@ exec 9>"${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/idle-profile.lock"
 flock -n 9 || exit 0
 
 usage() {
-    echo "usage: idle-profile" >&2
+    echo "usage: donbox idle profile" >&2
     exit 1
 }
 
@@ -98,7 +100,7 @@ start_hypridle() {
     local config="$1"
     mkdir -p "${STATE_DIR}"
     setsid hypridle -c "${config}" >>"${HYPRIDLE_LOG}" 2>&1 \
-        < /dev/null &
+        < /dev/null 9>&- &
     disown
 }
 

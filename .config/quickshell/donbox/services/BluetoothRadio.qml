@@ -17,11 +17,11 @@ Singleton {
     // a fresh one when it opens.
     readonly property int cellPollMs: 300000
 
-    readonly property string cellReader:
-        `${Preferences.configHome}/hypr/scripts/bt-battery`
+    readonly property var cellReader:
+        [Preferences.donbox, "bluetooth", "battery"]
 
-    readonly property string pairingAgent:
-        `${Preferences.configHome}/hypr/scripts/bt-pair-agent`
+    readonly property var pairingAgent:
+        [Preferences.donbox, "bluetooth", "pair-agent"]
 
     property bool pairingMode: false
     property var cellsByAddress: ({})
@@ -280,7 +280,7 @@ Singleton {
     Process {
         id: cellReaderProcess
 
-        command: [root.cellReader]
+        command: root.cellReader
 
         stdout: StdioCollector {
             onStreamFinished: root.absorbCells(this.text)
@@ -289,7 +289,7 @@ Singleton {
 
     Process {
         running: root.discoveryWanted
-        command: [root.pairingAgent]
+        command: root.pairingAgent
     }
 
     Timer {

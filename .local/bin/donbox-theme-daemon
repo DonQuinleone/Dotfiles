@@ -1,8 +1,11 @@
 #!/usr/bin/env bash
+# donbox:summary=Reapply the theme when its files change
+# donbox:hidden=true
 set -euo pipefail
 
+BIN_DIR=$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")
 CONFIG=${XDG_CONFIG_HOME:-$HOME/.config}
-THEME=$CONFIG/hypr/scripts/theme
+THEME=$BIN_DIR/donbox-theme
 THEMES=$CONFIG/quickshell/themes
 SETTLE_SECONDS=1
 
@@ -35,7 +38,7 @@ reapply
 # current.json is written by the theme run itself, so watching it
 # would loop.
 inotifywait --quiet --monitor --event close_write,moved_to \
-    --format '%f' "$THEMES" |
+    --format '%f' "$THEMES" 9>&- |
     while read -r changed; do
         case "$changed" in
         current.json | *.swp | *~) continue ;;

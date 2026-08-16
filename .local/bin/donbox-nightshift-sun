@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# donbox:summary=Print today's sunrise and sunset
+# donbox:hidden=true
 """Sunrise and sunset times from the NOAA solar position algorithm.
 
 Prints three Unix timestamps for the local calendar date containing
@@ -174,7 +176,7 @@ def transit_on_local_date(
 def main():
     if len(sys.argv) != 3:
         print(
-            "usage: night-shift-sun LATITUDE LONGITUDE",
+            "usage: donbox nightshift sun LATITUDE LONGITUDE",
             file=sys.stderr,
         )
         return 1

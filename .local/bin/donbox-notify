@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# donbox:summary=Send a desktop notification
+# donbox:hidden=true
 set -euo pipefail
 
 readonly shells=" bash sh zsh fish dash ksh "
@@ -50,7 +52,7 @@ for argument in "$@"; do
 done
 
 if (( ${#passed[@]} == 0 )); then
-    echo "usage: notify [--transient]" \
+    echo "usage: donbox notify [--transient]" \
         "[notify-send option]... SUMMARY [BODY]" >&2
     exit 1
 fi

@@ -13,10 +13,10 @@ for _, monitor in ipairs(fallback) do
     hl.monitor(monitor)
 end
 
-local scripts = "$HOME/.config/hypr/scripts"
+local donbox = "$HOME/.local/bin/donbox"
 
 local function apply_saved_profile()
-    hl.exec_cmd(scripts .. "/monitor-profile detect")
+    hl.exec_cmd(donbox .. " monitor profile detect")
 end
 
 -- Runs after the fallback above on both a cold start and a

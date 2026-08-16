@@ -1,8 +1,8 @@
-local scripts = "$HOME/.config/hypr/scripts"
+local donbox = "$HOME/.local/bin/donbox"
 
 local switches = {
-    { "switch:on:Lid Switch", scripts .. "/lid close" },
-    { "switch:off:Lid Switch", scripts .. "/lid open" },
+    { "switch:on:Lid Switch", donbox .. " lid close" },
+    { "switch:off:Lid Switch", donbox .. " lid open" },
 }
 
 for _, switch in ipairs(switches) do
@@ -14,9 +14,9 @@ end
 -- travelling idle profiles, which saved layout to apply, where
 -- stray workspaces need to move, and whether the lid switch is
 -- still allowed to suspend the machine.
-local idle_profile = scripts .. "/idle-profile"
-local monitor_profile = scripts .. "/monitor-profile"
-local lid = scripts .. "/lid"
+local idle_profile = donbox .. " idle profile"
+local monitor_profile = donbox .. " monitor profile"
+local lid = donbox .. " lid"
 
 local monitor_hooks = {
     { "monitor.added",   idle_profile },

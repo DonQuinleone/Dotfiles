@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# donbox:summary=Answer pairing requests from the panel
+# donbox:hidden=true
 set -euo pipefail
 
 # Nothing here has a keypad or a display to compare a passkey on,
@@ -7,7 +9,7 @@ set -euo pipefail
 readonly CAPABILITY=NoInputNoOutput
 
 die() {
-    printf 'bt-pair-agent: %s\n' "$1" >&2
+    printf 'donbox bluetooth pair-agent: %s\n' "$1" >&2
     exit 1
 }
 

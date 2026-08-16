@@ -1,15 +1,17 @@
 #!/usr/bin/env bash
+# donbox:summary=Start or stop the screensaver
+# donbox:args=[start|stop]
 set -euo pipefail
 
 readonly SHELL_CONFIG="donbox"
 
 usage() {
     cat >&2 <<'EOF'
-usage: screensaver list
-       screensaver get
-       screensaver set <name>
-       screensaver start
-       screensaver stop
+usage: donbox screensaver list
+       donbox screensaver get
+       donbox screensaver set <name>
+       donbox screensaver start
+       donbox screensaver stop
 
 The saver list, and which is chosen, live in the shell: `list`
 marks the active choice, `set` accepts any listed name, `cycle`

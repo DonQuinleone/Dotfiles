@@ -1,12 +1,14 @@
 #!/usr/bin/env bash
-# shellcheck source-path=SCRIPTDIR
+# donbox:summary=Install the Mozilla theme loader
+# shellcheck source-path=SCRIPTDIR/../share/donbox/lib
 set -euo pipefail
 
-SCRIPT_DIR=$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")
-readonly SCRIPT_DIR
-readonly MODULE_DIR="${SCRIPT_DIR}/theme.d"
-TEMPLATE_DIR=$(dirname "${SCRIPT_DIR}")/themes
-readonly TEMPLATE_DIR
+BIN_DIR=$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")
+readonly BIN_DIR
+SHARE_DIR=$(dirname "${BIN_DIR}")/share/donbox
+readonly SHARE_DIR
+readonly MODULE_DIR="${SHARE_DIR}/lib/theme.d"
+readonly TEMPLATE_DIR="${SHARE_DIR}/templates"
 
 # shellcheck source=theme.d/common.sh
 source "${MODULE_DIR}/common.sh"

@@ -7,7 +7,7 @@ local EDGE_TOLERANCE = 40
 local state_dir = (os.getenv("XDG_STATE_HOME")
     or (os.getenv("HOME") .. "/.local/state")) .. "/hypr"
 local caret_flag = state_dir .. "/caret-follow.on"
-local notify_script = "$HOME/.config/hypr/scripts/notify"
+local notify_script = "$HOME/.local/bin/donbox notify"
 
 -- Held in the module rather than captured by each binding, so
 -- the shell can change the step through overrides.apply without

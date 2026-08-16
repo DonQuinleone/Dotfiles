@@ -11,8 +11,8 @@ Scope {
     readonly property int lowWarningPercent: 20
     readonly property int criticalWarningPercent: 10
 
-    readonly property string soundScript:
-        `${Preferences.configHome}/hypr/scripts/notify-sound`
+    readonly property var soundCommand:
+        [Preferences.donbox, "notify", "sound"]
 
     readonly property var warnings: [
         {
@@ -75,7 +75,8 @@ Scope {
     }
 
     function chime(): void {
-        Quickshell.execDetached([root.soundScript, root.plugSound]);
+        Quickshell.execDetached(
+            root.soundCommand.concat([root.plugSound]));
     }
 
     // Only the crossing from battery to mains earns a sound, and

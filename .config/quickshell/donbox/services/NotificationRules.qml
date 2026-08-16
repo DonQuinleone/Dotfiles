@@ -15,8 +15,8 @@ Singleton {
     readonly property string path:
         `${root.configHome}/quickshell/notifications.json`
 
-    readonly property string soundScript:
-        `${root.configHome}/hypr/scripts/notify-sound`
+    readonly property var soundCommand:
+        [Preferences.donbox, "notify", "sound"]
 
     readonly property var urgencyNames: ({
         [NotificationUrgency.Low]: "low",
@@ -55,7 +55,7 @@ Singleton {
     function playSound(name: var): void {
         const sound = root.plain(name);
         if (!sound) return;
-        Quickshell.execDetached([root.soundScript, sound]);
+        Quickshell.execDetached(root.soundCommand.concat([sound]));
     }
 
     function announce(notification: var): void {

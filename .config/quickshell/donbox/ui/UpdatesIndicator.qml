@@ -5,8 +5,7 @@ import qs.services
 BarPill {
     id: root
 
-    readonly property string updater:
-        `${Preferences.configHome}/hypr/scripts/update`
+    readonly property var updater: [Preferences.donbox, "update"]
 
     visible: Updates.offered
 
@@ -14,7 +13,7 @@ BarPill {
         anchors.fill: parent
         cursorShape: Qt.PointingHandCursor
 
-        onClicked: Quickshell.execDetached([root.updater])
+        onClicked: Quickshell.execDetached(root.updater)
     }
 
     content: [

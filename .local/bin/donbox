@@ -140,23 +140,28 @@ run_reserved() {
 }
 
 suggestion_for() {
-    local path
+    local path route
     while read -r path; do
-        case "$(route_of "${path}")" in
-        "$1"*) route_of "${path}" ;;
+        is_hidden "${path}" && continue
+        route=$(route_of "${path}")
+        case "${route}" in
+        "$1"*) printf '%s\n' "${route}" ;;
         esac
     done < <(command_paths)
 }
 
 unknown_route() {
     local -a hints
+    local hint
     mapfile -t hints < <(suggestion_for "$1")
-    if ((${#hints[@]} > 0)); then
-        printf '%s: unknown command. Did you mean:\n' "${PREFIX}" >&2
-        printf '  %s %s\n' "${PREFIX}" "${hints[@]}" >&2
-        exit "${UNKNOWN_ROUTE_STATUS}"
+    if ((${#hints[@]} == 0)); then
+        die "unknown command '$1'; try: ${PREFIX} ${RESERVED_COMMAND}"
     fi
-    die "unknown command '$1'; try: ${PREFIX} ${RESERVED_COMMAND}"
+    printf '%s: unknown command. Did you mean:\n' "${PREFIX}" >&2
+    for hint in "${hints[@]}"; do
+        printf '  %s %s\n' "${PREFIX}" "${hint}" >&2
+    done
+    exit "${UNKNOWN_ROUTE_STATUS}"
 }
 
 main() {

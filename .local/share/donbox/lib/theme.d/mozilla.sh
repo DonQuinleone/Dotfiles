@@ -11,8 +11,7 @@ readonly MOZILLA_STYLESHEET_PREF=\
 readonly MOZILLA_LOADER_CONFIG="mozilla-theme.cfg"
 readonly MOZILLA_LOADER_PREFS="mozilla-autoconfig.js"
 readonly MOZILLA_INSTALLED_PREFS="defaults/pref/autoconfig.js"
-readonly MOZILLA_LOADER_INSTALLER=\
-"${CONFIG_HOME}/hypr/scripts/mozilla-theme-loader"
+readonly MOZILLA_LOADER_INSTALLER="donbox install mozilla theme"
 readonly MOZILLA_LOADER_STAMP="${STATE_DIR}/mozilla-loader"
 
 declare -rA MOZILLA_INSTALL_ROOTS=(

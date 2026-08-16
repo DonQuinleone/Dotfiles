@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# donbox:summary=Hand the screen to the screensaver
+# donbox:args=<start|stop>
+# donbox:hidden=true
 set -euo pipefail
 
 readonly SHELL_CONFIG="donbox"
@@ -6,7 +9,7 @@ readonly SHELL_CONFIG="donbox"
 case "${1:-}" in
     start | stop) ;;
     *)
-        echo "usage: idle-screensaver {start|stop}" >&2
+        echo "usage: donbox idle screensaver {start|stop}" >&2
         exit 1
         ;;
 esac

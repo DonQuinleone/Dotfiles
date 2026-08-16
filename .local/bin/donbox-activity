@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# donbox:summary=Open the activity monitor in a sized window
 # Open the activity monitor in a window sized to fit it.
 #
 # btop refuses to draw below 80 columns by 24 rows, and the
@@ -17,7 +18,7 @@ readonly MONITOR="btop"
 readonly TERMINAL="ghostty"
 
 die() {
-    printf 'activity: %s\n' "$*" >&2
+    printf 'donbox activity: %s\n' "$*" >&2
     exit 1
 }
 

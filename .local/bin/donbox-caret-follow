@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# donbox:summary=Steer the pointer from the text caret
+# donbox:hidden=true
 
 import json
 import os

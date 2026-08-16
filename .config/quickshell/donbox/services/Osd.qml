@@ -112,8 +112,7 @@ Singleton {
     Process {
         id: cue
 
-        command: [Quickshell.env("HOME")
-            + "/.config/hypr/scripts/notify-sound", "volume"]
+        command: [Preferences.donbox, "notify", "sound", "volume"]
     }
 
     PwObjectTracker {

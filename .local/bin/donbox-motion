@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# donbox:summary=Read and set the desktop's motion scheme
+# donbox:args=<get|set|reduced> [argument]
 set -euo pipefail
 
 readonly CONFIG_DIR="${XDG_CONFIG_HOME:-${HOME}/.config}/hypr"
@@ -15,7 +17,7 @@ readonly MAXIMUM_SCALE="2.00"
 
 usage() {
     cat >&2 <<'EOF'
-usage: motion <command>
+usage: donbox motion <command>
 
   get                  print scale, drift and reduced as key=value
   set scale <factor>   speed multiplier, 0.10 to 2.00

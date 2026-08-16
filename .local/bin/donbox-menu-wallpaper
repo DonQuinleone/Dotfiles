@@ -1,17 +1,18 @@
 #!/usr/bin/env bash
+# donbox:summary=Choose a wallpaper for the active theme
 set -euo pipefail
 
-SCRIPT_DIR=$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")
-readonly SCRIPT_DIR
-readonly THEME="${SCRIPT_DIR}/theme"
-readonly PICK="${SCRIPT_DIR}/pick"
+BIN_DIR=$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")
+readonly BIN_DIR
+readonly THEME="${BIN_DIR}/donbox-theme"
+readonly PICK="${BIN_DIR}/donbox-pick"
 readonly CONFIG_HOME="${XDG_CONFIG_HOME:-${HOME}/.config}"
 readonly ACTIVE_JSON="${CONFIG_HOME}/quickshell/themes/current.json"
 readonly WALLPAPER_ROOT="${HOME}/Pictures/walls"
 readonly WALLPAPER_PROMPT="Wallpaper"
 
 die() {
-    printf 'wallpaper-menu: %s\n' "$*" >&2
+    printf 'donbox menu wallpaper: %s\n' "$*" >&2
     exit 1
 }
 
@@ -36,7 +37,7 @@ choose_wallpaper() {
 }
 
 main() {
-    (($# == 0)) || die "usage: wallpaper-menu"
+    (($# == 0)) || die "usage: donbox menu wallpaper"
     require_command jq
     [[ -x "${PICK}" ]] || die "${PICK} is missing"
 

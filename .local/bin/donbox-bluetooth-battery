@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# donbox:summary=Report a device's battery levels
+# donbox:args=<address>
+# donbox:hidden=true
 set -euo pipefail
 
 # BlueZ's Battery1 interface carries one percentage per device,
@@ -20,7 +23,7 @@ readonly CHAR_IFACE=org.bluez.GattCharacteristic1
 readonly DESC_IFACE=org.bluez.GattDescriptor1
 
 die() {
-    printf 'bt-battery: %s\n' "$1" >&2
+    printf 'donbox bluetooth battery: %s\n' "$1" >&2
     exit 1
 }
 

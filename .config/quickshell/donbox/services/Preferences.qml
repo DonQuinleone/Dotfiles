@@ -42,6 +42,11 @@ Singleton {
         Quickshell.env("XDG_STATE_HOME")
         ?? `${Quickshell.env("HOME")}/.local/state`
 
+    // The router rather than PATH: the session the shell starts
+    // in does not always carry ~/.local/bin.
+    readonly property string donbox:
+        `${Quickshell.env("HOME")}/.local/bin/donbox`
+
     readonly property string cursorTheme:
         Quickshell.env("XCURSOR_THEME") ?? root.fallbackCursorTheme
 

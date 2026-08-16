@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# donbox:summary=Lock the session
+# donbox:hidden=true
 set -euo pipefail
 
 readonly SHELL_CONFIG="donbox"

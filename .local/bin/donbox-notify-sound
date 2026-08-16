@@ -1,11 +1,15 @@
 #!/usr/bin/env bash
+# donbox:summary=Play one of the notification sounds
+# donbox:args=<name>
+# donbox:hidden=true
 set -euo pipefail
 
-script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-sounds_dir="${HYPR_NOTIFY_SOUND_DIR:-$script_dir/sounds}"
+bin_dir="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
+share_dir="$(dirname "$bin_dir")/share/donbox"
+sounds_dir="${DONBOX_NOTIFY_SOUND_DIR:-$share_dir/sounds}"
 
 usage() {
-    echo "usage: notify-sound NAME" >&2
+    echo "usage: donbox notify sound NAME" >&2
     echo "available sounds:" >&2
     local path name
     for path in "$sounds_dir"/*.wav; do
