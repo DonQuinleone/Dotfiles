@@ -33,10 +33,22 @@ PanelWindow {
     onSourceChanged: root.load()
     Component.onCompleted: root.load()
 
+    // The reveal rides on the incoming picture reaching Ready,
+    // which never happens when the slot being flipped to is
+    // already holding that very file: assigning the same source
+    // changes nothing, so no status arrives, and the blend sits
+    // at zero showing the picture on its way out. Going back to
+    // a wallpaper still resident in the other slot is the whole
+    // of the case, and cycling themes does it constantly.
     function load(): void {
         if (root.incoming.source === root.source) return;
         root.flipped = !root.flipped;
         blend.hold();
+        if (root.incoming.source === root.source
+            && root.incoming.status === Image.Ready) {
+            root.reveal();
+            return;
+        }
         root.incoming.source = root.source;
     }
 

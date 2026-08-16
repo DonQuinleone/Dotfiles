@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Nothing here has a keypad or a display to compare a passkey on,
+# and the adapter is never made discoverable, so the only
+# pairings this answers for are the ones started from the pane.
+readonly CAPABILITY=NoInputNoOutput
+
+die() {
+    printf 'bt-pair-agent: %s\n' "$1" >&2
+    exit 1
+}
+
+command -v bt-agent >/dev/null 2>&1 || die "bt-agent is not installed"
+
+# bt-agent does not act on SIGTERM, so the shell asking it to
+# stop as the pane closes would otherwise leave an agent
+# registered, accepting pairings, for the rest of the session.
+bt-agent -c "${CAPABILITY}" &
+readonly AGENT=$!
+
+trap 'kill -KILL "${AGENT}" 2>/dev/null; exit 0' TERM INT
+
+wait "${AGENT}" || true

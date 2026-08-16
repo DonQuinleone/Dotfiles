@@ -12,7 +12,10 @@ local commands = {
     "gsettings set org.gnome.desktop.interface "
         .. "toolkit-accessibility true",
     scripts .. "/caret-follow",
-    "qs -c donbox",
+    -- A second shell draws its own bar, wallpaper and toasts
+    -- over the first, and the two are indistinguishable on
+    -- screen until something is clicked twice.
+    "qs -n -c donbox",
     scripts .. "/theme-daemon",
     scripts .. "/idle-profile",
     scripts .. "/night-shift-daemon",

@@ -20,13 +20,8 @@ Singleton {
     readonly property string cellReader:
         `${Preferences.configHome}/hypr/scripts/bt-battery`
 
-    readonly property string pairingAgent: "bt-agent"
-
-    // Nothing here has a keypad or a display to compare a
-    // passkey on, and the adapter stays undiscoverable, so the
-    // only pairings this ever answers for are the ones started
-    // from the pane.
-    readonly property string agentCapability: "NoInputNoOutput"
+    readonly property string pairingAgent:
+        `${Preferences.configHome}/hypr/scripts/bt-pair-agent`
 
     property bool pairingMode: false
     property var cellsByAddress: ({})
@@ -294,7 +289,7 @@ Singleton {
 
     Process {
         running: root.discoveryWanted
-        command: [root.pairingAgent, "-c", root.agentCapability]
+        command: [root.pairingAgent]
     }
 
     Timer {
