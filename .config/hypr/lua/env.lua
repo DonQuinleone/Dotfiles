@@ -5,6 +5,9 @@ local saved = require("settings").load()
 local cache = os.getenv("XDG_CACHE_HOME")
     or (os.getenv("HOME") .. "/.cache")
 
+local data = os.getenv("XDG_DATA_HOME")
+    or (os.getenv("HOME") .. "/.local/share")
+
 local cursor_size = tostring(
     saved.cursor_size or DEFAULT_CURSOR_SIZE)
 
@@ -24,6 +27,7 @@ local envs = {
     -- directory its profile already lives in.
     { "MOZ_DISABLE_LANGPACKS", "1" },
     { "NPM_CONFIG_CACHE", cache .. "/npm" },
+    { "GNUPGHOME", data .. "/gnupg" },
     { "QT_ACCESSIBILITY", "1" },
     { "QT_LINUX_ACCESSIBILITY_ALWAYS_ON", "1" },
     { "GNOME_ACCESSIBILITY", "1" },

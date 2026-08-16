@@ -1,0 +1,13 @@
+[Unit]
+Description=Publish the gpg-agent SSH socket to the user session
+Before=graphical-session-pre.target
+PartOf=graphical-session-pre.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/bin/sh -c 'systemctl --user set-environment \
+    SSH_AUTH_SOCK="$(gpgconf --list-dirs agent-ssh-socket)"'
+
+[Install]
+WantedBy=graphical-session-pre.target
