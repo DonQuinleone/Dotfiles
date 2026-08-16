@@ -517,6 +517,15 @@ Firefox and Thunderbird only restyle live once the Mozilla loader
 is installed, and an application update removes it. The theme
 module notices and says so.
 
+Dark Reader follows the desktop, but has to be told to once.
+Applying a theme sets `org.gnome.desktop.interface color-scheme`
+and the portal serves it, which is the signal Dark Reader's
+**Automation** setting reads, so turning on its system colour
+scheme option makes every later theme change reach it. It cannot
+be set from here: Dark Reader keeps its settings in compressed
+IndexedDB inside the Firefox profile and reads no managed
+storage, so there is no file to write and no policy to declare.
+
 Qt applications read their palette at launch, so a theme change
 reaches them when they next start. Fedora 44 has no `qt5ct`, so
 Qt 5 applications carrying their own toolkit, TeamSpeak among
