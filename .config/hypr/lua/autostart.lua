@@ -14,6 +14,9 @@ local commands = {
     -- over the first, and the two are indistinguishable on
     -- screen until something is clicked twice.
     "qs -n -c donbox",
+    -- Records what is copied, so the clipboard picker has a
+    -- history to offer.
+    "wl-paste --watch cliphist store",
     donbox .. " theme daemon",
     donbox .. " idle profile",
     donbox .. " nightshift daemon",

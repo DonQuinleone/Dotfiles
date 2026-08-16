@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+# donbox:summary=Copy something back off the clipboard history
+set -euo pipefail
+
+BIN_DIR=$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")
+readonly BIN_DIR
+readonly PICK="${DONBOX_PICK:-${BIN_DIR}/donbox-pick}"
+
+readonly MENU_PROMPT="Clipboard"
+readonly HISTORY=cliphist
+
+die() {
+    printf 'donbox menu clipboard: %s\n' "$*" >&2
+    exit 1
+}
+
+require_command() {
+    command -v "$1" >/dev/null 2>&1 ||
+        die "$1 is not installed but is required"
+}
+
+# cliphist already answers as id then preview, which is the
+# chooser's own shape. Only a preview carrying a tab of its own
+# could break that, so the rest are flattened to spaces.
+history_rows() {
+    "${HISTORY}" list | awk -F'\t' '
+        NF > 1 {
+            preview = $2
+            for (field = 3; field <= NF; field++)
+                preview = preview " " $field
+            printf "%s\t%s\n", $1, preview
+        }
+    '
+}
+
+main() {
+    (($# == 0)) || die "usage: donbox menu clipboard"
+    [[ -x "${PICK}" ]] || die "${PICK} is missing"
+    require_command "${HISTORY}"
+    require_command wl-copy
+
+    local rows chosen
+    rows=$(history_rows)
+    [[ -n "${rows}" ]] || die "the clipboard history is empty"
+
+    chosen=$(printf '%s\n' "${rows}" |
+        "${PICK}" --prompt "${MENU_PROMPT}") || exit 0
+    [[ -n "${chosen}" ]] || exit 0
+    "${HISTORY}" decode "${chosen}" | wl-copy
+}
+
+main "$@"

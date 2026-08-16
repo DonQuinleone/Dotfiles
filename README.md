@@ -316,6 +316,8 @@ path as `donbox`:
     donbox theme set dracula
     donbox nightshift toggle
     donbox motion reduced on
+    donbox menu emoji          SUPER+CTRL+E
+    donbox menu clipboard      SUPER+CTRL+V
 
 There is no registry behind it. Every executable
 `.local/bin/donbox-*` is a command and its filename is its
@@ -327,6 +329,14 @@ A `# donbox:summary=` header is what the listing prints, and
 The keybindings, hypridle and the shell all call through it, so
 a command can be renamed without hunting for the places that
 knew where it used to live.
+
+The two pickers both end in the clipboard rather than typing,
+since a chooser holds the keyboard while it is open and there is
+nothing to type into by the time it closes. Emoji come from
+Unicode's own published list at
+`/usr/share/unicode/emoji/emoji-test.txt`, so the repository
+carries no copy of it, and the clipboard history is `cliphist`,
+fed by a watcher the session starts.
 
 ## Web apps
 
