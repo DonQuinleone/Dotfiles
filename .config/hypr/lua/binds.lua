@@ -10,9 +10,11 @@ local locked = { locked = true }
 local mouse = { mouse = true }
 
 -- SUPER goes somewhere, SUPER + SHIFT acts on the focused
--- window, SUPER + CTRL adjusts, SUPER + ALT is hardware and the
--- session. The magnifier keeps plain SUPER against that rule
--- because it is in constant use.
+-- window, SUPER + CTRL adjusts, SUPER + ALT is hardware, the
+-- session and the look. Appearance sits under the thumb rather
+-- than with the other adjustments because it is changed often.
+-- The magnifier keeps plain SUPER against the rule for the same
+-- reason, being in constant use.
 local binds = {
     -- Applications
     { "SUPER",           "Return",                hl.dsp.exec_cmd("ghostty")                             },
@@ -42,9 +44,9 @@ local binds = {
     { "SUPER + CTRL",    "v",                     hl.dsp.exec_cmd(donbox .. " menu clipboard")           },
 
     -- Appearance
-    { "SUPER + CTRL",    "t",                     hl.dsp.exec_cmd(donbox .. " menu style.theme")         },
-    { "SUPER + CTRL",    "a",                     hl.dsp.exec_cmd(donbox .. " menu style.accent")        },
-    { "SUPER + CTRL",    "w",                     hl.dsp.exec_cmd(donbox .. " menu style.wallpaper")     },
+    { "SUPER + ALT",     "t",                     hl.dsp.exec_cmd(donbox .. " menu style.theme")         },
+    { "SUPER + ALT",     "a",                     hl.dsp.exec_cmd(donbox .. " menu style.accent")        },
+    { "SUPER + ALT",     "w",                     hl.dsp.exec_cmd(donbox .. " menu style.wallpaper")     },
 
     -- Windows
     { "SUPER + SHIFT",   "q",                     hl.dsp.window.close()                                  },
@@ -92,7 +94,7 @@ local binds = {
 
     -- Comfort
     { "SUPER + CTRL",    "m",                     hl.dsp.exec_cmd(donbox .. " motion reduced toggle")    },
-    { "SUPER + ALT",     "w",                     hl.dsp.exec_cmd(donbox .. " nightshift toggle")        },
+    { "SUPER + ALT",     "n",                     hl.dsp.exec_cmd(donbox .. " nightshift toggle")        },
 
     -- Session
     { "SUPER",           "Escape",                hl.dsp.exec_cmd(donbox .. " menu power")               },
