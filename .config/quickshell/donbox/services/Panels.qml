@@ -18,10 +18,7 @@ Singleton {
     property string open: root.none
 
     property real closedAtMs: 0
-
-    // Set by PaneKeys, and read by every grab so that the
-    // surface holding the keyboard counts as part of the pane.
-    property var keySurface: null
+    property bool grabActive: false
 
     function isOpen(name: string): bool {
         return name !== root.none && root.open === name;

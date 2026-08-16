@@ -60,10 +60,6 @@ ShellRoot {
         ScreensaverWindow {}
     }
 
-    // One only: the keyboard is a seat, not a screen, and two
-    // surfaces claiming it exclusively would fight over it.
-    PaneKeys {}
-
     LockScreen {}
 
     BatteryAlerts {}
@@ -83,6 +79,10 @@ ShellRoot {
 
         function open(): string {
             return Panels.open;
+        }
+
+        function grabbed(): bool {
+            return Panels.grabActive;
         }
     }
 

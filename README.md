@@ -300,15 +300,12 @@ only a pointer can reach is no use under magnification:
 
 One name says which panel is open, so opening one closes any
 other by construction rather than by arrangement, and clicking
-away or pressing Escape closes whatever is showing. A dropdown
-takes no keyboard focus, so Escape arrives through a bare layer
-surface that exists only while a panel is open and holds the
-keyboard for it.
+away closes whatever is showing.
 
-That same lack of focus is why two things stay out of the
-panels: joining an unsaved secured network, which would need a
-password field, and reading the clipboard through Qt, so copying
-goes through `wl-copy` instead.
+A dropdown never takes keyboard focus, which is why two things
+stay out of the panels: joining an unsaved secured network,
+which would need a password field, and reading the clipboard
+through Qt, so copying goes through `wl-copy` instead.
 
 ## Commands
 
