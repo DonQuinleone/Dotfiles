@@ -13,7 +13,7 @@ readonly REPO
 readonly MANIFEST="${DONBOX_MANIFEST:-${REPO}/packages.json}"
 readonly PICK="${DONBOX_PICK:-${BIN_DIR}/donbox-pick}"
 
-readonly TERMINAL=ghostty
+readonly TERMINAL="${DONBOX_TERMINAL:-ghostty}"
 # Ghostty drops a class that is not a valid GTK application ID,
 # and folds into a running instance unless told not to; either
 # leaves the window without the rule that sizes it.
@@ -60,12 +60,28 @@ manager_remove() {
     esac
 }
 
-in_window() {
+window_is_ours() {
     [[ -n "${DONBOX_PKG_WINDOW:-}" ]]
 }
 
+on_a_terminal() {
+    window_is_ours || [[ -t 0 && -t 1 ]]
+}
+
+# A window opened for one command dies with it, taking the reason
+# with it, which is how an empty search or a refusal read as the
+# terminal closing by itself. A shell the caller already had is
+# theirs to keep, so only our own window is held.
+hold_window_open() {
+    local status=$?
+    ((status == 0)) || wait_for_key
+    exit "${status}"
+}
+
 # A transaction wants a terminal: sudo asks for a password on
-# one, and what the manager did is worth reading afterwards.
+# one, and what the manager did is worth reading afterwards. A
+# shell already is one, so only a caller without any, the menu,
+# needs a window opened for it.
 reopen_in_terminal() {
     command -v "${TERMINAL}" >/dev/null 2>&1 ||
         die "${TERMINAL} is not installed"
@@ -141,11 +157,13 @@ search_rows() {
         }'
 }
 
-# Asked for rather than demanded, since the menu can open this in
-# a terminal but has nowhere to type a search term first.
+# Asked for rather than demanded, since the menu has nowhere to
+# type a search term before the window exists.
 cmd_search() {
     (($# <= 1)) || usage
     [[ -x "${PICK}" ]] || die "${PICK} is missing"
+    on_a_terminal || reopen_in_terminal search "$@"
+
     local term="${1-}" rows chosen
     [[ -n "${term}" ]] || {
         [[ -t 0 ]] || usage
@@ -162,7 +180,7 @@ cmd_search() {
 
 cmd_add() {
     (($# >= 1)) || usage
-    in_window || reopen_in_terminal add "$@"
+    on_a_terminal || reopen_in_terminal add "$@"
 
     local status=0 name
     manager_install "$@" || status=$?
@@ -197,7 +215,7 @@ cmd_remove() {
         name=$(chosen_to_remove) || return 0
     }
     [[ -n "${name}" ]] || return 0
-    in_window || reopen_in_terminal remove "${name}"
+    on_a_terminal || reopen_in_terminal remove "${name}"
 
     local status=0
     manager_remove "${name}" || status=$?
@@ -235,5 +253,7 @@ main() {
     [[ -n "${handler}" ]] || usage
     "${handler}" "$@"
 }
+
+window_is_ours && trap hold_window_open EXIT
 
 main "$@"

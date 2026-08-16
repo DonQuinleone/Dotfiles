@@ -106,5 +106,22 @@ pkg remove >/dev/null
 assert_equal "remove without a name asks the chooser" \
     "$(grep -c '^dnf remove ripgrep$' "${CALLS}")" "1"
 
+# The query is what a search is made of, so nothing matches
+# until this says otherwise.
+stub dnf "printf 'dnf %s\n' \"\$*\" >>'${CALLS}'"
+stub term "printf 'term %s\n' \"\$*\" >>'${CALLS}'"
+
+assert_status "a search matching nothing still fails" \
+    1 pkg search nonesuch
+
+# Redirected on purpose: without a terminal on either side the
+# search has nowhere to prompt, which is the menu's case.
+: >"${CALLS}"
+env -u DONBOX_PKG_WINDOW DONBOX_TERMINAL="${WORKSPACE}/term" \
+    "${PKG}" search ripgrep >/dev/null 2>&1 </dev/null || true
+assert_equal "a search without a terminal opens one for itself" \
+    "$(grep -c 'term .* DONBOX_PKG_WINDOW=1 .* search ripgrep' \
+        "${CALLS}")" "1"
+
 assert_status "an unknown verb fails" 1 pkg nonesuch
 assert_status "no verb fails" 1 pkg

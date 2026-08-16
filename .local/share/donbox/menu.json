@@ -202,7 +202,7 @@
     "packages.search": {
       "label": "Install",
       "icon": "list-add",
-      "action": "ghostty --class=com.donquinleone.settings -e donbox pkg search"
+      "action": "donbox pkg search"
     },
     "packages.remove": {
       "label": "Remove",
