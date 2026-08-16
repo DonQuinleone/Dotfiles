@@ -5,4 +5,5 @@
 README\.md
 bootstrap\.sh
 get_packages\.sh
+packages\.json
 test

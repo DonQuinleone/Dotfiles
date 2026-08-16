@@ -1,5 +1,11 @@
 #!/usr/bin/env bash
+# shellcheck source-path=SCRIPTDIR/.local/share/donbox/lib
 set -euo pipefail
+
+REPO=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
+readonly REPO
+readonly MANIFEST="${REPO}/packages.json"
+readonly LIBRARY="${REPO}/.local/share/donbox/lib/packages.sh"
 
 die() {
     printf 'get_packages: %s\n' "$1" >&2
@@ -14,136 +20,19 @@ command -v dnf >/dev/null 2>&1 || die "dnf not found"
 command -v curl >/dev/null 2>&1 || die "curl not found"
 sudo -v || die "sudo authentication required"
 
-# A repo that names no expiry inherits dnf's default of 48
-# hours, so a release published this morning stays invisible
-# until Tuesday. Fedora's own updates repo asks for six.
-REPO_EXPIRY='metadata_expire=6h'
+# The manifest is JSON, so its reader has to be on the machine
+# before the machine can be built from it. Everything else this
+# installs is named in the manifest itself.
+command -v jq >/dev/null 2>&1 || {
+    say "installing jq to read the manifest"
+    sudo dnf -y -q install jq
+}
 
-CLAUDE_CODE_REPO="[claude-code]
-name=Claude Code
-baseurl=https://downloads.claude.ai/claude-code/rpm/latest
-enabled=1
-gpgcheck=1
-repo_gpgcheck=0
-${REPO_EXPIRY}
-gpgkey=https://downloads.claude.ai/keys/claude-code.asc"
-
-NETBIRD_REPO="[netbird]
-name=netbird
-baseurl=https://pkgs.netbird.io/yum/
-enabled=1
-gpgcheck=1
-${REPO_EXPIRY}
-gpgkey=https://pkgs.netbird.io/yum/repodata/repomd.xml.key
-repo_gpgcheck=1"
-
-BRAVE_REPO="[brave-browser]
-name=Brave Browser
-baseurl=https://brave-browser-rpm-release.s3.brave.com/\$basearch
-enabled=1
-gpgcheck=1
-${REPO_EXPIRY}
-gpgkey=https://brave-browser-rpm-release.s3.brave.com/brave-core.asc"
-
-COPRS=(
-    donquinleone/claude-desktop
-    scottames/ghostty
-    lionheartp/Hyprland
-    errornointernet/quickshell
-)
-
-PACKAGES=(
-    ansible
-    bind-utils
-    bluez-tools
-    bolt
-    brave-origin
-    brightnessctl
-    btop
-    claude-code
-    claude-desktop
-    cliphist
-    fastfetch
-    firefox
-    fish
-    flatpak
-    fprintd-pam
-    gcr3
-    ghostty
-    git
-    git-filter-repo
-    gnupg2
-    gnupg2-scdaemon
-    gnupg2-smime
-    golang
-    greetd
-    grim
-    htop
-    hypridle
-    hyprland
-    hyprland-guiutils
-    hyprsunset
-    ibm-plex-sans-fonts
-    iio-sensor-proxy
-    inotify-tools
-    jetbrains-mono-fonts-all
-    jq
-    kvantum
-    libsecret
-    lsd
-    mpv
-    nautilus
-    neovim
-    netbird
-    NetworkManager-l2tp
-    NetworkManager-libreswan
-    NetworkManager-openconnect
-    NetworkManager-openvpn
-    NetworkManager-pptp
-    NetworkManager-tui
-    NetworkManager-vpnc
-    nmap
-    nss-tools
-    obs-studio
-    openssh-askpass
-    openssh-clients
-    perl-rdapper
-    pinentry-gnome3
-    pipx
-    playerctl
-    qt6ct
-    qt6-qtimageformats
-    qt6-qtmultimedia
-    qt6-qtshadertools
-    qt6-qtsvg
-    quickshell-git
-    rbw
-    rpm-build
-    ShellCheck
-    slurp
-    stow
-    switcheroo-control
-    system-config-printer
-    telnet
-    terminus-fonts-console
-    thefuck
-    thunderbird
-    tldr
-    tree
-    tuigreet
-    unicode-emoji
-    wiremix
-    wireshark
-    wl-clipboard
-    xdg-desktop-portal-hyprland
-)
+# shellcheck source=.local/share/donbox/lib/packages.sh
+source "${LIBRARY}"
+manifest_require
 
 FLATHUB_URL=https://dl.flathub.org/repo/flathub.flatpakrepo
-
-FLATPAKS=(
-    com.slack.Slack
-    com.yubico.yubioath
-)
 
 NERD_FONT_TAG=v3.5.0
 NERD_FONT_URL=https://github.com/ryanoasis/nerd-fonts
@@ -163,15 +52,37 @@ ensure_repo() {
     printf '%s\n' "$content" | sudo tee "$path" >/dev/null
 }
 
+install_repos() {
+    local name
+    while read -r name; do
+        ensure_repo "$name" "$(repo_render "$name")"
+    done < <(repo_names)
+}
+
+enable_coprs() {
+    local copr
+    while read -r copr; do
+        say "enabling copr $copr"
+        sudo dnf -y -q copr enable "$copr"
+    done < <(manifest_list coprs)
+}
+
+install_packages() {
+    local packages=()
+    mapfile -t packages < <(manifest_list dnf)
+    say "installing ${#packages[@]} packages"
+    sudo dnf -y install "${packages[@]}"
+}
+
 # flatpak install returns a failure for an app that is already
 # there on some versions and a success on others, so the set is
 # narrowed to what is missing rather than trusting either.
 install_flatpaks() {
     sudo flatpak remote-add --if-not-exists flathub "$FLATHUB_URL"
     local missing=() app
-    for app in "${FLATPAKS[@]}"; do
+    while read -r app; do
         flatpak info "$app" >/dev/null 2>&1 || missing+=("$app")
-    done
+    done < <(manifest_list flatpak)
     [ ${#missing[@]} -eq 0 ] && return 0
     say "installing ${#missing[@]} flatpaks"
     sudo flatpak install -y flathub "${missing[@]}"
@@ -207,18 +118,9 @@ style=Fusion
 EOF
 }
 
-ensure_repo claude-code "$CLAUDE_CODE_REPO"
-ensure_repo netbird "$NETBIRD_REPO"
-ensure_repo brave-browser "$BRAVE_REPO"
-
-for copr in "${COPRS[@]}"; do
-    say "enabling copr $copr"
-    sudo dnf -y -q copr enable "$copr"
-done
-
-say "installing ${#PACKAGES[@]} packages"
-sudo dnf -y install "${PACKAGES[@]}"
-
+install_repos
+enable_coprs
+install_packages
 install_flatpaks
 install_nerd_font
 write_qt6ct_config

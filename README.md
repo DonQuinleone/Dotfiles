@@ -128,9 +128,33 @@ and a shell.
 | Slack, Yubico Authenticator | Flathub |
 | JetBrains Mono Nerd Font | upstream release, pinned |
 
-`get_packages.sh` installs all of it, adds the Flathub remote
-and skips any flatpak already present, so re-running it after a
-pull costs nothing.
+Everything installed is named in `packages.json`: the
+repositories, the COPRs, the packages and the flatpaks.
+`get_packages.sh` is a renderer over it, adding the Flathub
+remote and skipping any flatpak already present, so re-running
+it after a pull costs nothing. It installs `jq` first, since it
+cannot read its own manifest without it.
+
+The manifest stays true because installing goes through it:
+
+    donbox pkg search ripgrep
+    donbox pkg add ripgrep
+    donbox pkg remove
+    donbox pkg list flatpak
+    donbox pkg drift
+
+`search` and `remove` offer the chooser; the transaction itself
+opens a terminal, since sudo wants one and what the manager did
+is worth reading. A successful change is committed to
+`packages.json` alone, so whatever else is in flight in the
+working tree stays where it is, and a failed one changes
+nothing.
+
+`drift` answers one direction only: what the manifest promises
+that is not installed. The reverse cannot be had from rpm, since
+Fedora's image builder marks its own three hundred packages as
+installed by the user, so "by hand" is indistinguishable from
+"came with the machine".
 
 ## The desktop
 

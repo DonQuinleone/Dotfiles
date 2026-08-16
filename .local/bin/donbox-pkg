@@ -1,0 +1,232 @@
+#!/usr/bin/env bash
+# donbox:summary=Install and remove software, and keep the manifest true
+# donbox:args=<search|add|remove|list|drift> [--flatpak] [name...]
+# shellcheck source-path=SCRIPTDIR/../share/donbox/lib
+set -euo pipefail
+
+SCRIPT=$(readlink -f "${BASH_SOURCE[0]}")
+readonly SCRIPT
+BIN_DIR=$(dirname "${SCRIPT}")
+readonly BIN_DIR
+REPO=$(cd -- "${BIN_DIR}/../.." && pwd)
+readonly REPO
+readonly MANIFEST="${DONBOX_MANIFEST:-${REPO}/packages.json}"
+readonly PICK="${DONBOX_PICK:-${BIN_DIR}/donbox-pick}"
+
+readonly TERMINAL=ghostty
+# Ghostty drops a class that is not a valid GTK application ID,
+# and folds into a running instance unless told not to; either
+# leaves the window without the rule that sizes it.
+readonly WINDOW_CLASS="com.donquinleone.packages"
+readonly FONT_POINTS=20
+readonly CLOSE_PROMPT="Press any key to close this window."
+
+readonly SEARCH_PROMPT="Install"
+readonly REMOVE_PROMPT="Remove"
+readonly SEARCH_LIMIT=200
+
+die() {
+    printf 'donbox pkg: %s\n' "$*" >&2
+    exit 1
+}
+
+usage() {
+    cat >&2 <<'EOF'
+usage: donbox pkg search <term>
+       donbox pkg add [--flatpak] <name>...
+       donbox pkg remove [--flatpak] [name]
+       donbox pkg list [dnf|flatpak|coprs]
+       donbox pkg drift
+EOF
+    exit 1
+}
+
+# shellcheck source=packages.sh
+source "$(dirname "${BIN_DIR}")/share/donbox/lib/packages.sh"
+
+kind=dnf
+
+manager_install() {
+    case "${kind}" in
+    dnf) sudo dnf install "$@" ;;
+    flatpak) sudo flatpak install -y flathub "$@" ;;
+    esac
+}
+
+manager_remove() {
+    case "${kind}" in
+    dnf) sudo dnf remove "$@" ;;
+    flatpak) sudo flatpak uninstall -y "$@" ;;
+    esac
+}
+
+in_window() {
+    [[ -n "${DONBOX_PKG_WINDOW:-}" ]]
+}
+
+# A transaction wants a terminal: sudo asks for a password on
+# one, and what the manager did is worth reading afterwards.
+reopen_in_terminal() {
+    command -v "${TERMINAL}" >/dev/null 2>&1 ||
+        die "${TERMINAL} is not installed"
+    exec "${TERMINAL}" --class="${WINDOW_CLASS}" \
+        --font-size="${FONT_POINTS}" \
+        --gtk-single-instance=false \
+        -e env DONBOX_PKG_WINDOW=1 "${SCRIPT}" "$@"
+}
+
+# The window has to outlive the transaction so what the manager
+# did can be read, but nothing is waiting for a key when this is
+# driven by something other than a person.
+wait_for_key() {
+    [[ -t 0 ]] || return 0
+    printf '\n%s' "${CLOSE_PROMPT}"
+    read -r -n 1 -s
+    printf '\n'
+}
+
+# Committed on its own path, so whatever else is in flight in the
+# working tree stays where it is.
+record() {
+    local verb="$1" name="$2"
+    git -C "${REPO}" diff --quiet -- "${MANIFEST}" && return 0
+    git -C "${REPO}" commit -q -m "packaging: ${verb} ${name}" \
+        -- "${MANIFEST}" ||
+        printf 'donbox pkg: manifest changed but was not committed\n' >&2
+}
+
+cmd_list() {
+    (($# <= 1)) || usage
+    local wanted="${1:-dnf}"
+    manifest_kind_valid "${wanted}" || usage
+    manifest_list "${wanted}"
+}
+
+# Everything on the machine, however it arrived, which is the
+# right question for "is this here at all".
+installed_now() {
+    dnf -q repoquery --installed --qf '%{name}\n' 2>/dev/null |
+        sort -u
+}
+
+listed_packages() {
+    manifest_list dnf | sort -u
+}
+
+# Only one direction is answerable. The other, what is installed
+# that the manifest has never heard of, cannot be had from rpm:
+# Fedora's image builder marks its own three hundred packages as
+# installed by the user, so "by hand" is indistinguishable from
+# "came with the machine". Keeping the manifest true as things
+# are installed is what donbox pkg add is for.
+cmd_drift() {
+    (($# == 0)) || usage
+    local -a missing
+    mapfile -t missing < <(comm -23 \
+        <(listed_packages) <(installed_now))
+    printf 'in the manifest but not installed:\n'
+    printf '  %s\n' "${missing[@]:-none}"
+}
+
+# dnf's query format understands a newline but not a tab, and
+# the chooser wants tabs, so the row is assembled here.
+search_rows() {
+    dnf -q repoquery --available --qf '%{name} %{summary}\n' \
+        "*$1*" 2>/dev/null | sort -u |
+        head -n "${SEARCH_LIMIT}" |
+        awk '{
+            name = $1
+            summary = substr($0, length(name) + 2)
+            printf "%s\t%s\t\t%s\n", name, name, summary
+        }'
+}
+
+cmd_search() {
+    (($# == 1)) || usage
+    [[ -x "${PICK}" ]] || die "${PICK} is missing"
+    local rows chosen
+    rows=$(search_rows "$1")
+    [[ -n "${rows}" ]] || die "nothing matches '$1'"
+    chosen=$(printf '%s\n' "${rows}" |
+        "${PICK}" --prompt "${SEARCH_PROMPT}") || exit 0
+    [[ -n "${chosen}" ]] || exit 0
+    cmd_add "${chosen}"
+}
+
+cmd_add() {
+    (($# >= 1)) || usage
+    in_window || reopen_in_terminal add "$@"
+
+    local status=0 name
+    manager_install "$@" || status=$?
+    if ((status == 0)); then
+        for name in "$@"; do
+            manifest_has "${kind}" "${name}" && continue
+            manifest_add "${kind}" "${name}"
+            record add "${name}"
+        done
+        printf '\nadded to the manifest: %s\n' "$*"
+    else
+        printf '\nthe manager exited %d; manifest unchanged\n' \
+            "${status}"
+    fi
+    wait_for_key
+}
+
+chosen_to_remove() {
+    local names status=0
+    names=$(manifest_list "${kind}")
+    [[ -n "${names}" ]] || die "the manifest lists no ${kind}"
+    printf '%s\n' "${names}" |
+        "${PICK}" --prompt "${REMOVE_PROMPT}" || status=$?
+    ((status == 0)) || return 1
+}
+
+cmd_remove() {
+    (($# <= 1)) || usage
+    local name="${1-}"
+    [[ -n "${name}" ]] || {
+        [[ -x "${PICK}" ]] || die "${PICK} is missing"
+        name=$(chosen_to_remove) || return 0
+    }
+    [[ -n "${name}" ]] || return 0
+    in_window || reopen_in_terminal remove "${name}"
+
+    local status=0
+    manager_remove "${name}" || status=$?
+    if ((status == 0)); then
+        manifest_drop "${kind}" "${name}"
+        record drop "${name}"
+        printf '\ndropped from the manifest: %s\n' "${name}"
+    else
+        printf '\nthe manager exited %d; manifest unchanged\n' \
+            "${status}"
+    fi
+    wait_for_key
+}
+
+declare -rA COMMANDS=(
+    [search]=cmd_search
+    [add]=cmd_add
+    [remove]=cmd_remove
+    [list]=cmd_list
+    [drift]=cmd_drift
+)
+
+main() {
+    manifest_require
+    (($# >= 1)) || usage
+    local verb="$1"
+    shift
+
+    if [[ "${1-}" == "--flatpak" ]]; then
+        kind=flatpak
+        shift
+    fi
+
+    local handler="${COMMANDS[${verb}]:-}"
+    [[ -n "${handler}" ]] || usage
+    "${handler}" "$@"
+}
+
+main "$@"
