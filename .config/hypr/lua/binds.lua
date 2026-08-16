@@ -34,6 +34,9 @@ local binds = {
     { "SUPER + SHIFT",   "n",                     hl.dsp.exec_cmd("qs -c donbox ipc call notifications toggleDnd")    },
     { "SUPER + CTRL",    "n",                     hl.dsp.exec_cmd("qs -c donbox ipc call notifications dismissAll")   },
 
+    -- Menu
+    { "SUPER + ALT",     "space",                 hl.dsp.exec_cmd(donbox .. " menu")                     },
+
     -- Insertions
     { "SUPER + CTRL",    "e",                     hl.dsp.exec_cmd(donbox .. " menu emoji")               },
     { "SUPER + CTRL",    "v",                     hl.dsp.exec_cmd(donbox .. " menu clipboard")           },

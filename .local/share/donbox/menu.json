@@ -1,0 +1,135 @@
+{
+  "items": {
+    "root": {
+      "label": "donbox"
+    },
+
+    "style": {
+      "label": "Style",
+      "icon": "preferences-desktop-theme"
+    },
+    "style.theme": {
+      "label": "Theme",
+      "icon": "preferences-desktop-theme",
+      "action": "donbox menu theme"
+    },
+    "style.accent": {
+      "label": "Accent",
+      "icon": "color-select",
+      "action": "donbox menu theme accent"
+    },
+    "style.wallpaper": {
+      "label": "Wallpaper",
+      "icon": "preferences-desktop-wallpaper",
+      "action": "donbox menu wallpaper"
+    },
+
+    "insert": {
+      "label": "Insert",
+      "icon": "insert-text"
+    },
+    "insert.emoji": {
+      "label": "Emoji",
+      "icon": "face-smile",
+      "action": "donbox menu emoji"
+    },
+    "insert.clipboard": {
+      "label": "Clipboard",
+      "icon": "edit-paste",
+      "action": "donbox menu clipboard"
+    },
+
+    "session": {
+      "label": "Session",
+      "icon": "preferences-system"
+    },
+    "session.settings": {
+      "label": "Settings",
+      "icon": "preferences-system",
+      "action": "donbox menu settings"
+    },
+    "session.caffeine": {
+      "label": "Stay awake",
+      "icon": "my-caffeine-on-symbolic",
+      "description": "Hold the session awake",
+      "checked": "[ \"$(donbox caffeine status)\" = on ]",
+      "action": "donbox caffeine toggle"
+    },
+    "session.nightshift": {
+      "label": "Night shift",
+      "icon": "night-light-symbolic",
+      "checked": "donbox nightshift status | grep -q ' on$'",
+      "action": "donbox nightshift toggle"
+    },
+    "session.update": {
+      "label": "Update",
+      "icon": "system-software-update",
+      "action": "donbox update"
+    },
+
+    "power": {
+      "label": "Power",
+      "icon": "system-shutdown"
+    },
+    "power.lock": {
+      "label": "Lock",
+      "icon": "system-lock-screen",
+      "action": "donbox idle lock"
+    },
+    "power.suspend": {
+      "label": "Suspend",
+      "icon": "system-suspend",
+      "confirm": true,
+      "action": "systemctl suspend"
+    },
+    "power.logout": {
+      "label": "Log out",
+      "icon": "system-log-out",
+      "confirm": true,
+      "action": "hyprctl dispatch 'hl.dsp.exit()'"
+    },
+    "power.reboot": {
+      "label": "Restart",
+      "icon": "system-reboot",
+      "confirm": true,
+      "action": "systemctl reboot"
+    },
+    "power.shutdown": {
+      "label": "Shut down",
+      "icon": "system-shutdown",
+      "confirm": true,
+      "action": "systemctl poweroff"
+    },
+
+    "webapp": {
+      "label": "Web apps",
+      "icon": "applications-internet"
+    },
+    "webapp.install": {
+      "label": "Install",
+      "icon": "list-add",
+      "action": "ghostty --class=com.donquinleone.settings -e donbox webapp install"
+    },
+    "webapp.remove": {
+      "label": "Remove",
+      "icon": "list-remove",
+      "when": "[ -n \"$(donbox webapp list)\" ]",
+      "action": "donbox webapp remove"
+    },
+
+    "packages": {
+      "label": "Packages",
+      "icon": "package-x-generic"
+    },
+    "packages.search": {
+      "label": "Install",
+      "icon": "list-add",
+      "action": "ghostty --class=com.donquinleone.settings -e donbox pkg search"
+    },
+    "packages.remove": {
+      "label": "Remove",
+      "icon": "list-remove",
+      "action": "donbox pkg remove"
+    }
+  }
+}

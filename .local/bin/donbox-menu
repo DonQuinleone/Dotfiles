@@ -1,0 +1,147 @@
+#!/usr/bin/env bash
+# donbox:summary=Open the menu, or one of its routes
+# donbox:args=[route]
+set -euo pipefail
+
+BIN_DIR=$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")
+readonly BIN_DIR
+SHARE_DIR=$(dirname "${BIN_DIR}")/share/donbox
+readonly SHARE_DIR
+
+readonly PICK="${DONBOX_PICK:-${BIN_DIR}/donbox-pick}"
+TREE="${DONBOX_MENU_TREE:-${SHARE_DIR}/menu.json}"
+readonly TREE
+
+readonly ROOT=root
+readonly CHECKED_MARK="✓"
+readonly CONFIRM_PROMPT="Confirm"
+readonly CONFIRM_VALUE=confirm
+readonly CANCEL_VALUE=cancel
+
+die() {
+    printf 'donbox menu: %s\n' "$*" >&2
+    exit 1
+}
+
+require_command() {
+    command -v "$1" >/dev/null 2>&1 ||
+        die "$1 is not installed but is required"
+}
+
+# The dotted id is the tree: an item's children are the ids one
+# segment longer, so where a row appears follows from what it is
+# called rather than from a parent field kept in step by hand.
+# An id with no dot at all sits on the root menu.
+children_of() {
+    jq -r --arg parent "$1" --arg root "${ROOT}" '
+        .items | keys_unsorted[]
+        | select(. != $root)
+        | select(if $parent == $root
+                 then (contains(".") | not)
+                 else startswith($parent + ".")
+                      and ((ltrimstr($parent + ".")
+                           | contains(".")) | not)
+                 end)
+    ' "${TREE}"
+}
+
+field_of() {
+    jq -r --arg id "$1" --arg field "$2" \
+        '.items[$id][$field] // ""' "${TREE}"
+}
+
+item_exists() {
+    jq -e --arg id "$1" '.items | has($id)' "${TREE}" >/dev/null
+}
+
+# Every guard in one shell rather than one shell per guard: a
+# menu of a dozen rows was a dozen processes before the first
+# row could be drawn.
+guard_verdicts() {
+    local id kind expression script=""
+    for id in "$@"; do
+        for kind in when checked; do
+            expression=$(field_of "${id}" "${kind}")
+            [[ -n "${expression}" ]] || continue
+            script+="if ${expression} >/dev/null 2>&1; then"
+            script+=" printf '%s\\t%s\\n' '${id}' '${kind}'; fi"
+            script+=$'\n'
+        done
+    done
+    [[ -n "${script}" ]] || return 0
+    bash -c "${script}"
+}
+
+rows_for() {
+    local parent="$1" id label icon description
+    local -a kids=()
+    mapfile -t kids < <(children_of "${parent}")
+    ((${#kids[@]} > 0)) || return 0
+
+    local verdicts
+    verdicts=$(guard_verdicts "${kids[@]}")
+
+    for id in "${kids[@]}"; do
+        [[ -z "$(field_of "${id}" when)" ]] ||
+            grep -qx "${id}	when" <<<"${verdicts}" || continue
+        label=$(field_of "${id}" label)
+        [[ -n "${label}" ]] || label="${id##*.}"
+        grep -qx "${id}	checked" <<<"${verdicts}" &&
+            label="${label} ${CHECKED_MARK}"
+        icon=$(field_of "${id}" icon)
+        description=$(field_of "${id}" description)
+        printf '%s\t%s\t%s\t%s\n' \
+            "${id}" "${label}" "${icon}" "${description}"
+    done
+}
+
+confirmed() {
+    local answer
+    answer=$(printf '%s\t%s\n%s\t%s\n' \
+        "${CANCEL_VALUE}" "No" \
+        "${CONFIRM_VALUE}" "Yes, $1" |
+        "${PICK}" --prompt "${CONFIRM_PROMPT}") || return 1
+    [[ "${answer}" == "${CONFIRM_VALUE}" ]]
+}
+
+run_action() {
+    local id="$1" action
+    action=$(field_of "${id}" action)
+    [[ -n "${action}" ]] || return 0
+    [[ "$(field_of "${id}" confirm)" != true ]] ||
+        confirmed "$(field_of "${id}" label)" || return 0
+    setsid bash -c "${action}" >/dev/null 2>&1 </dev/null &
+}
+
+open_menu() {
+    local id="$1" rows chosen
+    while :; do
+        rows=$(rows_for "${id}")
+        [[ -n "${rows}" ]] || die "nothing under '${id}'"
+        chosen=$(printf '%s\n' "${rows}" |
+            "${PICK}" --prompt "$(field_of "${id}" label)") || return 0
+        [[ -n "${chosen}" ]] || return 0
+        [[ -z "$(field_of "${chosen}" action)" ]] || {
+            run_action "${chosen}"
+            return 0
+        }
+        id="${chosen}"
+    done
+}
+
+main() {
+    (($# <= 1)) || die "usage: donbox menu [route]"
+    require_command jq
+    [[ -r "${TREE}" ]] || die "no menu at ${TREE}"
+    [[ -x "${PICK}" ]] || die "${PICK} is missing"
+
+    local route="${1:-${ROOT}}"
+    item_exists "${route}" || die "no menu route '${route}'"
+    [[ -z "$(field_of "${route}" action)" ]] || {
+        run_action "${route}"
+        return 0
+    }
+    open_menu "${route}"
+}
+
+main "$@"
