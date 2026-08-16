@@ -45,54 +45,75 @@ COPRS=(
 )
 
 PACKAGES=(
-    NetworkManager-tui
-    ShellCheck
     ansible
+    bolt
     brightnessctl
     btop
     claude-code
     claude-desktop
     fastfetch
     firefox
+    fish
+    flatpak
     fprintd-pam
     gcr3
     ghostty
     git
+    git-filter-repo
     gnupg2
+    gnupg2-scdaemon
+    gnupg2-smime
     golang
     greetd
     grim
     htop
-    inotify-tools
     hypridle
     hyprland
     hyprland-guiutils
     hyprsunset
     ibm-plex-sans-fonts
+    iio-sensor-proxy
+    inotify-tools
     jetbrains-mono-fonts-all
+    kvantum
     libsecret
     lsd
     mpv
     nautilus
     neovim
     netbird
+    NetworkManager-l2tp
+    NetworkManager-libreswan
+    NetworkManager-openconnect
+    NetworkManager-openvpn
+    NetworkManager-pptp
+    NetworkManager-tui
+    NetworkManager-vpnc
     nmap
+    nss-tools
     obs-studio
+    openssh-askpass
     openssh-clients
+    perl-rdapper
     pinentry-gnome3
     pipx
     playerctl
-    kvantum
+    qt6ct
     qt6-qtimageformats
     qt6-qtmultimedia
     qt6-qtshadertools
     qt6-qtsvg
-    qt6ct
     quickshell-git
     rbw
+    rpm-build
+    ShellCheck
     slurp
     stow
+    switcheroo-control
+    system-config-printer
+    telnet
     terminus-fonts-console
+    thefuck
     thunderbird
     tldr
     tree
@@ -101,6 +122,13 @@ PACKAGES=(
     wireshark
     wl-clipboard
     xdg-desktop-portal-hyprland
+)
+
+FLATHUB_URL=https://dl.flathub.org/repo/flathub.flatpakrepo
+
+FLATPAKS=(
+    com.slack.Slack
+    com.yubico.yubioath
 )
 
 NERD_FONT_TAG=v3.5.0
@@ -119,6 +147,20 @@ ensure_repo() {
     [ -f "$path" ] && [ "$(cat "$path")" = "$content" ] && return 0
     say "writing repo $name"
     printf '%s\n' "$content" | sudo tee "$path" >/dev/null
+}
+
+# flatpak install returns a failure for an app that is already
+# there on some versions and a success on others, so the set is
+# narrowed to what is missing rather than trusting either.
+install_flatpaks() {
+    sudo flatpak remote-add --if-not-exists flathub "$FLATHUB_URL"
+    local missing=() app
+    for app in "${FLATPAKS[@]}"; do
+        flatpak info "$app" >/dev/null 2>&1 || missing+=("$app")
+    done
+    [ ${#missing[@]} -eq 0 ] && return 0
+    say "installing ${#missing[@]} flatpaks"
+    sudo flatpak install -y flathub "${missing[@]}"
 }
 
 install_nerd_font() {
@@ -162,6 +204,7 @@ done
 say "installing ${#PACKAGES[@]} packages"
 sudo dnf -y install "${PACKAGES[@]}"
 
+install_flatpaks
 install_nerd_font
 write_qt6ct_config
 

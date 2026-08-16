@@ -125,7 +125,12 @@ and a shell.
 | --- | --- |
 | `hyprland`, `hypridle`, portal | COPR `lionheartp/Hyprland` |
 | `quickshell-git` | COPR `errornointernet/quickshell` |
+| Slack, Yubico Authenticator | Flathub |
 | JetBrains Mono Nerd Font | upstream release, pinned |
+
+`get_packages.sh` installs all of it, adds the Flathub remote
+and skips any flatpak already present, so re-running it after a
+pull costs nothing.
 
 ## The desktop
 
