@@ -17,13 +17,6 @@ PanelSurface {
         NetworkThroughput.watching = active;
         NetworkReachability.watching = active;
         NetworkResolvers.watching = active;
-        Connectivity.setScanning(active);
-    }
-
-    function statusOf(candidate: var): string {
-        const percent =
-            Connectivity.percentFor(candidate.signalStrength);
-        return `${Connectivity.statusOf(candidate)} · ${percent}%`;
     }
 
     PanelHeadline {
@@ -79,37 +72,6 @@ PanelSurface {
 
         NetworkResolverPicker {
             width: parent.width
-        }
-    }
-
-    QuickSection {
-        width: parent.width
-        visible: Connectivity.wifiPresent && Connectivity.wifiEnabled
-        title: "Available networks"
-
-        PanelEmpty {
-            width: parent.width
-            visible: Connectivity.inRange.length === 0
-            text: "Looking for networks."
-        }
-
-        Repeater {
-            model: Connectivity.inRange
-
-            PanelRow {
-                required property var modelData
-
-                width: parent.width
-                glyph: Connectivity.glyphFor(
-                    this.modelData.signalStrength)
-                title: this.modelData.name
-                status: root.statusOf(this.modelData)
-                actionLabel: "Connect"
-                actionOffered: Connectivity.joinable(this.modelData)
-                current: this.modelData.connected
-
-                onChosen: Connectivity.join(this.modelData)
-            }
         }
     }
 }
