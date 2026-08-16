@@ -133,6 +133,19 @@ PopupWindow {
 
             QuickSection {
                 width: parent.width
+                title: qsTr("Stay awake")
+
+                QuickChip {
+                    glyph: Caffeine.glyph
+                    label: qsTr("Caffeinate")
+                    selected: Caffeine.active
+
+                    onActivated: Caffeine.toggle()
+                }
+            }
+
+            QuickSection {
+                width: parent.width
                 visible: PowerMode.available
                 title: qsTr("Power profile")
 

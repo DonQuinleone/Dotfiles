@@ -1,0 +1,113 @@
+#!/usr/bin/env bash
+# donbox:summary=Hold the session awake
+# donbox:args=[status|on|off|toggle]
+set -euo pipefail
+
+STATE_DIR="${XDG_STATE_HOME:-${HOME}/.local/state}/donbox"
+readonly STATE_DIR
+readonly PID_FILE="${STATE_DIR}/caffeine.pid"
+# The desktop watches this rather than polling, so every verb
+# writes it, including status: an inhibitor that died with a
+# reboot has to correct the file nobody else will.
+readonly STATE_FILE="${STATE_DIR}/caffeine"
+readonly INHIBITOR_WHO="donbox"
+readonly INHIBITOR_WHY="caffeinated"
+readonly ON=on
+readonly OFF=off
+
+die() {
+    printf 'donbox caffeine: %s\n' "$*" >&2
+    exit 1
+}
+
+usage() {
+    printf 'usage: donbox caffeine [status|on|off|toggle]\n' >&2
+    exit 1
+}
+
+require_command() {
+    command -v "$1" >/dev/null 2>&1 ||
+        die "$1 is not installed but is required"
+}
+
+# hypridle stands down for a logind idle inhibitor, since
+# hypridle-common.conf leaves ignore_systemd_inhibit false, so
+# one lock covers dimming, the lock, the screensaver, blanking
+# and the undocked suspend together. Sleep itself is left alone:
+# choosing Suspend from the power pane has to keep working.
+inhibitor_pid() {
+    [[ -r "${PID_FILE}" ]] || return 1
+    local pid
+    pid=$(cat "${PID_FILE}")
+    [[ -n "${pid}" ]] || return 1
+    kill -0 "${pid}" 2>/dev/null || return 1
+    grep -q systemd-inhibit "/proc/${pid}/cmdline" \
+        2>/dev/null || return 1
+    printf '%s' "${pid}"
+}
+
+start_inhibitor() {
+    require_command systemd-inhibit
+    mkdir -p "${STATE_DIR}"
+    setsid systemd-inhibit \
+        --what=idle \
+        --who="${INHIBITOR_WHO}" \
+        --why="${INHIBITOR_WHY}" \
+        --mode=block \
+        sleep infinity \
+        >/dev/null 2>&1 &
+    disown
+    echo "$!" >"${PID_FILE}"
+}
+
+cmd_on() {
+    inhibitor_pid >/dev/null || start_inhibitor
+    record "${ON}"
+}
+
+cmd_off() {
+    local pid
+    if pid=$(inhibitor_pid); then
+        kill "${pid}" 2>/dev/null || true
+    fi
+    rm -f "${PID_FILE}"
+    record "${OFF}"
+}
+
+record() {
+    mkdir -p "${STATE_DIR}"
+    [[ "$(cat "${STATE_FILE}" 2>/dev/null)" == "$1" ]] && return 0
+    printf '%s\n' "$1" >"${STATE_FILE}"
+}
+
+cmd_status() {
+    local state="${OFF}"
+    inhibitor_pid >/dev/null && state="${ON}"
+    record "${state}"
+    printf '%s\n' "${state}"
+}
+
+cmd_toggle() {
+    if inhibitor_pid >/dev/null; then
+        cmd_off
+    else
+        cmd_on
+    fi
+    cmd_status
+}
+
+declare -rA COMMANDS=(
+    [status]=cmd_status
+    [on]=cmd_on
+    [off]=cmd_off
+    [toggle]=cmd_toggle
+)
+
+main() {
+    (($# <= 1)) || usage
+    local handler="${COMMANDS[${1:-status}]:-}"
+    [[ -n "${handler}" ]] || usage
+    "${handler}"
+}
+
+main "$@"

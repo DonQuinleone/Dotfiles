@@ -17,7 +17,8 @@ shell_scripts() {
         head -n 1 "${ROOT}/${path}" |
             grep -q '^#!.*\bbash\b' || continue
         printf '%s\0' "${path}"
-    done < <(git -C "${ROOT}" ls-files -z)
+    done < <(git -C "${ROOT}" ls-files -z \
+        --cached --others --exclude-standard)
 }
 
 scripts=()

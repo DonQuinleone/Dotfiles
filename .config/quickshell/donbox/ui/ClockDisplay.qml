@@ -26,6 +26,13 @@ Item {
         spacing: Theme.spacing.normal ?? 0
 
         PillText {
+            visible: Caffeine.active
+            text: Caffeine.glyph
+            color: Theme.palette.accent ?? "white"
+            font.pixelSize: Theme.sizes.iconNormal ?? 0
+        }
+
+        PillText {
             text: Qt.formatDateTime(clock.date, root.timeFormat)
             font.family: Theme.fonts.ui ?? ""
             font.pixelSize: Theme.fontSizes.display ?? 0
@@ -36,6 +43,13 @@ Item {
             text: Qt.formatDateTime(clock.date, root.dateFormat)
             color: Theme.palette.fgDim ?? "white"
             font.family: Theme.fonts.ui ?? ""
+        }
+
+        PillText {
+            visible: Caffeine.active
+            text: Caffeine.glyph
+            color: Theme.palette.accent ?? "white"
+            font.pixelSize: Theme.sizes.iconNormal ?? 0
         }
     }
 
