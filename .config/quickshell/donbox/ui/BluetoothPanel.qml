@@ -29,7 +29,7 @@ PanelSurface {
     }
 
     onVisibleChanged: {
-        BluetoothRadio.setScanning(root.visible);
+        BluetoothRadio.setPairingMode(root.visible);
         if (root.visible) BluetoothRadio.readCells();
     }
 

@@ -250,6 +250,17 @@ opening the pane. Anything that does not name itself is left
 out: a scan turns up far more privacy addresses and beacons than
 peripherals, and BlueZ names those after their own address.
 
+Pairing needs a second thing that is easy to miss. BlueZ will
+not complete one without an agent registered to answer for the
+passkey, and it refuses in the log rather than to the person who
+pressed the button, so pairing appears to do nothing at all.
+Quickshell has no agent of its own, so `bt-agent` runs for the
+same span as discovery. Its capability is `NoInputNoOutput`,
+which accepts without asking: there is nothing here to compare a
+passkey on, and since the adapter is never made discoverable,
+the only pairings it can ever answer for are the ones started
+from the pane.
+
 BlueZ reports one percentage per device, which is not enough for
 a split keyboard that meters each half. `scripts/bt-battery`
 reads the Battery Level characteristics straight out of GATT

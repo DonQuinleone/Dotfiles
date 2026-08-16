@@ -46,6 +46,7 @@ COPRS=(
 
 PACKAGES=(
     ansible
+    bluez-tools
     bolt
     brightnessctl
     btop

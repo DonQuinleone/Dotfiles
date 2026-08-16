@@ -20,6 +20,15 @@ Singleton {
     readonly property string cellReader:
         `${Preferences.configHome}/hypr/scripts/bt-battery`
 
+    readonly property string pairingAgent: "bt-agent"
+
+    // Nothing here has a keypad or a display to compare a
+    // passkey on, and the adapter stays undiscoverable, so the
+    // only pairings this ever answers for are the ones started
+    // from the pane.
+    readonly property string agentCapability: "NoInputNoOutput"
+
+    property bool pairingMode: false
     property var cellsByAddress: ({})
 
     readonly property string offGlyph: "󰂲"
@@ -218,18 +227,29 @@ Singleton {
         root.adapter.enabled = !root.adapter.enabled;
     }
 
-    function toggleScanning(): void {
-        if (!root.adapter) return;
-        root.adapter.discovering = !root.adapter.discovering;
+    readonly property bool discoveryWanted:
+        root.pairingMode && root.powered
+
+    // Two things have to be true before a device can be paired.
+    // Discovery is what makes one visible at all, and BlueZ
+    // refuses to finish a pairing with no agent to answer for
+    // the passkey, failing with nothing shown to the person who
+    // pressed the button. Both cost something while they run,
+    // so the pane holds them open only while it is shown.
+    function setPairingMode(wanted: bool): void {
+        root.pairingMode = wanted;
     }
 
-    // Discovery is what makes a device in pairing mode visible
-    // at all, and it costs power and airtime while it runs, so
-    // the pane holds it open only for as long as it is shown.
-    function setScanning(wanted: bool): void {
-        if (!root.adapter || !root.powered) return;
-        root.adapter.discovering = wanted;
+    // Held as an intention and applied whenever the adapter can
+    // take it, since it is not there for the first seconds of a
+    // session and can be switched off underneath an open pane.
+    function applyPairingMode(): void {
+        if (!root.adapter) return;
+        root.adapter.discovering = root.discoveryWanted;
     }
+
+    onDiscoveryWantedChanged: root.applyPairingMode()
+    onAdapterChanged: root.applyPairingMode()
 
     function toggleDiscoverable(): void {
         if (!root.adapter) return;
@@ -270,6 +290,11 @@ Singleton {
         stdout: StdioCollector {
             onStreamFinished: root.absorbCells(this.text)
         }
+    }
+
+    Process {
+        running: root.discoveryWanted
+        command: [root.pairingAgent, "-c", root.agentCapability]
     }
 
     Timer {
