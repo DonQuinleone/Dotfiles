@@ -234,6 +234,13 @@ The power profile is remembered separately for AC and battery, so
 plugging in restores the profile last chosen on AC and unplugging
 restores the one chosen on battery.
 
+The shell warns as the charge falls, once each time it crosses
+a line rather than repeatedly while it sits below one: a normal
+notification at twenty per cent and a critical one at ten, which
+carries through do not disturb. Neither fires while the machine
+is charging, and each rearms only once the charge has climbed
+back over its line.
+
 The clock in the middle of the bar opens a dropdown of its own,
 carrying the month, alarms and the time elsewhere. Alarms are set
 with steppers rather than typing, since a dropdown never takes

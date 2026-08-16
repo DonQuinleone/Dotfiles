@@ -62,6 +62,8 @@ ShellRoot {
 
     LockScreen {}
 
+    BatteryAlerts {}
+
     IpcHandler {
         target: "panels"
 
