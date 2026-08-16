@@ -141,12 +141,19 @@ search_rows() {
         }'
 }
 
+# Asked for rather than demanded, since the menu can open this in
+# a terminal but has nowhere to type a search term first.
 cmd_search() {
-    (($# == 1)) || usage
+    (($# <= 1)) || usage
     [[ -x "${PICK}" ]] || die "${PICK} is missing"
-    local rows chosen
-    rows=$(search_rows "$1")
-    [[ -n "${rows}" ]] || die "nothing matches '$1'"
+    local term="${1-}" rows chosen
+    [[ -n "${term}" ]] || {
+        [[ -t 0 ]] || usage
+        read -r -p "Search for: " term
+    }
+    [[ -n "${term}" ]] || return 0
+    rows=$(search_rows "${term}")
+    [[ -n "${rows}" ]] || die "nothing matches '${term}'"
     chosen=$(printf '%s\n' "${rows}" |
         "${PICK}" --prompt "${SEARCH_PROMPT}") || exit 0
     [[ -n "${chosen}" ]] || exit 0
