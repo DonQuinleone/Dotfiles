@@ -12,6 +12,12 @@ readonly PICK="${DONBOX_PICK:-${BIN_DIR}/donbox-pick}"
 TREE="${DONBOX_MENU_TREE:-${SHARE_DIR}/menu.json}"
 readonly TREE
 
+# Actions name commands rather than paths, and the compositor
+# starts this with a PATH that need not include where they live,
+# so an action would fail with the command not found rather than
+# with anything it could be debugged by.
+export PATH="${BIN_DIR}:${PATH}"
+
 readonly ROOT=root
 readonly CHECKED_MARK="✓"
 readonly CONFIRM_PROMPT="Confirm"
