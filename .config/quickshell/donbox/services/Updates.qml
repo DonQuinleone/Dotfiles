@@ -102,7 +102,8 @@ Singleton {
     function save(): void {
         file.setText(JSON.stringify({
             pending: root.pending,
-            checkedAtMs: root.checkedAtMs
+            checkedAtMs: root.checkedAtMs,
+            stamp: root.stamp
         }));
     }
 
@@ -111,6 +112,7 @@ Singleton {
             const saved = JSON.parse(file.text());
             root.pending = saved.pending ?? 0;
             root.checkedAtMs = saved.checkedAtMs ?? 0;
+            root.stamp = saved.stamp ?? "";
         } catch (error) {
             root.checkedAtMs = 0;
         }
