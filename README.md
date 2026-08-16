@@ -74,7 +74,7 @@ One optional step, and the only one needing root: installing the
 Mozilla theme loader, without which Firefox and Thunderbird pick
 up a theme change at their next launch rather than immediately.
 
-    ~/.config/hypr/scripts/mozilla-theme-loader
+    donbox install mozilla theme
 
 ## Logging in
 
@@ -169,10 +169,10 @@ over the workspace instead of sliding beside it. Every shell
 surface enters from the edge it lives on. All of it answers one
 control, which the shell drives too:
 
-    motion get
-    motion set scale 0.5
-    motion set drift off
-    motion reduced on
+    donbox motion get
+    donbox motion set scale 0.5
+    donbox motion set drift off
+    donbox motion reduced on
 
 `reduced` collapses the whole scheme to around forty
 milliseconds without switching it off, so direction is still
@@ -262,7 +262,7 @@ the only pairings it can ever answer for are the ones started
 from the pane.
 
 BlueZ reports one percentage per device, which is not enough for
-a split keyboard that meters each half. `scripts/bt-battery`
+a split keyboard that meters each half. `donbox bluetooth battery`
 reads the Battery Level characteristics straight out of GATT
 instead, so every cell a device exposes is listed and warned
 about separately: normal at twenty per cent, critical at five.
@@ -303,6 +303,27 @@ do, because a dropdown never takes keyboard focus: joining an
 unsaved secured network, which would need a password field, and
 reading the clipboard through Qt, so copying goes through
 `wl-copy` instead.
+
+## Commands
+
+Everything the desktop can be told to do is one command, on the
+path as `donbox`:
+
+    donbox                     what there is
+    donbox theme set dracula
+    donbox nightshift toggle
+    donbox motion reduced on
+
+There is no registry behind it. Every executable
+`.local/bin/donbox-*` is a command and its filename is its
+route, so `donbox theme set dracula` runs `donbox-theme-set` if
+that exists and otherwise hands `set dracula` to `donbox-theme`.
+A `# donbox:summary=` header is what the listing prints, and
+`donbox commands --check` fails on a command that lacks one.
+
+The keybindings, hypridle and the shell all call through it, so
+a command can be renamed without hunting for the places that
+knew where it used to live.
 
 ## Shortcuts
 
@@ -382,7 +403,7 @@ between devices.
 
 ## Night shift
 
-`night-shift` warms the display through `hyprsunset`, ramping
+`donbox nightshift` warms the display through `hyprsunset`, ramping
 over ninety minutes rather than stepping, and `Super+Alt+W`
 overrides it either way until the next scheduled change. Times
 come from a local sunrise and sunset worked out offline by the
@@ -390,7 +411,7 @@ NOAA solar algorithm, so it needs no network and no address in a
 committed file.
 
 Everything is set in `~/.config/night-shift.conf`, which is not
-part of this repository; `night-shift defaults` prints it, and
+part of this repository; `donbox nightshift defaults` prints it, and
 the settings picker writes it out that way before opening it for
 the first time:
 
@@ -418,10 +439,10 @@ body text keeps a great deal more headroom.
 Seventeen, switched with one command that reaches the whole
 system:
 
-    theme list
-    theme set kanagawa-wave
-    theme accent gold
-    theme wallpaper
+    donbox theme list
+    donbox theme set kanagawa-wave
+    donbox theme accent gold
+    donbox theme wallpaper
 
 Ember is the default, and the rest are Kanagawa Wave, Catppuccin
 Mocha, Dracula, Solarised Dark and Light, Tokyo Night and Storm,
@@ -607,12 +628,12 @@ Run it directly for the full spinning windmill; `fastfetch`
 itself shows the static logo, since it prints its report once
 and exits.
 
-The logo follows the active theme. `theme set` regenerates
+The logo follows the active theme. `donbox theme set` regenerates
 `~/.config/fastfetch/config.jsonc` from the palette the way it
 already does for Ghostty, GTK and the rest, so the generated
 config is not part of this repository, and `animate` reads the
-same palette on every run. Before the first `theme set` the
-fetch falls back to fastfetch's stock look; `theme-daemon`
+same palette on every run. Before the first `donbox theme set` the
+fetch falls back to fastfetch's stock look; `donbox theme daemon`
 applies the active theme at login, so in practice the config is
 always there.
 
@@ -644,6 +665,15 @@ Caret tracking follows the text cursor in Neovim, which reports
 its position directly. Applications that expose a caret through
 the accessibility bus are unreliable, and a terminal shell prompt
 reports nothing at all.
+
+## Tests
+
+    ./test/shell
+
+Each `test/shell.d/*-test.sh` is an independent suite; the first
+failed assertion ends its file and the runner carries on, so one
+broken area cannot hide the rest. New behaviour lands with a
+suite beside it.
 
 ## Contributing
 
