@@ -6,7 +6,10 @@ Row {
 
     readonly property int streamCount: 2
 
-    readonly property var streams: [
+    // Defaulted rather than fixed: the live throughput and a
+    // measured speed are the same two readings, so they are the
+    // same row with different numbers in it.
+    property var streams: [
         {
             glyph: "󰇚",
             caption: "Down",

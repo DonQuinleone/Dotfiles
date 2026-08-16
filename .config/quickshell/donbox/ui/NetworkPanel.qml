@@ -7,7 +7,22 @@ PanelSurface {
     readonly property var facts: [
         { title: "IP address", value: NetworkLink.hostAddress },
         { title: "Gateway", value: NetworkLink.gateway },
-        { title: "DNS servers", value: NetworkLink.resolverText }
+        { title: "DNS servers", value: NetworkLink.resolverText },
+        { title: "Public IPv4", value: NetworkPublic.ipv4 },
+        { title: "Public IPv6", value: NetworkPublic.ipv6 }
+    ]
+
+    readonly property var speedStreams: [
+        {
+            glyph: "󰇚",
+            caption: "Down",
+            value: NetworkSpeed.downText
+        },
+        {
+            glyph: "󰕒",
+            caption: "Up",
+            value: NetworkSpeed.upText
+        }
     ]
 
     onVisibleChanged: root.watch(root.visible)
@@ -17,6 +32,7 @@ PanelSurface {
         NetworkThroughput.watching = active;
         NetworkReachability.watching = active;
         NetworkResolvers.watching = active;
+        NetworkPublic.watching = active;
     }
 
     PanelHeadline {
@@ -28,7 +44,7 @@ PanelSurface {
         width: parent.width
         title: "Throughput"
 
-        NetworkThroughputRow {
+        NetworkStreamRow {
             width: parent.width
         }
     }
@@ -72,6 +88,37 @@ PanelSurface {
 
         NetworkResolverPicker {
             width: parent.width
+        }
+    }
+
+    QuickSection {
+        width: parent.width
+        title: "Speed"
+
+        NetworkStreamRow {
+            width: parent.width
+            streams: root.speedStreams
+        }
+
+        Row {
+            width: parent.width
+            spacing: Theme.spacing.normal ?? 0
+
+            QuickChip {
+                glyph: "󰓅"
+                label: NetworkSpeed.running ? "Measuring" : "Measure"
+                selected: NetworkSpeed.running
+
+                onActivated: NetworkSpeed.measure()
+            }
+
+            Text {
+                anchors.verticalCenter: parent.verticalCenter
+                text: NetworkSpeed.words
+                color: Theme.palette.fgDim ?? "white"
+                font.family: Theme.fonts.ui ?? ""
+                font.pixelSize: Theme.fontSizes.small ?? 0
+            }
         }
     }
 }

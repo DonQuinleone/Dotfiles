@@ -46,6 +46,7 @@ COPRS=(
 
 PACKAGES=(
     ansible
+    bind-utils
     bluez-tools
     bolt
     brightnessctl
@@ -75,6 +76,7 @@ PACKAGES=(
     ibm-plex-sans-fonts
     iio-sensor-proxy
     inotify-tools
+    jq
     jetbrains-mono-fonts-all
     kvantum
     libsecret

@@ -1,0 +1,168 @@
+#!/usr/bin/env bash
+# donbox:summary=Report the public addresses and measure the line
+# donbox:args=<public|speed>
+set -euo pipefail
+
+readonly RESOLVER_HOST=myip.opendns.com
+readonly RESOLVER_V4=resolver1.opendns.com
+readonly RESOLVER_V6=resolver2.opendns.com
+readonly LOOKUP_SECONDS=5
+
+readonly PROBE_HOST=1.1.1.1
+readonly DOWN_URL="https://speed.cloudflare.com/__down?bytes=25000000"
+readonly UP_URL="https://speed.cloudflare.com/__up"
+readonly UP_CHUNK_BYTES=25000000
+readonly WORKERS=8
+readonly BITS_PER_BYTE=8
+readonly BITS_PER_MEGABIT=1000000
+
+SAMPLE_SECONDS="${DONBOX_SPEED_SECONDS:-6}"
+readonly SAMPLE_SECONDS
+STATS_ROOT="${DONBOX_NET_STATS_ROOT:-/sys/class/net}"
+readonly STATS_ROOT
+
+die() {
+    printf 'donbox network: %s\n' "$*" >&2
+    exit 1
+}
+
+usage() {
+    printf 'usage: donbox network <public|speed>\n' >&2
+    exit 1
+}
+
+require_command() {
+    command -v "$1" >/dev/null 2>&1 ||
+        die "$1 is not installed but is required"
+}
+
+# A resolver answering with the address it was asked from costs
+# one packet and tells no web server anything it did not already
+# need to route the reply.
+address_of() {
+    local family="$1" type="$2" resolver="$3"
+    timeout "${LOOKUP_SECONDS}" dig "${family}" +short "${type}" \
+        "${RESOLVER_HOST}" "@${resolver}" 2>/dev/null |
+        tail -n 1
+}
+
+cmd_public() {
+    require_command dig
+    printf 'ipv4=%s\n' \
+        "$(address_of -4 A "${RESOLVER_V4}")"
+    printf 'ipv6=%s\n' \
+        "$(address_of -6 AAAA "${RESOLVER_V6}")"
+}
+
+interface() {
+    ip route get "${PROBE_HOST}" 2>/dev/null |
+        awk '{ for (field = 1; field < NF; field++)
+                   if ($field == "dev") {
+                       print $(field + 1)
+                       exit
+                   } }'
+}
+
+counter() {
+    local path="${STATS_ROOT}/$1/statistics/$2_bytes"
+    [[ -r "${path}" ]] || die "cannot read ${path}"
+    cat "${path}"
+}
+
+download_worker() {
+    while curl -fsS -o /dev/null "${DOWN_URL}" 2>/dev/null; do
+        :
+    done
+}
+
+upload_worker() {
+    while head -c "${UP_CHUNK_BYTES}" /dev/zero |
+        curl -fsS -o /dev/null -X POST --data-binary @- \
+            "${UP_URL}" 2>/dev/null; do
+        :
+    done
+}
+
+stop_workers() {
+    local pid
+    for pid in "$@"; do
+        pkill -TERM -P "${pid}" 2>/dev/null || true
+        kill "${pid}" 2>/dev/null || true
+    done
+    for pid in "$@"; do
+        wait "${pid}" 2>/dev/null || true
+    done
+}
+
+megabits() {
+    awk -v before="$1" -v after="$2" -v seconds="$3" \
+        -v bits="${BITS_PER_BYTE}" -v scale="${BITS_PER_MEGABIT}" \
+        'BEGIN {
+            moved = after - before
+            if (moved <= 0 || seconds <= 0) {
+                print "0.0"
+                exit
+            }
+            printf "%.1f\n", moved * bits / scale / seconds
+        }'
+}
+
+# The counters are what the interface actually carried, which
+# beats asking the transfers how they think they did: retries,
+# headers and the other direction's acknowledgements all land in
+# the same figure the line is really doing.
+sample() {
+    local device="$1" reader="$2" before after
+    before=$(counter "${device}" "${reader}") || return 1
+    sleep "${SAMPLE_SECONDS}"
+    after=$(counter "${device}" "${reader}") || return 1
+    megabits "${before}" "${after}" "${SAMPLE_SECONDS}"
+}
+
+measure() {
+    local device="$1" reader="$2" worker="$3"
+    local index reading status=0
+    local -a pids=()
+
+    for ((index = 0; index < WORKERS; index++)); do
+        "${worker}" &
+        pids+=("$!")
+    done
+
+    reading=$(sample "${device}" "${reader}") || status=1
+    stop_workers "${pids[@]}"
+    ((status == 0)) || return 1
+    printf '%s\n' "${reading}"
+}
+
+cmd_speed() {
+    require_command curl
+    require_command ip
+    local device
+    device=$(interface)
+    [[ -n "${device}" ]] || die "no route to ${PROBE_HOST}"
+
+    # Declared apart from the assignment, or the substitution's
+    # status is lost to local's own and a failed measurement
+    # prints an empty reading instead of saying so.
+    local down up
+    down=$(measure "${device}" rx download_worker) ||
+        die "could not measure the download"
+    up=$(measure "${device}" tx upload_worker) ||
+        die "could not measure the upload"
+    printf 'down=%s\nup=%s\n' "${down}" "${up}"
+}
+
+declare -rA COMMANDS=(
+    [public]=cmd_public
+    [speed]=cmd_speed
+)
+
+main() {
+    (($# == 1)) || usage
+    local handler="${COMMANDS[$1]:-}"
+    [[ -n "${handler}" ]] || usage
+    "${handler}"
+}
+
+main "$@"
