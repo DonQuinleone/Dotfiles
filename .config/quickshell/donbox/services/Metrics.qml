@@ -11,6 +11,7 @@ Singleton {
     readonly property int gridColumns: 3
     readonly property int visibleGridRows: 2
     readonly property real thumbnailAspect: 1.6
+    readonly property real previewToListRatio: 0.78
 
     readonly property int gutter: Theme.spacing.normal ?? 0
 
@@ -27,6 +28,9 @@ Singleton {
 
     readonly property int listHeight:
         (root.rowHeight + root.rowGap) * root.visibleRows
+
+    readonly property int previewWidth: Math.round(
+        root.surfaceWidth * root.previewToListRatio)
 
     readonly property int scrollBarWidth: Theme.spacing.normal ?? 0
 

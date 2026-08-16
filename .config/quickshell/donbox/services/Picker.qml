@@ -29,6 +29,8 @@ Singleton {
     readonly property string previewCommand:
         root.request.previewCommand ?? ""
     readonly property bool grid: root.request.mode === root.gridMode
+    readonly property bool themePreview:
+        root.request.themePreview ?? false
     readonly property var items: root.request.items ?? []
 
     readonly property var matches: root.rank(root.query)

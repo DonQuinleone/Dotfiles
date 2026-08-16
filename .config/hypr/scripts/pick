@@ -14,6 +14,7 @@ prompt=""
 current=""
 mode="${LIST_MODE}"
 preview=""
+theme_preview=false
 workspace=""
 
 die() {
@@ -40,7 +41,7 @@ require_command() {
 usage() {
     cat >&2 <<'EOF'
 usage: pick [--prompt LABEL] [--current VALUE] [--grid]
-            [--preview-cmd COMMAND]
+            [--preview-cmd COMMAND] [--theme-preview]
 
 Shows the items read from stdin in the donbox chooser, prints
 the chosen one to stdout, and exits 1 when the user cancels.
@@ -59,6 +60,9 @@ drawn as a swatch. subtitle is a dimmed second line.
   --grid           Show the values as large image thumbnails.
   --preview-cmd C  Run "sh -c 'C "$1"' sh VALUE" once the
                    selection settles, so hovering previews.
+  --theme-preview  Draw the highlighted theme beside the list,
+                   reading it from its own JSON. Every value
+                   must be a theme slug.
 EOF
     exit 1
 }
@@ -82,6 +86,7 @@ parse_arguments() {
             preview="$1"
             ;;
         --grid) mode="${GRID_MODE}" ;;
+        --theme-preview) theme_preview=true ;;
         -h | --help) usage ;;
         *) usage ;;
         esac
@@ -95,6 +100,7 @@ write_request() {
         --arg mode "${mode}" \
         --arg current "${current}" \
         --arg preview "${preview}" \
+        --argjson theme_preview "${theme_preview}" \
         --arg answer "$1" \
         --rawfile lines "$2" \
         '{
@@ -102,6 +108,7 @@ write_request() {
             mode: $mode,
             current: $current,
             previewCommand: $preview,
+            themePreview: $theme_preview,
             answerPath: $answer,
             items: ($lines
                 | rtrimstr("\n")

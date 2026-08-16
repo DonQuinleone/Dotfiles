@@ -67,7 +67,8 @@ marked_name() {
 
 choose_theme() {
     theme_items |
-        "${PICK}" --prompt "${THEME_PROMPT}" --current "$1"
+        "${PICK}" --prompt "${THEME_PROMPT}" --current "$1" \
+            --theme-preview
 }
 
 choose_accent() {
