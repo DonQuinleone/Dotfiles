@@ -37,6 +37,8 @@ source "${MODULE_DIR}/mozilla.sh"
 source "${MODULE_DIR}/firefox.sh"
 # shellcheck source=theme.d/thunderbird.sh
 source "${MODULE_DIR}/thunderbird.sh"
+# shellcheck source=theme.d/brave.sh
+source "${MODULE_DIR}/brave.sh"
 # shellcheck source=theme.d/nvim.sh
 source "${MODULE_DIR}/nvim.sh"
 # shellcheck source=theme.d/fastfetch.sh
@@ -63,6 +65,7 @@ readonly DEFERRED_APPLIERS=(
     apply_teamspeak
     apply_firefox
     apply_thunderbird
+    apply_brave
     apply_nvim
     apply_fastfetch
     apply_btop
