@@ -432,10 +432,15 @@ Rosé Pine Dawn.
 A theme is one JSON file carrying palette, fonts, sizes, radii,
 spacing, opacities and animation timings. Applying it regenerates
 Hyprland's colours, the shell, Ghostty, GTK 3 and 4, Qt, the bash
-and fish prompts, Neovim, TeamSpeak, Firefox and Thunderbird from
-that single source. Most surfaces update live; Qt applications
-read their palette at launch, and TeamSpeak needs its style
-selected once.
+and fish prompts, Neovim, btop, lsd, fastfetch, TeamSpeak,
+Firefox and Thunderbird from that single source. Most surfaces
+update live; Qt applications read their palette at launch, and
+TeamSpeak needs its style selected once.
+
+The terminal tools take the palette at full depth rather than
+rounded to a 256-colour index: lsd reads crossterm colours, which
+accept a hex string, so `colors.yaml` is written straight from
+the theme and is generated rather than tracked.
 
 Icons are generated rather than configured. Adwaita writes its
 folder blue into each drawing, so applying a theme re-shades

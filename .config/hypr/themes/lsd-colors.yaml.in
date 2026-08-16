@@ -1,0 +1,45 @@
+user: "@accent@"
+group: "@fgDim@"
+
+permission:
+  read: "@good@"
+  write: "@warn@"
+  exec: "@bad@"
+  exec-sticky: "@accentSoft@"
+  no-access: "@fgFaint@"
+  octal: "@accentSoft@"
+  acl: "@accentSoft@"
+  context: "@accentSoft@"
+
+date:
+  hour-old: "@good@"
+  day-old: "@accentSoft@"
+  older: "@fgDim@"
+
+size:
+  none: "@fgFaint@"
+  small: "@fgDim@"
+  medium: "@accentSoft@"
+  large: "@accent@"
+
+inode:
+  valid: "@accentSoft@"
+  invalid: "@fgFaint@"
+
+links:
+  valid: "@accentSoft@"
+  invalid: "@fgFaint@"
+
+tree-edge: "@border@"
+
+git-status:
+  default: "@fgFaint@"
+  unmodified: "@fgFaint@"
+  ignored: "@fgFaint@"
+  new-in-index: "@good@"
+  new-in-workdir: "@good@"
+  typechange: "@warn@"
+  deleted: "@bad@"
+  renamed: "@accentSoft@"
+  modified: "@warn@"
+  conflicted: "@bad@"
