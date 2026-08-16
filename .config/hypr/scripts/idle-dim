@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+readonly SHELL_CONFIG="donbox"
+
+usage() {
+    echo "usage: idle-dim {dim PERCENT|restore}" >&2
+    exit 1
+}
+
+# hypridle drives the backlight with no keypress behind it, so
+# the shell is asked to hold its HUD down first. A shell that
+# has gone away is not an error, and the request lapses by
+# itself, so a call that never lands only costs one HUD.
+quieten_osd() {
+    qs -c "${SHELL_CONFIG}" ipc call osd quietBrightness \
+        >/dev/null 2>&1 || true
+}
+
+main() {
+    case "${1:-}" in
+        dim)
+            [[ $# -eq 2 ]] || usage
+            [[ "$2" =~ ^[0-9]+$ ]] || usage
+            quieten_osd
+            brightnessctl -s set "$2%" >/dev/null
+            ;;
+        restore)
+            [[ $# -eq 1 ]] || usage
+            quieten_osd
+            brightnessctl -r >/dev/null
+            ;;
+        *)
+            usage
+            ;;
+    esac
+}
+
+main "$@"

@@ -10,6 +10,7 @@ Singleton {
 
     readonly property int dwellMs: 1600
     readonly property int settleMs: 700
+    readonly property int brightnessQuietMs: 1000
     readonly property string backlight:
         "/sys/class/backlight/intel_backlight"
 
@@ -66,21 +67,38 @@ Singleton {
         if (!silent) cue.running = true;
     }
 
+    // hypridle asks for this before dimming and before restoring.
+    // The request lapses on its own rather than being cancelled,
+    // so a caller that dies mid-dim costs one HUD, not silence.
+    function quietBrightness(): void {
+        brightnessQuiet.restart();
+    }
+
+    // Brightness changes are visible by definition, so a
+    // sound for them is noise.
+    function announceBrightness(): void {
+        if (brightnessQuiet.running) return;
+        root.announce("brightness", root.brightness, true);
+    }
+
     onVolumeChanged: root.announce("volume", root.volume, false)
     onSinkMutedChanged: {
         root.muted = root.sinkMuted;
         root.announce("volume", root.volume, root.sinkMuted);
     }
-    // Brightness changes are visible by definition, so a
-    // sound for them is noise.
-    onBrightnessChanged: root.announce("brightness",
-        root.brightness, true)
+    onBrightnessChanged: root.announceBrightness()
 
     Timer {
         running: true
         interval: root.settleMs
 
         onTriggered: root.ready = true
+    }
+
+    Timer {
+        id: brightnessQuiet
+
+        interval: root.brightnessQuietMs
     }
 
     Timer {

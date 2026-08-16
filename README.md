@@ -179,6 +179,10 @@ off at twelve, and the machine never suspends itself. Undocked it
 dims at two, locks at three, blanks at four and suspends at
 fifteen.
 
+Dimming and waking ask the shell to hold its brightness readout
+down first, so only a brightness key raises it; the request
+lapses after a second, so a missed call cannot silence it.
+
 Three screensavers ship, every one coloured from the active
 palette, kept dim and incapable of strobing because the primary
 display is an OLED: the lava lamp, a metaball shader that never

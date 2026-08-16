@@ -171,4 +171,12 @@ ShellRoot {
             Notifications.dismissAll();
         }
     }
+
+    IpcHandler {
+        target: "osd"
+
+        function quietBrightness(): void {
+            Osd.quietBrightness();
+        }
+    }
 }
