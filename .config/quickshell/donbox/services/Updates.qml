@@ -75,8 +75,11 @@ Singleton {
         writeBack.restart();
     }
 
+    // Repositories that declare no metadata_expire inherit
+    // dnf's 48 hour default, which outlasts this interval many
+    // times over, so the check has to expire the cache itself.
     function check(): void {
-        root.ask(["dnf", "--quiet", "check-update"]);
+        root.ask(["dnf", "--quiet", "--refresh", "check-update"]);
     }
 
     // After a transaction the local metadata is already right,

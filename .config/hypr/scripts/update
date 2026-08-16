@@ -1,0 +1,68 @@
+#!/usr/bin/env bash
+# Install the pending updates in a window that stays open.
+#
+# The window has to outlive the transaction: sudo asks for the
+# password on it, and what dnf did is worth reading afterwards,
+# so it waits for a key rather than closing on its own.
+#
+# Third-party repositories that declare no metadata_expire
+# inherit dnf's 48 hour default, and root keeps its own cache,
+# so without --refresh this can find nothing to do while the
+# bar is still offering a count.
+#
+# Twenty-six points is the largest that still leaves the eighty
+# columns dnf's transaction table wants inside the floating
+# window rules.lua gives this class; activity measures the same
+# geometry at roughly 104 columns at twenty.
+set -euo pipefail
+
+# Ghostty drops a class that is not a valid GTK application ID,
+# leaving the window with the default one and no rule to match.
+readonly WINDOW_CLASS="com.donquinleone.update"
+readonly FONT_POINTS=26
+readonly TERMINAL="ghostty"
+readonly PACKAGE_MANAGER="dnf"
+readonly INSTALL_MODE="install"
+readonly CLOSE_PROMPT="Press any key to close this window."
+
+SCRIPT=$(readlink -f "${BASH_SOURCE[0]}")
+readonly SCRIPT
+
+die() {
+    printf 'update: %s\n' "$*" >&2
+    exit 1
+}
+
+require_command() {
+    command -v "$1" >/dev/null 2>&1 ||
+        die "$1 is not installed but is required"
+}
+
+open_window() {
+    require_command "${TERMINAL}"
+    exec "${TERMINAL}" --class="${WINDOW_CLASS}" \
+        --font-size="${FONT_POINTS}" \
+        -e "${SCRIPT}" "${INSTALL_MODE}"
+}
+
+run_transaction() {
+    require_command "${PACKAGE_MANAGER}"
+    require_command sudo
+    local status=0
+    sudo "${PACKAGE_MANAGER}" update --refresh -y || status=$?
+    printf '\n'
+    ((status == 0)) ||
+        printf '%s exited %d.\n' "${PACKAGE_MANAGER}" "${status}"
+    printf '%s' "${CLOSE_PROMPT}"
+    read -r -n 1 -s
+}
+
+main() {
+    case "${1:-}" in
+    "") open_window ;;
+    "${INSTALL_MODE}") run_transaction ;;
+    *) die "usage: update [${INSTALL_MODE}]" ;;
+    esac
+}
+
+main "$@"

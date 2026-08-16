@@ -1,10 +1,21 @@
 import QtQuick
+import Quickshell
 import qs.services
 
 BarPill {
     id: root
 
+    readonly property string updater:
+        `${Preferences.configHome}/hypr/scripts/update`
+
     visible: Updates.offered
+
+    MouseArea {
+        anchors.fill: parent
+        cursorShape: Qt.PointingHandCursor
+
+        onClicked: Quickshell.execDetached([root.updater])
+    }
 
     content: [
         PillText {

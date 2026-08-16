@@ -26,6 +26,8 @@ local terminals = {
       height = 0.90 },
     { class = "com.donquinleone.settings", width = 0.92,
       height = 0.92 },
+    { class = "com.donquinleone.update", width = 0.75,
+      height = 0.90 },
 }
 
 for _, pad in ipairs(scratchpads) do
