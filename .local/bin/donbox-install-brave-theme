@@ -11,6 +11,10 @@ readonly MODULE_DIR="${SHARE_DIR}/lib/theme.d"
 
 # shellcheck source=theme.d/common.sh
 source "${MODULE_DIR}/common.sh"
+# shellcheck source=theme.d/contrast.sh
+source "${MODULE_DIR}/contrast.sh"
+# shellcheck source=theme.d/accents.sh
+source "${MODULE_DIR}/accents.sh"
 # shellcheck source=theme.d/brave.sh
 source "${MODULE_DIR}/brave.sh"
 
@@ -32,6 +36,10 @@ claim_policy_directory() {
 
 main() {
     (($# == 0)) || die "usage: donbox install brave theme"
+    # Run as yourself. Only the one directory needs root, and
+    # under sudo the theme this reads would be root's.
+    ((EUID != 0)) ||
+        die "run this as yourself; it asks for root where it needs it"
     command -v "${BRAVE_COMMAND}" >/dev/null 2>&1 ||
         die "${BRAVE_COMMAND} is not installed"
     require_command sudo

@@ -73,6 +73,60 @@ readonly DEFERRED_APPLIERS=(
     apply_shell
 )
 
+# Rows for the chooser, built where the data is rather than by
+# reading this command's own listings back in and parsing them.
+rows_themes() {
+    local slug name accent
+    while read -r slug; do
+        name=$(jq -r '.name // ""' "${THEME_JSON_DIR}/${slug}.json")
+        accent=$(jq -r '.palette.accent // ""' \
+            "${THEME_JSON_DIR}/${slug}.json")
+        printf '%s\t%s\t%s\t%s\n' \
+            "${slug}" "${name:-${slug}}" "${accent}" "${slug}"
+    done < <(theme_slugs)
+}
+
+rows_accents() {
+    local name hex centis note
+    select_theme "$(active_slug)"
+    for name in "${ACCENT_ORDER[@]}"; do
+        hex="${ACCENTS[${name}]}"
+        centis=$(contrast_centis "${hex}" "${PALETTE[bg]}")
+        note=""
+        contrast_passes "${centis}" || note="${ACCENT_LOW_NOTE}"
+        printf '%s\t%s\t%s\t%s contrast%s\n' \
+            "${name}" "${name}" "${hex}" \
+            "$(contrast_text "${centis}")" "${note:+, ${note}}"
+    done
+}
+
+rows_wallpapers() {
+    local directory
+    directory="${WALLPAPER_ROOT}/$(active_slug)"
+    [[ -d "${directory}" ]] ||
+        die "no wallpaper directory ${directory}"
+    find "${directory}" -maxdepth 1 -type f | sort
+}
+
+declare -rA ROW_KINDS=(
+    [themes]=rows_themes
+    [accents]=rows_accents
+    [wallpapers]=rows_wallpapers
+)
+
+cmd_rows() {
+    (($# == 1)) || usage
+    local builder="${ROW_KINDS[$1]:-}"
+    [[ -n "${builder}" ]] || usage
+    "${builder}"
+}
+
+cmd_accent_name() {
+    (($# == 0)) || usage
+    select_theme "$(active_slug)"
+    printf '%s\n' "${ACCENT_NAME}"
+}
+
 declare -rA COMMANDS=(
     [list]=cmd_list
     [current]=cmd_current
@@ -80,6 +134,8 @@ declare -rA COMMANDS=(
     [accent]=cmd_accent
     [preview-accent]=cmd_preview_accent
     [wallpaper]=cmd_wallpaper
+    [rows]=cmd_rows
+    [accent-name]=cmd_accent_name
 )
 
 usage() {
@@ -90,6 +146,8 @@ usage: donbox theme list
        donbox theme accent [name]
        donbox theme preview-accent <name>
        donbox theme wallpaper [path]
+       donbox theme rows <themes|accents|wallpapers>
+       donbox theme accent-name
 EOF
     exit 1
 }

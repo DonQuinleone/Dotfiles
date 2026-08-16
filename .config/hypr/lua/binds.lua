@@ -27,7 +27,7 @@ local binds = {
     -- Shell
     { "SUPER",           "space",                 hl.dsp.exec_cmd("qs -c donbox ipc call launcher toggle") },
     { "SUPER + CTRL",    "b",                     hl.dsp.exec_cmd("qs -c donbox ipc call bar toggleFocused") },
-    { "SUPER + CTRL",    "c",                     hl.dsp.exec_cmd(donbox .. " menu settings")            },
+    { "SUPER + CTRL",    "c",                     hl.dsp.exec_cmd(donbox .. " menu session.settings")    },
 
     -- Notifications
     { "SUPER",           "n",                     hl.dsp.exec_cmd("qs -c donbox ipc call notifications toggleCentre") },
@@ -42,9 +42,9 @@ local binds = {
     { "SUPER + CTRL",    "v",                     hl.dsp.exec_cmd(donbox .. " menu clipboard")           },
 
     -- Appearance
-    { "SUPER + CTRL",    "t",                     hl.dsp.exec_cmd(donbox .. " menu theme")               },
-    { "SUPER + CTRL",    "a",                     hl.dsp.exec_cmd(donbox .. " menu theme accent")        },
-    { "SUPER + CTRL",    "w",                     hl.dsp.exec_cmd(donbox .. " menu wallpaper")           },
+    { "SUPER + CTRL",    "t",                     hl.dsp.exec_cmd(donbox .. " menu style.theme")         },
+    { "SUPER + CTRL",    "a",                     hl.dsp.exec_cmd(donbox .. " menu style.accent")        },
+    { "SUPER + CTRL",    "w",                     hl.dsp.exec_cmd(donbox .. " menu style.wallpaper")     },
 
     -- Windows
     { "SUPER + SHIFT",   "q",                     hl.dsp.window.close()                                  },

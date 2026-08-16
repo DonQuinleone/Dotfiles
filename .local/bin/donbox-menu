@@ -95,6 +95,51 @@ rows_for() {
     done
 }
 
+# A row's own value is what the template is missing, so {} is
+# where it goes, quoted, because a wallpaper is a path with
+# spaces in it.
+run_template() {
+    local template="$1" value="${2-}" quoted output
+    [[ -n "${template}" ]] || return 0
+    printf -v quoted '%q' "${value}"
+    output=$(bash -c "${template//\{\}/${quoted}}" 2>&1 >/dev/null) ||
+        true
+    [[ -z "${output}" ]] || notify "${output}"
+}
+
+notify() {
+    printf '%s\n' "$1" >&2
+    command -v notify-send >/dev/null 2>&1 || return 0
+    notify-send "donbox" "$1"
+}
+
+# Rows that only exist at the moment of asking: the themes on
+# disk, the accents a palette carries, the wallpapers beside it.
+# The flags come from the item too, since choosing a theme wants
+# a live preview and choosing a wallpaper wants a grid.
+open_provider() {
+    local id="$1" rows chosen current
+    local -a flags=()
+    rows=$(bash -c "$(field_of "${id}" provider)") ||
+        die "the rows for '${id}' could not be listed"
+    [[ -n "${rows}" ]] || die "nothing to choose under '${id}'"
+
+    current=$(bash -c "$(field_of "${id}" current)" 2>/dev/null) || true
+    [[ -z "${current}" ]] || flags+=(--current "${current}")
+    # Our own file, and the flags in it need words split the way
+    # a shell would split them.
+    eval "flags+=($(field_of "${id}" pickArgs))"
+
+    chosen=$(printf '%s\n' "${rows}" |
+        "${PICK}" --prompt "$(field_of "${id}" label)" \
+            "${flags[@]}") || {
+        run_template "$(field_of "${id}" cancelFor)" "${current}"
+        return 0
+    }
+    [[ -n "${chosen}" ]] || return 0
+    run_template "$(field_of "${id}" actionFor)" "${chosen}"
+}
+
 confirmed() {
     local answer
     answer=$(printf '%s\t%s\n%s\t%s\n' \
@@ -116,6 +161,10 @@ run_action() {
 open_menu() {
     local id="$1" rows chosen
     while :; do
+        [[ -z "$(field_of "${id}" provider)" ]] || {
+            open_provider "${id}"
+            return 0
+        }
         rows=$(rows_for "${id}")
         [[ -n "${rows}" ]] || die "nothing under '${id}'"
         chosen=$(printf '%s\n' "${rows}" |

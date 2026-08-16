@@ -21,6 +21,7 @@ readonly ANSWERS="${WORKSPACE}/answers"
 cat >"${WORKSPACE}/pick" <<PICK
 #!/usr/bin/env bash
 cat >>'${OFFERED}'
+[ -z "\${CANCELLING:-}" ] || exit 1
 head -n 1 '${ANSWERS}'
 sed -i 1d '${ANSWERS}'
 PICK
@@ -45,6 +46,14 @@ cat >"${TREE}" <<TREE_JSON
       "label": "Three",
       "checked": "true",
       "action": "echo three >>'${RAN}'"
+    },
+    "gamma": {
+      "label": "Gamma",
+      "provider": "printf 'one\\tOne\\n two\\tTwo\\n'",
+      "current": "printf 'two\\n'",
+      "pickArgs": "--grid",
+      "actionFor": "echo chose {} >>'${RAN}'",
+      "cancelFor": "echo cancelled {} >>'${RAN}'"
     },
     "beta": { "label": "Beta" },
     "beta.risky": {
@@ -73,7 +82,7 @@ answer ""
 menu >/dev/null || true
 
 assert_equal "the root lists the items with no dot in them" \
-    "$(offered_column 1 | tr '\n' ' ')" "alpha beta "
+    "$(offered_column 1 | tr '\n' ' ')" "alpha gamma beta "
 
 answer ""
 menu alpha >/dev/null || true
@@ -107,5 +116,22 @@ menu beta >/dev/null
 sleep 1
 assert_equal "the same row runs once it is confirmed" \
     "$(cat "${RAN}")" "risky"
+
+: >"${RAN}"
+answer "one"
+menu gamma >/dev/null
+sleep 1
+assert_equal "a provider's rows come from its command" \
+    "$(cut -f1 "${OFFERED}" | tr -d ' ' | tr '\n' ' ')" "one two "
+
+assert_equal "the chosen row fills the template" \
+    "$(cat "${RAN}")" "chose one"
+
+: >"${RAN}"
+answer ""
+CANCELLING=1 menu gamma >/dev/null || true
+sleep 1
+assert_equal "cancelling runs the template for what was current" \
+    "$(cat "${RAN}")" "cancelled two"
 
 assert_status "an unknown route is refused" 1 "${MENU}" nonesuch

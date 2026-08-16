@@ -6,11 +6,27 @@ readonly BRAVE_COMMAND=brave-origin
 
 # Chromium has no userChrome.css, so the browser is told its
 # colour the only way it accepts one from outside: an enterprise
-# policy. The scheme follows the desktop rather than the palette,
-# since the palette decides which desktop scheme is in force.
+# policy.
+#
+# The colour is the background, not the accent. Chromium paints
+# the whole frame with it and works the rest out from there, so
+# an accent turns the entire browser that colour rather than
+# accenting anything.
+#
+# The scheme is capitalised because the policy is an enum, and an
+# unrecognised value is not an error: it is ignored, which reads
+# as the theme silently refusing to go dark.
+brave_scheme() {
+    if theme_is_dark; then
+        printf 'Dark\n'
+        return
+    fi
+    printf 'Light\n'
+}
+
 write_brave_policy() {
-    jq -n --arg colour "${COLOURS[accent]}" \
-        --arg scheme "$(light_or_dark)" \
+    jq -n --arg colour "${COLOURS[bg]}" \
+        --arg scheme "$(brave_scheme)" \
         '{BrowserThemeColor: $colour, BrowserColorScheme: $scheme}' \
         >"${BRAVE_POLICY_FILE}"
 }
