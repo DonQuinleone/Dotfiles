@@ -98,20 +98,26 @@ not package it.
 The mail pad is signed in to Google and nothing else, so a link
 to anywhere else belongs in the browser. Firefox will not let an
 extension launch another program, and it ignores the preference
-that used to hand a scheme out, so `linkout` cancels the
-navigation and wraps the address in a `donbox:` scheme instead,
-which the browser passes to the desktop and `donbox open` routes
-from there. Firefox refuses an unsigned add-on, so it is signed
-against an addons.mozilla.org account and dropped into the pad's
-profile:
+that used to hand a scheme out, so `linkout` redirects the
+navigation to a page of its own, which lets go of the address
+wrapped in a `donbox:` scheme from a hidden frame. The desktop
+takes it from there and `donbox open` decides where it should
+have gone.
+
+Firefox refuses an add-on it cannot verify, and signing needs an
+account this repository does not carry, so the signed package
+ships in `.local/share/donbox/addons` and the pad installs it
+into its own profile on launch. A checkout is ready to use; only
+a change to the source needs the account again:
 
     npx web-ext sign --channel unlisted \
       --source-dir ~/.local/share/donbox/linkout \
       --api-key "$AMO_JWT_ISSUER" \
       --api-secret "$AMO_JWT_SECRET"
-    cp web-ext-artifacts/*.xpi \
-      ~/.config/mozilla/firefox/donbox-mail/extensions/\
-    linkout@donbox.invalid.xpi
+
+The suite checks the packed files against the source, so a file
+edited without re-signing fails there rather than being quietly
+installed over the version that was signed.
 
 Both scripts are idempotent, so re-running either after a pull is
 safe. `bootstrap.sh` restows the package and clears away links
