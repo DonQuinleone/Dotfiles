@@ -374,6 +374,15 @@ Unicode's own published list at
 carries no copy of it, and the clipboard history is `cliphist`,
 fed by a watcher the session starts.
 
+Wayland leaves a selection in the application that filled it, so
+closing that application empties the clipboard and nothing is
+announced: `wl-paste --watch` stays silent on a selection being
+cleared. Text therefore goes through `donbox clipboard keep`,
+which stores it and then takes the selection itself, so the copy
+outlives whatever made it. An image keeps its own owner, since
+only one flavour of a selection can be served back and a picture
+offers several.
+
 ## Web apps
 
 A page that earns a window of its own gets one:
@@ -393,6 +402,51 @@ own, `brave-<host>__-Default`, which is what a rule in
 Entries live in `~/.local/share/applications` and carry
 `X-Donbox-Webapp=true`, which is what `remove` goes by, so
 nothing else in that directory can be deleted by mistake.
+
+Where a page has to be signed in to, `donbox browser` is the
+other half of the same idea:
+
+    donbox browser mail https://mail.google.com/mail/u/0/
+
+That opens a Firefox window with the chrome hidden, under a
+profile named after the first argument, made on first use. It
+exists because Chromium's app windows suppress the popup Google
+opens to sign in, and because a browser already signed in to a
+service is worth reusing. Firefox has no application mode, so
+the chrome is taken away with a stylesheet in the profile, and
+`MOZ_APP_REMOTINGNAME` gives the window `donbox-<name>` as its
+application id, which is both what a rule matches and what keeps
+it out of the main browser.
+
+## Scratchpads
+
+Four workspaces sit over the desktop rather than beside it:
+
+| Pad | Key | Holds |
+| --- | --- | --- |
+| Terminal | `Super+D` | a shell |
+| Comms | `Super+C` | Slack, TeamSpeak |
+| Mail | `Super+E` | Gmail, Google Calendar |
+| Secrets | `Super+S` | 1Password, Yubico Authenticator |
+
+A pad is described in `hypr/lua/scratchpads.lua` as a list of
+panes, each naming the window class it expects, the command that
+starts it, and the share of the pad it takes. Opening one starts
+only the applications it is missing, so a pad can be opened while
+one of its programs is already running without a second copy
+appearing.
+
+The panes are tiled rather than placed, which is what lets the
+gaps, and the switch that turns them off, reach a pad as they
+reach anywhere else. The master layout keeps one share per
+workspace, so two thirds against one third belongs to the pad
+rather than to the session, and the first pane is moved into the
+master area so the wide side is always the same window.
+
+A window one of those applications opens, a link, a dialog, a
+sign-in, is work in its own right rather than part of the pad, so
+it is put on the workspace the pad is covering and the pad gets
+out of its way.
 
 ## Shortcuts
 

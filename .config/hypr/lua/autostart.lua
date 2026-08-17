@@ -15,8 +15,13 @@ local commands = {
     -- screen until something is clicked twice.
     "qs -n -c donbox",
     -- Records what is copied, so the clipboard picker has a
-    -- history to offer.
-    "wl-paste --watch cliphist store",
+    -- history to offer. Text goes through donbox, which also
+    -- takes the selection so that closing whatever was copied
+    -- from does not empty the clipboard; an image is left with
+    -- its own application, since only one flavour of a selection
+    -- can be served back and a picture has more than one.
+    "wl-paste --type text --watch " .. donbox .. " clipboard keep",
+    "wl-paste --type image --watch cliphist store",
     donbox .. " theme daemon",
     donbox .. " idle profile",
     donbox .. " nightshift daemon",
