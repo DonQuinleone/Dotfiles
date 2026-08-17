@@ -4,11 +4,6 @@ import qs.services
 PanelSurface {
     id: root
 
-    readonly property var facts: [
-        { title: "Machine", value: Vpn.netbirdName },
-        { title: "Address", value: Vpn.netbirdAddress }
-    ]
-
     PanelHeadline {
         width: parent.width
         text: Vpn.summary
@@ -17,38 +12,14 @@ PanelSurface {
             : (Theme.palette.fg ?? "white")
     }
 
-    QuickSection {
-        width: parent.width
-        visible: Vpn.netbirdPresent
-        title: "NetBird"
+    Repeater {
+        model: Vpn.daemons
 
-        PanelEmpty {
+        VpnDaemonSection {
+            required property var modelData
+
             width: parent.width
-            text: Vpn.netbirdUp
-                ? Vpn.peerWords
-                : `Daemon ${Vpn.netbirdState}`
-        }
-
-        Repeater {
-            model: Vpn.netbirdUp ? root.facts : []
-
-            NetworkFactRow {
-                required property var modelData
-
-                width: parent.width
-                title: this.modelData.title
-                value: this.modelData.value
-            }
-        }
-
-        QuickChip {
-            label: Vpn.netbirdUp ? "Disconnect" : "Connect"
-            selected: Vpn.netbirdUp
-            opacity: Vpn.netbirdBusy
-                ? (Theme.opacities.dim ?? 1)
-                : (Theme.opacities.full ?? 1)
-
-            onActivated: Vpn.setNetbird(!Vpn.netbirdUp)
+            daemon: this.modelData
         }
     }
 

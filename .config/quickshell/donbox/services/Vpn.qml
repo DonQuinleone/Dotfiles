@@ -9,8 +9,12 @@ Singleton {
 
     readonly property int refreshMs: 15000
     readonly property int tunnelColumns: 5
-    readonly property string daemonUpState: "Connected"
-    readonly property string netbirdLabel: "NetBird"
+
+    // NetworkManager carries the tunnels it dials itself. A
+    // daemon that brings up its own interface is asked directly,
+    // and each answers the same questions so the pane can draw
+    // them from one description.
+    readonly property var daemons: [VpnNetbird, VpnTailscale]
 
     readonly property var tunnelKinds: ["vpn", "wireguard"]
 
@@ -23,43 +27,29 @@ Singleton {
     readonly property string idleGlyph: "󰖂"
     readonly property string linkedGlyph: "󰦝"
 
-    property var report: null
     property var discovered: []
-    property string netbirdDevice: ""
+    property var daemonDevices: []
     property string busyUuid: ""
-    property bool netbirdBusy: false
 
     readonly property var tunnels:
         root.discovered.filter(entry => root.keeps(entry))
 
-    readonly property bool netbirdPresent: root.report !== null
+    readonly property var present:
+        root.daemons.filter(daemon => daemon.present)
 
-    readonly property bool netbirdUp:
-        root.report?.daemonStatus === root.daemonUpState
-
-    readonly property string netbirdState:
-        root.report?.daemonStatus ?? "Unavailable"
-
-    readonly property string netbirdName: root.report?.fqdn ?? ""
-
-    readonly property string netbirdAddress:
-        (root.report?.netbirdIp ?? "").split("/")[0]
-
-    readonly property int peersLinked:
-        root.report?.peers?.connected ?? 0
-    readonly property int peersKnown:
-        root.report?.peers?.total ?? 0
+    readonly property var linkedDaemons:
+        root.daemons.filter(daemon => daemon.up)
 
     readonly property var linked:
         root.tunnels.filter(entry => entry.active)
 
     readonly property int linkedCount:
-        root.linked.length + (root.netbirdUp ? 1 : 0)
+        root.linked.length + root.linkedDaemons.length
 
     readonly property bool connected: root.linkedCount > 0
 
     readonly property bool available:
-        root.netbirdPresent || root.tunnels.length > 0
+        root.present.length > 0 || root.tunnels.length > 0
 
     readonly property string glyph:
         root.connected ? root.linkedGlyph : root.idleGlyph
@@ -73,12 +63,15 @@ Singleton {
         if (root.linkedCount > 1) {
             return `${root.linkedCount} connections`;
         }
-        if (root.netbirdUp) return root.netbirdLabel;
+        if (root.linkedDaemons.length === 1) {
+            return root.linkedDaemons[0].label;
+        }
         return root.linked[0].name;
     }
 
-    readonly property string peerWords:
-        `${root.peersLinked} of ${root.peersKnown} peers reachable`
+    readonly property var daemonAddresses: root.daemons
+        .map(daemon => daemon.address)
+        .filter(address => address !== "")
 
     function tunnelFrom(columns: var): var {
         return {
@@ -90,23 +83,19 @@ Singleton {
         };
     }
 
+    // A daemon's own interface is a link NetworkManager also
+    // reports, so it is matched by the address the daemon claims
+    // rather than by a guessed interface name, and dropped from
+    // the tunnels it would otherwise duplicate.
     function keeps(entry: var): bool {
         if (!root.tunnelKinds.includes(entry.kind)) return false;
         if (entry.device === "") return true;
-        return entry.device !== root.netbirdDevice;
+        return !root.daemonDevices.includes(entry.device);
     }
 
     function statusOf(entry: var): string {
         if (entry.uuid === root.busyUuid) return "Working";
         return entry.active ? "Connected" : "Disconnected";
-    }
-
-    function absorbReport(payload: string): void {
-        try {
-            root.report = JSON.parse(payload);
-        } catch (error) {
-            root.report = null;
-        }
     }
 
     function absorbTunnels(payload: string): void {
@@ -115,42 +104,31 @@ Singleton {
             .map(columns => root.tunnelFrom(columns));
     }
 
-    // NetBird's own interface is a WireGuard link NetworkManager
-    // also reports, so it is matched by the address NetBird
-    // claims rather than by a guessed interface name.
     function absorbDevices(payload: string): void {
-        const wanted = root.netbirdAddress;
+        const wanted = root.daemonAddresses;
+        const found = [];
         for (const fields of NetworkCli.blocksIn(payload)) {
             const hosts = NetworkCli
                 .valuesUnder(fields, "IP4.ADDRESS")
                 .map(entry => entry.split("/")[0]);
-            if (!hosts.includes(wanted)) continue;
-            root.netbirdDevice =
-                NetworkCli.valueOf(fields, "GENERAL.DEVICE");
-            return;
+            if (!hosts.some(host => wanted.includes(host))) continue;
+            found.push(NetworkCli.valueOf(fields, "GENERAL.DEVICE"));
         }
-        root.netbirdDevice = "";
+        root.daemonDevices = found;
     }
 
     function refresh(): void {
-        if (!reporter.running) reporter.running = true;
+        for (const daemon of root.daemons) daemon.refresh();
         if (!lister.running) lister.running = true;
     }
 
-    function resolveDevice(): void {
-        if (root.netbirdAddress === "") {
-            root.netbirdDevice = "";
+    function resolveDevices(): void {
+        if (root.daemonAddresses.length === 0) {
+            root.daemonDevices = [];
             return;
         }
         if (deviceReader.running) return;
         deviceReader.running = true;
-    }
-
-    function setNetbird(wanted: bool): void {
-        if (root.netbirdBusy) return;
-        root.netbirdBusy = true;
-        netbirdSwitch.command = ["netbird", wanted ? "up" : "down"];
-        netbirdSwitch.running = true;
     }
 
     function setTunnel(entry: var, wanted: bool): void {
@@ -161,7 +139,7 @@ Singleton {
         tunnelSwitch.running = true;
     }
 
-    onNetbirdAddressChanged: root.resolveDevice()
+    onDaemonAddressesChanged: root.resolveDevices()
 
     Component.onCompleted: root.refresh()
 
@@ -171,16 +149,6 @@ Singleton {
         interval: root.refreshMs
 
         onTriggered: root.refresh()
-    }
-
-    Process {
-        id: reporter
-
-        command: ["netbird", "status", "--json"]
-
-        stdout: StdioCollector {
-            onStreamFinished: root.absorbReport(this.text)
-        }
     }
 
     Process {
@@ -202,18 +170,6 @@ Singleton {
 
         stdout: StdioCollector {
             onStreamFinished: root.absorbDevices(this.text)
-        }
-    }
-
-    Process {
-        id: netbirdSwitch
-
-        onExited: code => {
-            root.netbirdBusy = false;
-            root.refresh();
-            if (code !== 0) {
-                console.error("donbox: netbird refused that change");
-            }
         }
     }
 
