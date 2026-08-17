@@ -18,8 +18,6 @@ function actions.set_zoom_step(step)
     zoom_step = tonumber(step) or DEFAULT_ZOOM_STEP
 end
 
--- The desktop's own confirmations are worth a toast but not a
--- place in the history the user reviews later.
 local function notify(text)
     hl.exec_cmd(string.format(
         "%s --transient -a Hyprland -u low -t %d -- %q",

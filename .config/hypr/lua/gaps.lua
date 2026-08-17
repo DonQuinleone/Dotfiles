@@ -2,8 +2,6 @@ local actions = require("actions")
 
 local NO_GAP = 0
 
--- Held rather than hardcoded, so the gaps the theme and the
--- layout modules choose are what comes back.
 local saved = nil
 
 local gaps = {}

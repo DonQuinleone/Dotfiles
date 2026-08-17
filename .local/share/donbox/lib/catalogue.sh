@@ -50,8 +50,6 @@ catalogue_rows() {
     } | catalogue_display
 }
 
-# What the manifest claims, which is the only honest answer to
-# "what is mine to remove".
 catalogue_manifest_rows() {
     local kind name
     for kind in dnf flatpak; do

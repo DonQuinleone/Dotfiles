@@ -31,8 +31,6 @@ Singleton {
         return Qt.formatDateTime(root.takenAt, "HH:mm");
     }
 
-    // Named as NetworkThroughput names them, so one row can be
-    // pointed at either without knowing which it has.
     readonly property string downText: root.reading(root.down)
     readonly property string upText: root.reading(root.up)
 

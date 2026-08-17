@@ -109,9 +109,6 @@ local function windows_for(pane)
     return found
 end
 
--- Starting only what is missing is what lets a pad be opened
--- while one of its applications is already running without a
--- second copy of it appearing beside the first.
 local function start_missing(pad)
     for _, pane in ipairs(pad.panes) do
         if #windows_for(pane) == 0 then

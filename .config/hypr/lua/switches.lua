@@ -10,10 +10,6 @@ for _, switch in ipairs(switches) do
         { locked = true })
 end
 
--- Plugging a monitor in or out decides between the docked and
--- travelling idle profiles, which saved layout to apply, where
--- stray workspaces need to move, and whether the lid switch is
--- still allowed to suspend the machine.
 local idle_profile = donbox .. " idle profile"
 local monitor_profile = donbox .. " monitor profile"
 local lid = donbox .. " lid"

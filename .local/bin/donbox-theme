@@ -79,8 +79,6 @@ readonly DEFERRED_APPLIERS=(
     apply_shell
 )
 
-# Rows for the chooser, built where the data is rather than by
-# reading this command's own listings back in and parsing them.
 rows_themes() {
     local slug name accent
     while read -r slug; do

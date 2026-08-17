@@ -17,12 +17,8 @@ readonly BTOP_LIFT_SHADE=30
 
 readonly -a BTOP_RAMP_STOPS=(start mid end)
 
-# Meters that answer "how bad is it", which read as one ramp from
-# healthy to alarming.
 readonly -a BTOP_LOAD_RAMPS=(temp cpu used process)
 
-# Meters that only measure one quantity, which each take a single
-# palette hue faded in from the background and lifted past it.
 readonly -a BTOP_HUE_RAMPS=(
     "free:good"
     "available:warn"
