@@ -144,6 +144,13 @@
       "application/rdf+xml",
       "application/rss+xml"
     ],
+    "donbox-mail.desktop": [
+      "x-scheme-handler/mailto"
+    ],
+    "donbox-calendar.desktop": [
+      "x-scheme-handler/webcal",
+      "x-scheme-handler/webcals"
+    ],
     "org.pwmt.zathura.desktop": [
       "application/pdf",
       "application/oxps",

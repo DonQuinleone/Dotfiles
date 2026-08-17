@@ -74,7 +74,10 @@ removed, so neither can drift from the other.
 File associations are stated rather than left to whichever
 package registered last, because a browser claims far more than
 browsing on the way in. Pages go to Firefox, documents to
-Zathura, images to imv and anything that plays to mpv. 1Password
+Zathura, images to imv and anything that plays to mpv, while a
+`mailto:` opens a compose window and a `webcal:` a subscription
+in the mail pad rather than in a mail client that is not
+installed. 1Password
 comes from its own repository rather than Flathub for a related
 reason: flatpak hands a sandboxed application a filtered Wayland
 socket with the clipboard protocols withheld, and its copy

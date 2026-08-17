@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Calendar
+Comment=Subscribe in the calendar pad
+Exec=donbox browser mail https://calendar.google.com/calendar/r?cid=%u
+Terminal=false
+NoDisplay=true
+Categories=Office;Calendar;
+MimeType=x-scheme-handler/webcal;x-scheme-handler/webcals;
