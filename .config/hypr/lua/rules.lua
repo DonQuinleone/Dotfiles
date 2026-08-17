@@ -1,56 +1,18 @@
-local scratchpads = require("scratchpads")
-
 -- Centring measures the whole monitor rather than the area the
 -- panel leaves free, so a tall window would slide underneath
 -- it. Sizing against the free height keeps the window clear of
 -- the panel while staying centred.
 local PANEL_HEIGHT = 48
-local PANE_GAP = 6
-
--- Hyprland sizes and places a window from expressions over the
--- monitor it lands on, so a measure is a fraction of one of its
--- dimensions plus the pixels the gaps and the panel take out of
--- it.
-local function measure(axis, fraction, pixels)
-    return string.format("(monitor_%s*%.6f%+.1f)",
-        axis, fraction, pixels)
-end
 
 local function float_centred(class, width, height)
     hl.window_rule({
         match = { class = class },
         float = true,
         size = {
-            measure("w", width, 0),
-            measure("h", height, -PANEL_HEIGHT * height),
+            "(monitor_w*" .. width .. ")",
+            "((monitor_h-" .. PANEL_HEIGHT .. ")*" .. height .. ")",
         },
         center = true,
-    })
-end
-
--- Panes are placed rather than centred: each one starts where
--- the shares before it end, and every gap between them pushes
--- the rest along.
-local function place_pane(pad, index, before)
-    local pane = pad.panes[index]
-    local gaps = (#pad.panes - 1) * PANE_GAP
-    hl.window_rule({
-        match = { class = pane.class },
-        workspace = scratchpads.workspace_of(pad) .. " silent",
-        float = true,
-        size = {
-            measure("w", pad.width * pane.share,
-                -gaps * pane.share),
-            measure("h", pad.height,
-                -PANEL_HEIGHT * pad.height),
-        },
-        move = {
-            measure("w",
-                (1 - pad.width) / 2 + pad.width * before,
-                (index - 1) * PANE_GAP - gaps * before),
-            measure("h", (1 - pad.height) / 2,
-                PANEL_HEIGHT * pad.height / 2),
-        },
     })
 end
 
@@ -67,14 +29,6 @@ local terminals = {
     { class = "com.donquinleone.packages", width = 0.80,
       height = 0.88 },
 }
-
-for _, pad in ipairs(scratchpads.pads) do
-    local before = 0
-    for index, pane in ipairs(pad.panes) do
-        place_pane(pad, index, before)
-        before = before + pane.share
-    end
-end
 
 for _, terminal in ipairs(terminals) do
     float_centred(terminal.class, terminal.width, terminal.height)

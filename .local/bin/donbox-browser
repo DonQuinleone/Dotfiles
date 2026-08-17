@@ -1,0 +1,119 @@
+#!/usr/bin/env bash
+# donbox:summary=Open a page as a window with no browser around it
+# donbox:args=<name> <url>
+set -euo pipefail
+
+readonly CONFIG_HOME="${XDG_CONFIG_HOME:-${HOME}/.config}"
+readonly PROFILE_ROOT="${CONFIG_HOME}/mozilla/firefox"
+readonly PROFILE_INDEX="profiles.ini"
+readonly PROFILE_PREFIX=donbox-
+readonly BROWSER=firefox
+
+readonly CHROME_DIR=chrome
+readonly CHROME_SHEET=userChrome.css
+readonly BARE_SHEET=donbox-bare.css
+readonly USER_PREFS=user.js
+
+die() {
+    printf 'donbox browser: %s\n' "$*" >&2
+    exit 1
+}
+
+usage() {
+    cat >&2 <<'EOF'
+usage: donbox browser <name> <url>
+
+Opens the URL in a window of its own with no browser chrome,
+under a profile named after <name>. The profile is made on first
+use and the window reports donbox-<name> as its application id,
+which is what a window rule can be written against.
+EOF
+    exit 1
+}
+
+require_command() {
+    command -v "$1" >/dev/null 2>&1 ||
+        die "$1 is not installed but is required"
+}
+
+profile_named() {
+    grep -qx "Name=$1" "${PROFILE_ROOT}/${PROFILE_INDEX}" \
+        2>/dev/null
+}
+
+# Firefox writes the profile into its own index, so it is asked
+# to make one rather than the index being edited here.
+create_profile() {
+    local profile="$1"
+    "${BROWSER}" -CreateProfile \
+        "${profile} ${PROFILE_ROOT}/${profile}" >/dev/null 2>&1 ||
+        die "could not create the ${profile} profile"
+}
+
+# A fresh profile opens its privacy notice and its what's-new
+# page ahead of anything asked for, and both have to be turned
+# off by name.
+write_prefs() {
+    cat >"$1/${USER_PREFS}" <<'EOF'
+user_pref("toolkit.legacyUserProfileCustomizations.stylesheets", true);
+user_pref("datareporting.policy.firstRunURL", "");
+user_pref("browser.startup.homepage_override.mstone", "ignore");
+user_pref("browser.aboutwelcome.enabled", false);
+user_pref("browser.shell.checkDefaultBrowser", false);
+user_pref("browser.tabs.warnOnClose", false);
+EOF
+}
+
+# Firefox has no application mode, so the chrome is taken away
+# with a stylesheet instead. It goes in a sheet of its own and is
+# imported, because the theme writes to userChrome.css too.
+write_bare_sheet() {
+    local chrome="$1/${CHROME_DIR}"
+    mkdir -p "${chrome}"
+    cat >"${chrome}/${BARE_SHEET}" <<'EOF'
+#navigator-toolbox {
+    visibility: collapse !important;
+}
+EOF
+    prepend_import "${chrome}/${CHROME_SHEET}"
+}
+
+prepend_import() {
+    local sheet="$1" line temporary
+    line="@import url(\"${BARE_SHEET}\");"
+    temporary=$(mktemp "${sheet}.XXXXXX")
+    printf '%s\n' "${line}" >"${temporary}"
+    if [[ -f "${sheet}" ]]; then
+        grep -vxF "${line}" "${sheet}" >>"${temporary}" || true
+    fi
+    mv "${temporary}" "${sheet}"
+}
+
+# Safe to run again: an existing profile keeps whatever is signed
+# in to it and only has its own settings rewritten.
+ensure_profile() {
+    local profile="$1" directory="${PROFILE_ROOT}/$1"
+    profile_named "${profile}" || create_profile "${profile}"
+    [[ -d "${directory}" ]] ||
+        die "no profile directory at ${directory}"
+    write_prefs "${directory}"
+    write_bare_sheet "${directory}"
+}
+
+# The remoting name is both the application id Firefox reports to
+# Wayland and the instance other launches look for, so the first
+# call starts the browser and the second opens a second window in
+# it rather than colliding over a locked profile.
+main() {
+    (($# == 2)) || usage
+    require_command "${BROWSER}"
+
+    local profile="${PROFILE_PREFIX}$1" url="$2"
+    [[ "${url}" == *://* ]] || die "not a URL: ${url}"
+
+    ensure_profile "${profile}"
+    exec env MOZ_APP_REMOTINGNAME="${profile}" \
+        "${BROWSER}" -P "${profile}" --new-window "${url}"
+}
+
+main "$@"

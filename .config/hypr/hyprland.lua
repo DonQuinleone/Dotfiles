@@ -9,6 +9,7 @@ local modules = {
     "input",
     "look",
     "workspaces",
+    "scratchpads",
     "rules",
     "binds",
     "switches",

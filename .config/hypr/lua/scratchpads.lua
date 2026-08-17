@@ -1,18 +1,19 @@
--- A pad is a floating panel over the desktop, and its panes
--- divide that panel's width in the order they are written.
--- Shares are of the panel rather than of the screen, and a pane
--- with no command of its own is given a terminal.
+local donbox = os.getenv("HOME") .. "/.local/bin/donbox"
+
+local ARRANGE_DELAY_MS = 200
+
+-- A pad is a workspace of its own laid over the desktop, and its
+-- panes divide it in the order they are written. They are tiled
+-- rather than each one placed, so the gaps, and the switch that
+-- turns them off, reach a pad as they reach anywhere else.
 --
 -- A class is matched whole, so a name that is not the entire
--- application id matches nothing and says nothing about it.
--- Brave builds a web app's id out of its URL, which is why the
--- two sit next to each other here: neither can be changed
--- alone.
+-- application id matches nothing and says nothing about it. Two
+-- panes may share a class, as the mail pad's windows do, and
+-- then a word from the title tells them apart.
 local pads = {
     {
-        name   = "term",
-        width  = 0.80,
-        height = 0.82,
+        name = "term",
         panes = {
             {
                 class = "com.donquinleone.scratchterm",
@@ -21,9 +22,7 @@ local pads = {
         },
     },
     {
-        name   = "comms",
-        width  = 0.96,
-        height = 0.94,
+        name = "comms",
         panes = {
             {
                 class   = "com.slack.Slack",
@@ -38,30 +37,26 @@ local pads = {
         },
     },
     {
-        name   = "mail",
-        width  = 0.96,
-        height = 0.94,
+        name = "mail",
         panes = {
             {
-                class   = "brave-mail.google.com"
-                    .. "__mail_u_0_-Default",
-                command = "brave-origin --app="
-                    .. "https://mail.google.com/mail/u/0/",
+                class   = "donbox-mail",
+                title   = "Gmail",
+                command = donbox .. " browser mail"
+                    .. " https://mail.google.com/mail/u/0/",
                 share   = 2 / 3,
             },
             {
-                class   = "brave-calendar.google.com"
-                    .. "__calendar_u_0_r-Default",
-                command = "brave-origin --app="
-                    .. "https://calendar.google.com/calendar/u/0/r",
+                class   = "donbox-mail",
+                title   = "Calendar",
+                command = donbox .. " browser mail"
+                    .. " https://calendar.google.com/calendar/u/0/r",
                 share   = 1 / 3,
             },
         },
     },
     {
-        name   = "secrets",
-        width  = 0.96,
-        height = 0.94,
+        name = "secrets",
         panes = {
             {
                 class   = "1password",
@@ -78,6 +73,10 @@ local pads = {
     },
 }
 
+local function workspace_of(pad)
+    return "special:" .. pad.name
+end
+
 -- Ghostty only honours --class when it is a valid GTK
 -- application id and it is not folding into a running instance.
 local function command_for(pane)
@@ -88,29 +87,166 @@ local function command_for(pane)
         .. pane.class
 end
 
+-- The title is matched as plain text rather than as a pattern,
+-- since a page chooses its own and a pattern would read
+-- punctuation in it as syntax.
+local function windows_for(pane)
+    local found = {}
+    for _, window in ipairs(hl.get_windows({ class = pane.class })) do
+        if pane.title == nil
+            or window.title:find(pane.title, 1, true) then
+            table.insert(found, window)
+        end
+    end
+    return found
+end
+
 -- Starting only what is missing is what lets a pad be opened
 -- while one of its applications is already running without a
 -- second copy of it appearing beside the first.
 local function start_missing(pad)
     for _, pane in ipairs(pad.panes) do
-        if #hl.get_windows({ class = pane.class }) == 0 then
+        if #windows_for(pane) == 0 then
             hl.exec_cmd(command_for(pane))
         end
     end
 end
 
+-- A shown pad does not become the active workspace: the one it
+-- covers stays active and the monitor carries the pad alongside
+-- it, so asking for the active workspace answers about the wrong
+-- one.
+local function shown_special()
+    local monitor = hl.get_active_monitor()
+    if monitor == nil then
+        return nil
+    end
+    local special = monitor.active_special_workspace
+    if special == nil or special == false then
+        return nil
+    end
+    return special
+end
+
+local function showing(pad)
+    local special = shown_special()
+    return special ~= nil and special.name == workspace_of(pad)
+end
+
+-- The master layout keeps one share per workspace, so the split
+-- belongs to the pad rather than to the whole session, and the
+-- first pane is moved into the master position so the wide side
+-- is always the same window. A layout message lands on whichever
+-- workspace is focused, which is why none is sent unless the pad
+-- is the one on screen.
+-- Which window holds the master area is read from where it sits
+-- rather than asked for after a dispatch, since a focus sent and
+-- a focus answered for are not the same moment.
+local function master_window(pad)
+    local best
+    for _, window in
+        ipairs(hl.get_workspace_windows(workspace_of(pad))) do
+        if not window.floating
+            and (best == nil or window.at.x < best.at.x) then
+            best = window
+        end
+    end
+    return best
+end
+
+local function arrange(pad)
+    if #pad.panes < 2 or not showing(pad) then
+        return
+    end
+    local first = windows_for(pad.panes[1])[1]
+    local master = master_window(pad)
+    if first == nil or master == nil then
+        return
+    end
+    -- Focusing into the pad is what puts the messages that
+    -- follow on its workspace rather than on the one behind it.
+    hl.dispatch(hl.dsp.focus({
+        window = "address:" .. first.address,
+    }))
+    if master.address ~= first.address then
+        hl.dispatch(hl.dsp.layout("swapwithmaster"))
+    end
+    hl.dispatch(hl.dsp.layout(string.format(
+        "mfact exact %.4f", pad.panes[1].share)))
+end
+
+local function pad_on_screen()
+    local special = shown_special()
+    if special == nil then
+        return nil
+    end
+    for _, pad in ipairs(pads) do
+        if special.name == workspace_of(pad) then
+            return pad
+        end
+    end
+    return nil
+end
+
+local function pad_owns(pad, window)
+    for _, pane in ipairs(pad.panes) do
+        if pane.class == window.class then
+            return true
+        end
+    end
+    return false
+end
+
+-- A window one of a pad's applications opens, a link, a dialog,
+-- a sign-in, is work in its own right rather than part of the
+-- pad, so it is put on the workspace the pad is covering and the
+-- pad gets out of its way.
+local function on_window_open(window)
+    local pad = pad_on_screen()
+    if pad == nil or window == nil then
+        return
+    end
+    if pad_owns(pad, window) then
+        arrange(pad)
+        return
+    end
+    local monitor = hl.get_active_monitor()
+    local behind = monitor ~= nil and monitor.active_workspace
+    if behind then
+        hl.dispatch(hl.dsp.window.move({
+            window = "address:" .. window.address,
+            workspace = behind.name,
+        }))
+    end
+    hl.dispatch(hl.dsp.workspace.toggle_special(pad.name))
+end
+
+for _, pad in ipairs(pads) do
+    hl.workspace_rule({
+        workspace = workspace_of(pad),
+        layout = "master",
+    })
+    for _, pane in ipairs(pad.panes) do
+        hl.window_rule({
+            match = { class = pane.class },
+            workspace = workspace_of(pad) .. " silent",
+        })
+    end
+end
+
+hl.on("window.open", on_window_open)
+
 local scratchpads = {}
 
 scratchpads.pads = pads
-
-function scratchpads.workspace_of(pad)
-    return "special:" .. pad.name
-end
 
 function scratchpads.toggle(pad)
     return function()
         start_missing(pad)
         hl.dispatch(hl.dsp.workspace.toggle_special(pad.name))
+        hl.timer(function()
+            arrange(pad)
+        end, { timeout = ARRANGE_DELAY_MS, type = "oneshot" })
     end
 end
 
