@@ -58,6 +58,14 @@ repo_names() {
     jq -r '.repos | keys[]' "${MANIFEST}"
 }
 
+default_apps() {
+    jq -r '.defaults | keys[]' "${MANIFEST}"
+}
+
+default_types() {
+    jq -r --arg app "$1" '.defaults[$app][]' "${MANIFEST}"
+}
+
 # Rendered rather than stored as a file, so the expiry every repo
 # needs is stated once here instead of in each of them.
 repo_render() {

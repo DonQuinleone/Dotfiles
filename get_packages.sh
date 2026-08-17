@@ -88,6 +88,22 @@ install_flatpaks() {
     sudo flatpak install -y flathub "${missing[@]}"
 }
 
+# Brave and Rhythmbox both claim types they are not wanted for
+# the moment they are installed, so the association is stated
+# here rather than left to whichever package registered last.
+set_defaults() {
+    local app type changed=0
+    while read -r app; do
+        while read -r type; do
+            [ "$(xdg-mime query default "$type")" = "$app" ] &&
+                continue
+            xdg-mime default "$app" "$type"
+            changed=$((changed + 1))
+        done < <(default_types "$app")
+    done < <(default_apps)
+    say "pointed $changed types at their application"
+}
+
 install_nerd_font() {
     [ -f "$FONT_STAMP" ] && return 0
     say "installing JetBrains Mono Nerd Font $NERD_FONT_TAG"
@@ -122,6 +138,7 @@ install_repos
 enable_coprs
 install_packages
 install_flatpaks
+set_defaults
 install_nerd_font
 write_qt6ct_config
 

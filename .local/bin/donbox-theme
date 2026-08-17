@@ -45,6 +45,10 @@ source "${MODULE_DIR}/fastfetch.sh"
 source "${MODULE_DIR}/btop.sh"
 # shellcheck source=theme.d/lsd.sh
 source "${MODULE_DIR}/lsd.sh"
+# shellcheck source=theme.d/zathura.sh
+source "${MODULE_DIR}/zathura.sh"
+# shellcheck source=theme.d/imv.sh
+source "${MODULE_DIR}/imv.sh"
 # shellcheck source=theme.d/shell.sh
 source "${MODULE_DIR}/shell.sh"
 
@@ -67,6 +71,8 @@ readonly DEFERRED_APPLIERS=(
     apply_fastfetch
     apply_btop
     apply_lsd
+    apply_zathura
+    apply_imv
     apply_shell
 )
 

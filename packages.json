@@ -73,6 +73,7 @@
     "hyprsunset",
     "ibm-plex-sans-fonts",
     "iio-sensor-proxy",
+    "imv",
     "inotify-tools",
     "jetbrains-mono-fonts-all",
     "jq",
@@ -123,10 +124,75 @@
     "wiremix",
     "wireshark",
     "wl-clipboard",
-    "xdg-desktop-portal-hyprland"
+    "xdg-desktop-portal-hyprland",
+    "zathura",
+    "zathura-pdf-mupdf"
   ],
   "flatpak": [
     "com.slack.Slack",
     "com.yubico.yubioath"
-  ]
+  ],
+  "defaults": {
+    "org.mozilla.firefox.desktop": [
+      "x-scheme-handler/http",
+      "x-scheme-handler/https",
+      "text/html",
+      "application/xhtml+xml",
+      "application/xhtml_xml",
+      "application/xml",
+      "text/xml",
+      "application/rdf+xml",
+      "application/rss+xml"
+    ],
+    "org.pwmt.zathura.desktop": [
+      "application/pdf",
+      "application/oxps",
+      "application/epub+zip",
+      "application/x-fictionbook",
+      "application/x-mobipocket-ebook"
+    ],
+    "imv.desktop": [
+      "image/png",
+      "image/x-png",
+      "image/jpeg",
+      "image/jpg",
+      "image/pjpeg",
+      "image/gif",
+      "image/bmp",
+      "image/x-bmp",
+      "image/tiff",
+      "image/tiff-fx",
+      "image/webp",
+      "image/avif",
+      "image/heif",
+      "image/jxl",
+      "image/qoi",
+      "image/x-farbfeld",
+      "image/svg+xml"
+    ],
+    "mpv.desktop": [
+      "audio/aac",
+      "audio/flac",
+      "audio/mp4",
+      "audio/mpeg",
+      "audio/ogg",
+      "audio/opus",
+      "audio/wav",
+      "audio/webm",
+      "audio/x-m4a",
+      "audio/x-matroska",
+      "audio/x-ms-wma",
+      "audio/x-vorbis+ogg",
+      "audio/x-wav",
+      "video/3gpp",
+      "video/mp4",
+      "video/mpeg",
+      "video/ogg",
+      "video/quicktime",
+      "video/webm",
+      "video/x-flv",
+      "video/x-matroska",
+      "video/x-msvideo"
+    ]
+  }
 }
