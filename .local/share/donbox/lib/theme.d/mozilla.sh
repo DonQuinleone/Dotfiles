@@ -16,7 +16,6 @@ readonly MOZILLA_LOADER_STAMP="${STATE_DIR}/mozilla-loader"
 
 declare -rA MOZILLA_INSTALL_ROOTS=(
     [firefox]="/usr/lib64/firefox /usr/lib/firefox"
-    [thunderbird]="/usr/lib64/thunderbird /usr/lib/thunderbird"
 )
 
 mozilla_apps() {

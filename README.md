@@ -71,8 +71,8 @@ to run unless the repo sits directly in `$HOME`, since the
 symlinks are relative to that position.
 
 One optional step, and the only one needing root: installing the
-Mozilla theme loader, without which Firefox and Thunderbird pick
-up a theme change at their next launch rather than immediately.
+Mozilla theme loader, without which Firefox picks up a theme
+change at its next launch rather than immediately.
 
     donbox install mozilla theme
 
@@ -510,10 +510,10 @@ Rosé Pine Dawn.
 A theme is one JSON file carrying palette, fonts, sizes, radii,
 spacing, opacities and animation timings. Applying it regenerates
 Hyprland's colours, the shell, Ghostty, GTK 3 and 4, Qt, the bash
-and fish prompts, Neovim, btop, lsd, fastfetch, TeamSpeak,
-Firefox and Thunderbird from that single source. Most surfaces
-update live; Qt applications read their palette at launch, and
-TeamSpeak needs its style selected once.
+and fish prompts, Neovim, btop, lsd, fastfetch, TeamSpeak and
+Firefox from that single source. Most surfaces update live; Qt
+applications read their palette at launch, and TeamSpeak needs
+its style selected once.
 
 The terminal tools take the palette at full depth rather than
 rounded to a 256-colour index: lsd reads crossterm colours, which
@@ -567,31 +567,23 @@ that out portably, so `gpg-agent-ssh-socket.service` asks
 to the session; the shells ask the same question themselves, and
 both set `GNUPGHOME` before they do.
 
-`~/.mozilla` came back after every deletion. Fedora's Firefox and
-Thunderbird launchers both `mkdir -p` an extensions directory
-under it to hang langpack symlinks off, before either program
-starts, and Firefox then prefers that directory over the XDG one
-its profile already lives in. `MOZ_DISABLE_LANGPACKS=1` skips
-that block in both launchers. The profile itself is untouched at
-`$XDG_CONFIG_HOME/mozilla/firefox`.
+`~/.mozilla` came back after every deletion. Fedora's Firefox
+launcher `mkdir -p`s an extensions directory under it to hang
+langpack symlinks off, before the program starts, and Firefox
+then prefers that directory over the XDG one its profile already
+lives in. `MOZ_DISABLE_LANGPACKS=1` skips that block. The profile
+itself is untouched at `$XDG_CONFIG_HOME/mozilla/firefox`.
 
-Three directories stay where they are, each checked rather than
+Two directories stay where they are, each checked rather than
 assumed:
 
 | Directory | Why it cannot move |
 | --- | --- |
 | `~/.pki` | the path is compiled in |
-| `~/.thunderbird` | the XDG patch is Firefox-only |
 | `~/.var` | flatpak hardcodes it |
 
 NSS carries `/.pki/nssdb` as a literal inside
-`libnsssysinit.so`, so no variable reaches it. Thunderbird writes
-`~/.thunderbird/profiles.ini` even when `$XDG_CONFIG_HOME` and a
-`thunderbird` directory inside it both already exist, which a run
-against a throwaway home confirms. Its profile can be pointed
-somewhere else through an absolute `Path` in `profiles.ini`, but
-that moves the mail without removing the directory, so it buys
-nothing here.
+`libnsssysinit.so`, so no variable reaches it.
 
 `.var/app` is a literal in both `flatpak` and `libflatpak`, and
 `FLATPAK_USER_DIR` is no help: it moves the installation, which
@@ -696,9 +688,9 @@ always there.
 
 ## Known rough edges
 
-Firefox and Thunderbird only restyle live once the Mozilla loader
-is installed, and an application update removes it. The theme
-module notices and says so.
+Firefox only restyles live once the Mozilla loader is installed,
+and an application update removes it. The theme module notices
+and says so.
 
 Dark Reader follows the desktop, but has to be told to once.
 Applying a theme sets `org.gnome.desktop.interface color-scheme`

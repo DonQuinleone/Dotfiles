@@ -46,6 +46,7 @@
     "fish",
     "flatpak",
     "fprintd-pam",
+    "fzf",
     "gcr3",
     "ghostty",
     "git",
@@ -89,11 +90,11 @@
     "pinentry-gnome3",
     "pipx",
     "playerctl",
-    "qt6ct",
     "qt6-qtimageformats",
     "qt6-qtmultimedia",
     "qt6-qtshadertools",
     "qt6-qtsvg",
+    "qt6ct",
     "quickshell-git",
     "rbw",
     "rpm-build",
@@ -102,10 +103,10 @@
     "stow",
     "switcheroo-control",
     "system-config-printer",
+    "tailscale",
     "telnet",
     "terminus-fonts-console",
     "thefuck",
-    "thunderbird",
     "tldr",
     "tree",
     "tuigreet",
@@ -116,6 +117,7 @@
     "xdg-desktop-portal-hyprland"
   ],
   "flatpak": [
+    "com.onepassword.OnePassword",
     "com.slack.Slack",
     "com.yubico.yubioath"
   ]
