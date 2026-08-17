@@ -60,8 +60,7 @@ local pads = {
         panes = {
             {
                 class   = "1password",
-                command = "flatpak run "
-                    .. "com.onepassword.OnePassword",
+                command = "1password",
                 share   = 2 / 3,
             },
             {

@@ -125,8 +125,18 @@ and a shell.
 | --- | --- |
 | `hyprland`, `hypridle`, portal | COPR `lionheartp/Hyprland` |
 | `quickshell-git` | COPR `errornointernet/quickshell` |
-| Slack, 1Password, Yubico Authenticator | Flathub |
+| Slack, Yubico Authenticator | Flathub |
+| `1password` | 1Password stable channel |
 | JetBrains Mono Nerd Font | upstream release, pinned |
+
+1Password comes from its own repository rather than Flathub
+because a sandboxed copy cannot reach the clipboard. Flatpak
+hands an application a filtered Wayland socket that withholds the
+data-control protocols, and 1Password reads and writes the
+selection through them, so its copy buttons fail with nothing to
+fall back on. The native package also brings back system
+authentication and the SSH agent, neither of which the flatpak
+carries.
 
 Everything installed is named in `packages.json`: the
 repositories, the COPRs, the packages and the flatpaks.
