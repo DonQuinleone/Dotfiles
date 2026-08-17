@@ -41,11 +41,21 @@ case \" \$* \" in *' fails '*) exit 1 ;; esac"
 # commit.
 stub git "printf 'git %s\n' \"\$*\" >>'${CALLS}'
 case \" \$* \" in *' diff '*) exit 1 ;; esac"
-stub pick "cat >/dev/null; printf 'ripgrep\n'"
+# shellcheck disable=SC2016
+stub fzf 'query=""
+for arg in "$@"; do
+    case "${arg}" in --query=*) query="${arg#--query=}" ;; esac
+done
+if [ -n "${query}" ]; then
+    chosen=$(grep -- "${query}" || true)
+else
+    chosen=$(head -n 1)
+fi
+[ -n "${chosen}" ] || exit 1
+printf "%s\n" "${chosen}"'
 
 export PATH="${WORKSPACE}:${PATH}"
 export DONBOX_MANIFEST="${MANIFEST}"
-export DONBOX_PICK="${WORKSPACE}/pick"
 export DONBOX_PKG_WINDOW=1
 
 pkg() {
@@ -65,7 +75,7 @@ assert_equal "list answers for flatpaks too" \
 assert_status "list refuses a kind that is not in the manifest" \
     1 pkg list nonesuch
 
-pkg add fd-find >/dev/null
+pkg add dnf fd-find >/dev/null
 
 assert_equal "add installs through the package manager" \
     "$(grep -c '^dnf install fd-find$' "${CALLS}")" "1"
@@ -76,11 +86,11 @@ assert_equal "add records what it installed" \
 assert_equal "add commits the manifest on its own path" \
     "$(grep -c 'commit .* packaging: add fd-find' "${CALLS}")" "1"
 
-pkg add btop >/dev/null
+pkg add dnf btop >/dev/null
 assert_equal "adding what is already listed does not list it twice" \
     "$(listed dnf | grep -c '^btop$')" "1"
 
-pkg add --flatpak com.example.Other >/dev/null
+pkg add flatpak com.example.Other >/dev/null
 assert_equal "the flatpak kind goes to the right manager" \
     "$(grep -c 'flatpak install -y flathub com.example.Other' "${CALLS}")" "1"
 
@@ -90,7 +100,7 @@ assert_equal "a flatpak is recorded as a flatpak" \
 # A manager that fails must leave the manifest alone, or the
 # next machine built from it installs something that never
 # worked here.
-pkg add fails >/dev/null || true
+pkg add dnf fails >/dev/null || true
 assert_equal "a failed transaction changes nothing" \
     "$(listed dnf | grep -c '^fails$' || true)" "0"
 
@@ -104,7 +114,7 @@ assert_equal "remove commits too" \
 : >"${CALLS}"
 pkg remove >/dev/null
 assert_equal "remove without a name asks the chooser" \
-    "$(grep -c '^dnf remove ripgrep$' "${CALLS}")" "1"
+    "$(grep -c '^dnf remove btop$' "${CALLS}")" "1"
 
 # The query is what a search is made of, so nothing matches
 # until this says otherwise.
