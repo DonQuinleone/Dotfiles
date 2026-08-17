@@ -95,3 +95,11 @@ menupopup > menu[_moz-menuactive]:not([disabled]) {
     background-color: @accent@ !important;
     color: @onAccent@ !important;
 }
+
+/* Firefox draws its own close, minimise and maximise into the
+   tab strip, which the compositor already answers for from the
+   keyboard. */
+.titlebar-buttonbox-container,
+.titlebar-spacer[type="post-tabs"] {
+    display: none !important;
+}
