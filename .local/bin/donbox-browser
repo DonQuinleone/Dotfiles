@@ -67,12 +67,32 @@ EOF
 # Firefox has no application mode, so the chrome is taken away
 # with a stylesheet instead. It goes in a sheet of its own and is
 # imported, because the theme writes to userChrome.css too.
+#
+# The toolbar is flattened rather than collapsed. Firefox hangs
+# its prompts off the address bar, the one asking for a security
+# key among them, and a collapsed toolbar has no position to hang
+# them from: the prompt never appears, and a sign-in waiting on
+# it can only fail. At no height it still has somewhere to be,
+# and the prompt opens against the top of the window.
 write_bare_sheet() {
     local chrome="$1/${CHROME_DIR}"
     mkdir -p "${chrome}"
     cat >"${chrome}/${BARE_SHEET}" <<'EOF'
 #navigator-toolbox {
-    visibility: collapse !important;
+    height: 0 !important;
+    min-height: 0 !important;
+    max-height: 0 !important;
+    overflow: hidden !important;
+}
+
+/* The address bar lifts itself out of the toolbar to draw, so
+   collapsing the toolbar leaves it floating over the page. It is
+   made invisible where it stands rather than removed, since it is
+   the thing prompts are hung from. */
+#urlbar,
+#urlbar-container {
+    opacity: 0 !important;
+    pointer-events: none !important;
 }
 EOF
     prepend_import "${chrome}/${CHROME_SHEET}"
