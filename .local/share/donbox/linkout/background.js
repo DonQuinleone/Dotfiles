@@ -42,6 +42,20 @@ function handoffUrl(url) {
   );
 }
 
+const CLEAR_DELAY_MS = 3000;
+
+// Cleared from here rather than by the page itself, which cannot
+// outlive the tab it is closing. A tab the link was followed in
+// goes back to the page it came from; one opened for the link
+// has nothing behind it, refuses to go back, and is closed.
+function clearTab(tabId) {
+  setTimeout(() => {
+    browser.tabs.goBack(tabId).catch(() => {
+      browser.tabs.remove(tabId).catch(() => {});
+    });
+  }, CLEAR_DELAY_MS);
+}
+
 // Redirected rather than cancelled and then steered: a tab told
 // where to go while the navigation it is answering for is still
 // being cancelled ignores the instruction, and the tab is left
@@ -51,6 +65,7 @@ browser.webRequest.onBeforeRequest.addListener(
     if (details.tabId < 0 || stays(details.url)) {
       return {};
     }
+    clearTab(details.tabId);
     return { redirectUrl: handoffUrl(details.url) };
   },
   { urls: ["http://*/*", "https://*/*"], types: ["main_frame"] },
