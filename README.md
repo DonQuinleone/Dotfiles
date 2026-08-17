@@ -418,6 +418,17 @@ the chrome is taken away with a stylesheet in the profile, and
 application id, which is both what a rule matches and what keeps
 it out of the main browser.
 
+The toolbar is flattened to no height rather than collapsed.
+Firefox hangs its prompts off the address bar, the one asking to
+touch a security key or enter its PIN among them, and a collapsed
+toolbar leaves nowhere to hang them from: the prompt never
+appears and a sign-in waiting on one can only fail.
+
+A profile of its own starts with no extensions, so a password
+manager holding passkeys is not there until it is installed.
+There is no toolbar to reach it from, but `Ctrl+Shift+A` opens
+the add-ons manager in the window and `Ctrl+W` closes it again.
+
 ## Scratchpads
 
 Four workspaces sit over the desktop rather than beside it:
