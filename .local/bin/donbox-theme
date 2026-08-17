@@ -49,6 +49,8 @@ source "${MODULE_DIR}/lsd.sh"
 source "${MODULE_DIR}/zathura.sh"
 # shellcheck source=theme.d/imv.sh
 source "${MODULE_DIR}/imv.sh"
+# shellcheck source=theme.d/yazi.sh
+source "${MODULE_DIR}/yazi.sh"
 # shellcheck source=theme.d/shell.sh
 source "${MODULE_DIR}/shell.sh"
 
@@ -73,6 +75,7 @@ readonly DEFERRED_APPLIERS=(
     apply_lsd
     apply_zathura
     apply_imv
+    apply_yazi
     apply_shell
 )
 

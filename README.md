@@ -91,6 +91,10 @@ are themed around their content rather than through it: the
 chrome takes the palette while the page and the picture are left
 as they were drawn.
 
+`Super+F` opens yazi, which lays a directory out in the columns a
+Finder does, from the COPR the manifest names since Fedora does
+not package it.
+
 Both scripts are idempotent, so re-running either after a pull is
 safe. `bootstrap.sh` restows the package and clears away links
 that no longer belong, and refuses to run unless the repo sits

@@ -23,7 +23,7 @@ local binds = {
     -- Applications
     { "SUPER",           "Return",                hl.dsp.exec_cmd("ghostty")                             },
     { "SUPER",           "b",                     hl.dsp.exec_cmd("firefox")                             },
-    { "SUPER",           "f",                     hl.dsp.exec_cmd("nautilus")                            },
+    { "SUPER",           "f",                     hl.dsp.exec_cmd("ghostty -e yazi")                     },
     { "SUPER",           "a",                     hl.dsp.exec_cmd(donbox .. " activity")                 },
 
     -- Shell

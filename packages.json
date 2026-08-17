@@ -33,6 +33,7 @@
     }
   },
   "coprs": [
+    "boobaa/yazi",
     "donquinleone/claude-desktop",
     "scottames/ghostty",
     "lionheartp/Hyprland",
@@ -125,6 +126,7 @@
     "wireshark",
     "wl-clipboard",
     "xdg-desktop-portal-hyprland",
+    "yazi",
     "zathura",
     "zathura-pdf-mupdf"
   ],
