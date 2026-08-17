@@ -1,6 +1,10 @@
 local actions = require("actions")
 local gaps = require("gaps")
 local layouts = require("layouts")
+local scratchpads = require("scratchpads")
+
+local pad_keys = { term = "d", comms = "c", mail = "e",
+    secrets = "s" }
 
 local donbox = "$HOME/.local/bin/donbox"
 local RESIZE_STEP = 60
@@ -21,10 +25,6 @@ local binds = {
     { "SUPER",           "b",                     hl.dsp.exec_cmd("firefox")                             },
     { "SUPER",           "f",                     hl.dsp.exec_cmd("nautilus")                            },
     { "SUPER",           "a",                     hl.dsp.exec_cmd(donbox .. " activity")                 },
-
-    -- Scratchpads
-    { "SUPER",           "d",                     hl.dsp.workspace.toggle_special("term")                },
-    { "SUPER",           "e",                     hl.dsp.workspace.toggle_special("mail")                },
 
     -- Shell
     { "SUPER",           "space",                 hl.dsp.exec_cmd("qs -c donbox ipc call launcher toggle") },
@@ -135,6 +135,12 @@ local binds = {
     { "SUPER",           "mouse:272",             hl.dsp.window.drag(),                                              mouse },
     { "SUPER + SHIFT",   "mouse:272",             hl.dsp.window.resize(),                                            mouse },
 }
+
+-- Scratchpads
+for _, pad in ipairs(scratchpads.pads) do
+    table.insert(binds,
+        { "SUPER", pad_keys[pad.name], scratchpads.toggle(pad) })
+end
 
 for index = 1, 9 do
     local workspace = "r~" .. index
