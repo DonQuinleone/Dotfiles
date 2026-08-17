@@ -10,6 +10,13 @@ local BLUR_PASSES = 2
 local MASTER_AREA_FRACTION = 0.6
 local SCROLLING_COLUMN_FRACTION = 0.5
 
+-- Hyprland will not scroll a column into view for the pointer
+-- until four tenths of it are already showing, which leaves the
+-- sliver at the edge of the tape, the one actually worth
+-- reaching for, stuck there. Asking for none of it makes the
+-- pointer bring a column in exactly as the keys do.
+local SCROLLING_FOLLOW_MIN_VISIBLE = 0.0
+
 local GROUPBAR_HEIGHT = 34
 local GROUPBAR_TEXT_PADDING = 12
 local GROUPBAR_ROUNDING = 8
@@ -45,6 +52,7 @@ hl.config({
     scrolling = {
         fullscreen_on_one_column = true,
         column_width = SCROLLING_COLUMN_FRACTION,
+        follow_min_visible = SCROLLING_FOLLOW_MIN_VISIBLE,
     },
     group = {
         groupbar = {
