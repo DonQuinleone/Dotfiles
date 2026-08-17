@@ -5,6 +5,10 @@ readonly GTK4_CSS="${CONFIG_HOME}/gtk-4.0/gtk.css"
 readonly GTK3_SETTINGS="${CONFIG_HOME}/gtk-3.0/settings.ini"
 readonly GTK4_SETTINGS="${CONFIG_HOME}/gtk-4.0/settings.ini"
 
+# Read by the compositor at login for everything it starts.
+readonly GTK_THEME_STATE="${STATE_DIR}/gtk-theme"
+readonly GTK_PORTAL_UNIT="xdg-desktop-portal-gtk.service"
+
 # Application text stays at a sighted reader's size on purpose:
 # the magnifier does the enlarging, and inflating it here would
 # only cut how much text fits under the lens.
@@ -190,10 +194,43 @@ announce_appearance() {
     done
 }
 
+# GTK 3 asks the settings portal which theme to wear, and
+# xdg-desktop-portal-gtk is that portal, so it has nobody to ask
+# and falls back to stock light Adwaita however settings.ini
+# reads. Naming the dark variant outright is what reaches it,
+# and the file chooser it draws is the only GTK 3 window most
+# applications ever show.
+gtk_theme_variant() {
+    if theme_is_dark; then
+        printf '%s:dark\n' "${GTK_THEME_NAME}"
+        return
+    fi
+    printf '%s\n' "${GTK_THEME_NAME}"
+}
+
+# A toolkit reads its theme once, at startup, so the portal is
+# restarted rather than signalled. It is stateless and comes back
+# on the next request whether or not it is running now.
+publish_gtk_theme() {
+    local variant
+    variant=$(gtk_theme_variant)
+    mkdir -p "${STATE_DIR}"
+    printf '%s\n' "${variant}" >"${GTK_THEME_STATE}"
+    command -v systemctl >/dev/null 2>&1 || return 0
+    export GTK_THEME="${variant}"
+    systemctl --user set-environment "GTK_THEME=${variant}" \
+        >/dev/null 2>&1 || true
+    dbus-update-activation-environment --systemd GTK_THEME \
+        >/dev/null 2>&1 || true
+    systemctl --user try-restart "${GTK_PORTAL_UNIT}" \
+        >/dev/null 2>&1 || true
+}
+
 apply_gtk() {
     write_gtk3_css
     write_gtk4_css
     write_gtk3_settings
     write_gtk_settings "${GTK4_SETTINGS}"
     announce_appearance
+    publish_gtk_theme
 }
