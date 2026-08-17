@@ -42,15 +42,16 @@ function handoffUrl(url) {
   );
 }
 
+// Redirected rather than cancelled and then steered: a tab told
+// where to go while the navigation it is answering for is still
+// being cancelled ignores the instruction, and the tab is left
+// showing the failure instead of the handoff.
 browser.webRequest.onBeforeRequest.addListener(
   (details) => {
     if (details.tabId < 0 || stays(details.url)) {
       return {};
     }
-    browser.tabs.update(details.tabId, {
-      url: handoffUrl(details.url),
-    });
-    return { cancel: true };
+    return { redirectUrl: handoffUrl(details.url) };
   },
   { urls: ["http://*/*", "https://*/*"], types: ["main_frame"] },
   ["blocking"],
