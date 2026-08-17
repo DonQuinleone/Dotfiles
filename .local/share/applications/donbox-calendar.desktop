@@ -1,9 +1,0 @@
-[Desktop Entry]
-Type=Application
-Name=Calendar
-Comment=Subscribe in Google Calendar
-Exec=firefox https://calendar.google.com/calendar/r?cid=%u
-Terminal=false
-NoDisplay=true
-Categories=Office;Calendar;
-MimeType=x-scheme-handler/webcal;x-scheme-handler/webcals;

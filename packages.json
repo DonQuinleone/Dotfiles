@@ -144,12 +144,8 @@
       "application/xml",
       "text/xml",
       "application/rdf+xml",
-      "application/rss+xml"
-    ],
-    "donbox-mail.desktop": [
-      "x-scheme-handler/mailto"
-    ],
-    "donbox-calendar.desktop": [
+      "application/rss+xml",
+      "x-scheme-handler/mailto",
       "x-scheme-handler/webcal",
       "x-scheme-handler/webcals"
     ],
