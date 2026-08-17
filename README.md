@@ -95,6 +95,24 @@ as they were drawn.
 Finder does, from the COPR the manifest names since Fedora does
 not package it.
 
+The mail pad is signed in to Google and nothing else, so a link
+to anywhere else belongs in the browser. Firefox will not let an
+extension launch another program, and it ignores the preference
+that used to hand a scheme out, so `linkout` cancels the
+navigation and wraps the address in a `donbox:` scheme instead,
+which the browser passes to the desktop and `donbox open` routes
+from there. Firefox refuses an unsigned add-on, so it is signed
+against an addons.mozilla.org account and dropped into the pad's
+profile:
+
+    npx web-ext sign --channel unlisted \
+      --source-dir ~/.local/share/donbox/linkout \
+      --api-key "$AMO_JWT_ISSUER" \
+      --api-secret "$AMO_JWT_SECRET"
+    cp web-ext-artifacts/*.xpi \
+      ~/.config/mozilla/firefox/donbox-mail/extensions/\
+    linkout@donbox.invalid.xpi
+
 Both scripts are idempotent, so re-running either after a pull is
 safe. `bootstrap.sh` restows the package and clears away links
 that no longer belong, and refuses to run unless the repo sits

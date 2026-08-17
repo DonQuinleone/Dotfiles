@@ -149,6 +149,9 @@
     "donbox-mail.desktop": [
       "x-scheme-handler/mailto"
     ],
+    "donbox-open.desktop": [
+      "x-scheme-handler/donbox"
+    ],
     "donbox-calendar.desktop": [
       "x-scheme-handler/webcal",
       "x-scheme-handler/webcals"
