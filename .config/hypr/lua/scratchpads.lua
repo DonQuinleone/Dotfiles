@@ -41,7 +41,7 @@ local pads = {
         panes = {
             {
                 class   = "donbox-mail",
-                title   = "Gmail",
+                title   = "Mail",
                 command = donbox .. " browser mail"
                     .. " https://mail.google.com/mail/u/0/",
                 share   = 2 / 3,
@@ -89,12 +89,21 @@ end
 
 -- The title is matched as plain text rather than as a pattern,
 -- since a page chooses its own and a pattern would read
--- punctuation in it as syntax.
+-- punctuation in it as syntax. Case is folded because a hosted
+-- domain renames Gmail after itself, leaving one pane to answer
+-- to both "Gmail" and "<domain> Mail".
+local function title_matches(window, pane)
+    if pane.title == nil then
+        return true
+    end
+    return window.title:lower():find(pane.title:lower(), 1, true)
+        ~= nil
+end
+
 local function windows_for(pane)
     local found = {}
     for _, window in ipairs(hl.get_windows({ class = pane.class })) do
-        if pane.title == nil
-            or window.title:find(pane.title, 1, true) then
+        if title_matches(window, pane) then
             table.insert(found, window)
         end
     end
