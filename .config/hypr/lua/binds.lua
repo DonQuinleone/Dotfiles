@@ -3,8 +3,7 @@ local gaps = require("gaps")
 local layouts = require("layouts")
 local scratchpads = require("scratchpads")
 
-local pad_keys = { term = "d", comms = "c", mail = "e",
-    secrets = "s" }
+local pad_keys = { term = "d", comms = "c", secrets = "s" }
 
 local donbox = "$HOME/.local/bin/donbox"
 local RESIZE_STEP = 60

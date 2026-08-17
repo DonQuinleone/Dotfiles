@@ -1,5 +1,3 @@
-local donbox = os.getenv("HOME") .. "/.local/bin/donbox"
-
 local ARRANGE_DELAY_MS = 200
 
 -- A pad is a workspace of its own laid over the desktop, and its
@@ -8,9 +6,7 @@ local ARRANGE_DELAY_MS = 200
 -- turns them off, reach a pad as they reach anywhere else.
 --
 -- A class is matched whole, so a name that is not the entire
--- application id matches nothing and says nothing about it. Two
--- panes may share a class, as the mail pad's windows do, and
--- then a word from the title tells them apart.
+-- application id matches nothing and says nothing about it.
 local pads = {
     {
         name = "term",
@@ -32,25 +28,6 @@ local pads = {
             {
                 class   = "TeamSpeak 3",
                 command = "teamspeak3",
-                share   = 1 / 3,
-            },
-        },
-    },
-    {
-        name = "mail",
-        panes = {
-            {
-                class   = "donbox-mail",
-                title   = "Mail",
-                command = donbox .. " browser mail"
-                    .. " https://mail.google.com/mail/u/0/",
-                share   = 2 / 3,
-            },
-            {
-                class   = "donbox-mail",
-                title   = "Calendar",
-                command = donbox .. " browser mail"
-                    .. " https://calendar.google.com/calendar/u/0/r",
                 share   = 1 / 3,
             },
         },
@@ -86,27 +63,8 @@ local function command_for(pane)
         .. pane.class
 end
 
--- The title is matched as plain text rather than as a pattern,
--- since a page chooses its own and a pattern would read
--- punctuation in it as syntax. Case is folded because a hosted
--- domain renames Gmail after itself, leaving one pane to answer
--- to both "Gmail" and "<domain> Mail".
-local function title_matches(window, pane)
-    if pane.title == nil then
-        return true
-    end
-    return window.title:lower():find(pane.title:lower(), 1, true)
-        ~= nil
-end
-
 local function windows_for(pane)
-    local found = {}
-    for _, window in ipairs(hl.get_windows({ class = pane.class })) do
-        if title_matches(window, pane) then
-            table.insert(found, window)
-        end
-    end
-    return found
+    return hl.get_windows({ class = pane.class })
 end
 
 local function start_missing(pad)

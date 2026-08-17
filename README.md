@@ -75,13 +75,13 @@ File associations are stated rather than left to whichever
 package registered last, because a browser claims far more than
 browsing on the way in. Pages go to Firefox, documents to
 Zathura, images to imv and anything that plays to mpv, while a
-`mailto:` opens a compose window and a `webcal:` a subscription
-in the mail pad rather than in a mail client that is not
-installed. 1Password
-comes from its own repository rather than Flathub for a related
-reason: flatpak hands a sandboxed application a filtered Wayland
-socket with the clipboard protocols withheld, and its copy
-buttons fail with nothing to fall back on.
+`mailto:` opens Gmail's compose in Firefox and a `webcal:` the
+subscription screen beside it, rather than a mail client that is
+not installed. 1Password comes from its own repository rather
+than Flathub for a related reason: flatpak hands a sandboxed
+application a filtered Wayland socket with the clipboard
+protocols withheld, and its copy buttons fail with nothing to
+fall back on.
 
 A theme is one JSON file under `.config/quickshell/themes`
 carrying palette, fonts, sizes, radii, spacing and timings.
@@ -94,30 +94,6 @@ as they were drawn.
 `Super+F` opens yazi, which lays a directory out in the columns a
 Finder does, from the COPR the manifest names since Fedora does
 not package it.
-
-The mail pad is signed in to Google and nothing else, so a link
-to anywhere else belongs in the browser. Firefox will not let an
-extension launch another program, and it ignores the preference
-that used to hand a scheme out, so `linkout` redirects the
-navigation to a page of its own, which lets go of the address
-wrapped in a `donbox:` scheme from a hidden frame. The desktop
-takes it from there and `donbox open` decides where it should
-have gone.
-
-Firefox refuses an add-on it cannot verify, and signing needs an
-account this repository does not carry, so the signed package
-ships in `.local/share/donbox/addons` and the pad installs it
-into its own profile on launch. A checkout is ready to use; only
-a change to the source needs the account again:
-
-    npx web-ext sign --channel unlisted \
-      --source-dir ~/.local/share/donbox/linkout \
-      --api-key "$AMO_JWT_ISSUER" \
-      --api-secret "$AMO_JWT_SECRET"
-
-The suite checks the packed files against the source, so a file
-edited without re-signing fails there rather than being quietly
-installed over the version that was signed.
 
 Both scripts are idempotent, so re-running either after a pull is
 safe. `bootstrap.sh` restows the package and clears away links

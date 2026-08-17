@@ -1,8 +1,8 @@
 [Desktop Entry]
 Type=Application
 Name=Mail
-Comment=Compose in the mail pad
-Exec=donbox browser mail https://mail.google.com/mail/?extsrc=mailto&url=%u
+Comment=Compose in Gmail
+Exec=firefox https://mail.google.com/mail/?extsrc=mailto&url=%u
 Terminal=false
 NoDisplay=true
 Categories=Network;Email;

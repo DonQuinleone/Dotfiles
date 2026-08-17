@@ -1,8 +1,6 @@
 .claude/
 HANDOFF.md
 
-.local/share/donbox/linkout/.amo-upload-uuid
-
 .config/fastfetch/config.jsonc
 .config/fish/fish_variables
 .config/lsd/colors.yaml

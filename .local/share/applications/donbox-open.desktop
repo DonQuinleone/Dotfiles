@@ -1,9 +1,0 @@
-[Desktop Entry]
-Type=Application
-Name=Link
-Comment=Send a link to the browser that should hold it
-Exec=donbox open %u
-Terminal=false
-NoDisplay=true
-Categories=Network;
-MimeType=x-scheme-handler/donbox;
