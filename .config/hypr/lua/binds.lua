@@ -88,7 +88,6 @@ local binds = {
     { "SUPER",           "minus",                 actions.zoom_out                                       },
     { "SUPER",           "0",                     actions.zoom_reset                                     },
     { "SUPER",           "z",                     actions.zoom_follow_toggle                             },
-    { "SUPER + SHIFT",   "z",                     actions.caret_follow_toggle                            },
     { "SUPER",           "mouse_up",              actions.zoom_in                                        },
     { "SUPER",           "mouse_down",            actions.zoom_out                                       },
 

@@ -4,9 +4,6 @@ local ZOOM_MAX = 8.0
 local NOTIFY_MS = 1500
 local EDGE_TOLERANCE = 40
 
-local state_dir = (os.getenv("XDG_STATE_HOME")
-    or (os.getenv("HOME") .. "/.local/state")) .. "/hypr"
-local caret_flag = state_dir .. "/caret-follow.on"
 local notify_script = "$HOME/.local/bin/donbox notify"
 
 -- Held in the module rather than captured by each binding, so
@@ -55,24 +52,6 @@ function actions.zoom_follow_toggle()
     hl.config({ cursor = { zoom_detached_camera = not detached } })
     notify(detached and "Zoom follows cursor"
         or "Zoom camera fixed")
-end
-
--- The caret daemon steers the zoom by warping the pointer, so
--- the camera has to be attached for it to have any effect.
-function actions.caret_follow_toggle()
-    local flag = io.open(caret_flag, "r")
-    if flag then
-        flag:close()
-        os.remove(caret_flag)
-        notify("Caret following off")
-        return
-    end
-    local created = io.open(caret_flag, "w")
-    if created then
-        created:close()
-    end
-    hl.config({ cursor = { zoom_detached_camera = false } })
-    notify("Caret following on")
 end
 
 local function overlaps_column(a, b)

@@ -70,6 +70,7 @@ hl.config({
         zoom_factor = ZOOM_UNMAGNIFIED,
         zoom_rigid = false,
         zoom_detached_camera = false,
+        no_warps = true,
     },
     misc = {
         disable_hyprland_logo = true,
