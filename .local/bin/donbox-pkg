@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # donbox:summary=Install and remove software, and keep the manifest true
-# donbox:args=<search|add|remove|list|drift> [--flatpak] [name...]
+# donbox:args=<search|add|remove|list|drift> [name...]
 # shellcheck source-path=SCRIPTDIR/../share/donbox/lib
 set -euo pipefail
 
@@ -11,19 +11,20 @@ readonly BIN_DIR
 REPO=$(cd -- "${BIN_DIR}/../.." && pwd)
 readonly REPO
 readonly MANIFEST="${DONBOX_MANIFEST:-${REPO}/packages.json}"
-readonly PICK="${DONBOX_PICK:-${BIN_DIR}/donbox-pick}"
 
 readonly TERMINAL="${DONBOX_TERMINAL:-ghostty}"
 # Ghostty drops a class that is not a valid GTK application ID,
 # and folds into a running instance unless told not to; either
 # leaves the window without the rule that sizes it.
 readonly WINDOW_CLASS="com.donquinleone.packages"
-readonly FONT_POINTS=20
+readonly FONT_POINTS=14
 readonly CLOSE_PROMPT="Press any key to close this window."
 
 readonly SEARCH_PROMPT="Install"
 readonly REMOVE_PROMPT="Remove"
-readonly SEARCH_LIMIT=200
+readonly CHOOSER_HEADER="Tab marks, Enter confirms, Escape leaves"
+readonly PREVIEW_WINDOW="right,55%,wrap,border-left"
+readonly MARK_KEYS="tab:toggle+down,shift-tab:toggle+up"
 
 die() {
     printf 'donbox pkg: %s\n' "$*" >&2
@@ -32,9 +33,9 @@ die() {
 
 usage() {
     cat >&2 <<'EOF'
-usage: donbox pkg search <term>
-       donbox pkg add [--flatpak] <name>...
-       donbox pkg remove [--flatpak] [name]
+usage: donbox pkg search [term]
+       donbox pkg add <dnf|flatpak> <name>...
+       donbox pkg remove [term]
        donbox pkg list [dnf|flatpak|coprs]
        donbox pkg drift
 EOF
@@ -43,22 +44,8 @@ EOF
 
 # shellcheck source=packages.sh
 source "$(dirname "${BIN_DIR}")/share/donbox/lib/packages.sh"
-
-kind=dnf
-
-manager_install() {
-    case "${kind}" in
-    dnf) sudo dnf install "$@" ;;
-    flatpak) sudo flatpak install -y flathub "$@" ;;
-    esac
-}
-
-manager_remove() {
-    case "${kind}" in
-    dnf) sudo dnf remove "$@" ;;
-    flatpak) sudo flatpak uninstall -y "$@" ;;
-    esac
-}
+# shellcheck source=catalogue.sh
+source "$(dirname "${BIN_DIR}")/share/donbox/lib/catalogue.sh"
 
 window_is_ours() {
     [[ -n "${DONBOX_PKG_WINDOW:-}" ]]
@@ -78,10 +65,9 @@ hold_window_open() {
     exit "${status}"
 }
 
-# A transaction wants a terminal: sudo asks for a password on
-# one, and what the manager did is worth reading afterwards. A
-# shell already is one, so only a caller without any, the menu,
-# needs a window opened for it.
+# The chooser wants a terminal and so does sudo, and the menu has
+# neither, so a window is opened for it and the command re-run
+# inside.
 reopen_in_terminal() {
     command -v "${TERMINAL}" >/dev/null 2>&1 ||
         die "${TERMINAL} is not installed"
@@ -91,9 +77,6 @@ reopen_in_terminal() {
         -e env DONBOX_PKG_WINDOW=1 "${SCRIPT}" "$@"
 }
 
-# The window has to outlive the transaction so what the manager
-# did can be read, but nothing is waiting for a key when this is
-# driven by something other than a person.
 wait_for_key() {
     [[ -t 0 ]] || return 0
     printf '\n%s' "${CLOSE_PROMPT}"
@@ -108,7 +91,29 @@ record() {
     git -C "${REPO}" diff --quiet -- "${MANIFEST}" && return 0
     git -C "${REPO}" commit -q -m "packaging: ${verb} ${name}" \
         -- "${MANIFEST}" ||
-        printf 'donbox pkg: manifest changed but was not committed\n' >&2
+        printf 'donbox pkg: manifest changed, not committed\n' >&2
+}
+
+# A row reads "kind name description", so the chooser hands back
+# the first two words and nothing has to be carried in a column
+# the reader cannot see. Horizontal scrolling is off because it
+# slides a long line sideways to show a match, which would leave
+# the columns out of step with each other.
+choose() {
+    local prompt="$1" query="$2"
+    fzf --multi --no-hscroll \
+        --delimiter='[[:space:]]+' \
+        --prompt="${prompt} > " \
+        --header="${CHOOSER_HEADER}" \
+        --query="${query}" \
+        --bind="${MARK_KEYS}" \
+        --preview="${SCRIPT} describe {1} {2}" \
+        --preview-window="${PREVIEW_WINDOW}" \
+        --border --info=inline --height=100%
+}
+
+names_of_kind() {
+    awk -v kind="$1" '$1 == kind { print $2 }'
 }
 
 cmd_list() {
@@ -125,10 +130,6 @@ installed_now() {
         sort -u
 }
 
-listed_packages() {
-    manifest_list dnf | sort -u
-}
-
 # Only one direction is answerable. The other, what is installed
 # that the manifest has never heard of, cannot be had from rpm:
 # Fedora's image builder marks its own three hundred packages as
@@ -139,94 +140,94 @@ cmd_drift() {
     (($# == 0)) || usage
     local -a missing
     mapfile -t missing < <(comm -23 \
-        <(listed_packages) <(installed_now))
+        <(manifest_list dnf | sort -u) <(installed_now))
     printf 'in the manifest but not installed:\n'
     printf '  %s\n' "${missing[@]:-none}"
 }
 
-# dnf's query format understands a newline but not a tab, and
-# the chooser wants tabs, so the row is assembled here.
-search_rows() {
-    dnf -q repoquery --available --qf '%{name} %{summary}\n' \
-        "*$1*" 2>/dev/null | sort -u |
-        head -n "${SEARCH_LIMIT}" |
-        awk '{
-            name = $1
-            summary = substr($0, length(name) + 2)
-            printf "%s\t%s\t\t%s\n", name, name, summary
-        }'
+cmd_describe() {
+    (($# == 2)) || usage
+    catalogue_describe "$1" "$2"
 }
 
-# Asked for rather than demanded, since the menu has nowhere to
-# type a search term before the window exists.
+# One transaction per manager, so a mixed selection asks for a
+# password once and the manifest is told once about each.
+act_on_chosen() {
+    local verb="$1" rows="$2" kind
+    local -a names
+    for kind in dnf flatpak; do
+        mapfile -t names < <(names_of_kind "${kind}" <<<"${rows}")
+        ((${#names[@]} > 0)) || continue
+        "${verb}_kind" "${kind}" "${names[@]}"
+    done
+}
+
+install_kind() {
+    local kind="$1" name
+    shift
+    catalogue_install "${kind}" "$@" || {
+        printf '\n%s refused that, manifest unchanged\n' "${kind}"
+        return 0
+    }
+    for name in "$@"; do
+        manifest_has "${kind}" "${name}" && continue
+        manifest_add "${kind}" "${name}"
+        record add "${name}"
+    done
+    printf '\nadded to the manifest: %s\n' "$*"
+}
+
+remove_kind() {
+    local kind="$1" name
+    shift
+    catalogue_uninstall "${kind}" "$@" || {
+        printf '\n%s refused that, manifest unchanged\n' "${kind}"
+        return 0
+    }
+    for name in "$@"; do
+        manifest_drop "${kind}" "${name}"
+        record drop "${name}"
+    done
+    printf '\ndropped from the manifest: %s\n' "$*"
+}
+
+require_chooser() {
+    command -v fzf >/dev/null 2>&1 ||
+        die "fzf is not installed but is required"
+}
+
 cmd_search() {
     (($# <= 1)) || usage
-    [[ -x "${PICK}" ]] || die "${PICK} is missing"
+    require_chooser
     on_a_terminal || reopen_in_terminal search "$@"
 
-    local term="${1-}" rows chosen
-    [[ -n "${term}" ]] || {
-        [[ -t 0 ]] || usage
-        read -r -p "Search for: " term
-    }
-    [[ -n "${term}" ]] || return 0
-    rows=$(search_rows "${term}")
-    [[ -n "${rows}" ]] || die "nothing matches '${term}'"
-    chosen=$(printf '%s\n' "${rows}" |
-        "${PICK}" --prompt "${SEARCH_PROMPT}") || exit 0
-    [[ -n "${chosen}" ]] || exit 0
-    cmd_add "${chosen}"
-}
-
-cmd_add() {
-    (($# >= 1)) || usage
-    on_a_terminal || reopen_in_terminal add "$@"
-
-    local status=0 name
-    manager_install "$@" || status=$?
-    if ((status == 0)); then
-        for name in "$@"; do
-            manifest_has "${kind}" "${name}" && continue
-            manifest_add "${kind}" "${name}"
-            record add "${name}"
-        done
-        printf '\nadded to the manifest: %s\n' "$*"
-    else
-        printf '\nthe manager exited %d; manifest unchanged\n' \
-            "${status}"
-    fi
+    local rows
+    rows=$(catalogue_rows | choose "${SEARCH_PROMPT}" "${1-}")
+    [[ -n "${rows}" ]] || exit 0
+    act_on_chosen install "${rows}"
     wait_for_key
-}
-
-chosen_to_remove() {
-    local names status=0
-    names=$(manifest_list "${kind}")
-    [[ -n "${names}" ]] || die "the manifest lists no ${kind}"
-    printf '%s\n' "${names}" |
-        "${PICK}" --prompt "${REMOVE_PROMPT}" || status=$?
-    ((status == 0)) || return 1
 }
 
 cmd_remove() {
     (($# <= 1)) || usage
-    local name="${1-}"
-    [[ -n "${name}" ]] || {
-        [[ -x "${PICK}" ]] || die "${PICK} is missing"
-        name=$(chosen_to_remove) || return 0
-    }
-    [[ -n "${name}" ]] || return 0
-    on_a_terminal || reopen_in_terminal remove "${name}"
+    require_chooser
+    on_a_terminal || reopen_in_terminal remove "$@"
 
-    local status=0
-    manager_remove "${name}" || status=$?
-    if ((status == 0)); then
-        manifest_drop "${kind}" "${name}"
-        record drop "${name}"
-        printf '\ndropped from the manifest: %s\n' "${name}"
-    else
-        printf '\nthe manager exited %d; manifest unchanged\n' \
-            "${status}"
-    fi
+    local rows
+    rows=$(catalogue_manifest_rows |
+        choose "${REMOVE_PROMPT}" "${1-}")
+    [[ -n "${rows}" ]] || exit 0
+    act_on_chosen remove "${rows}"
+    wait_for_key
+}
+
+cmd_add() {
+    (($# >= 2)) || usage
+    local kind="$1"
+    shift
+    manifest_kind_valid "${kind}" || usage
+    on_a_terminal || reopen_in_terminal add "${kind}" "$@"
+    install_kind "${kind}" "$@"
     wait_for_key
 }
 
@@ -236,6 +237,7 @@ declare -rA COMMANDS=(
     [remove]=cmd_remove
     [list]=cmd_list
     [drift]=cmd_drift
+    [describe]=cmd_describe
 )
 
 main() {
@@ -243,12 +245,6 @@ main() {
     (($# >= 1)) || usage
     local verb="$1"
     shift
-
-    if [[ "${1-}" == "--flatpak" ]]; then
-        kind=flatpak
-        shift
-    fi
-
     local handler="${COMMANDS[${verb}]:-}"
     [[ -n "${handler}" ]] || usage
     "${handler}" "$@"

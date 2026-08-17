@@ -125,7 +125,7 @@ and a shell.
 | --- | --- |
 | `hyprland`, `hypridle`, portal | COPR `lionheartp/Hyprland` |
 | `quickshell-git` | COPR `errornointernet/quickshell` |
-| Slack, Yubico Authenticator | Flathub |
+| Slack, 1Password, Yubico Authenticator | Flathub |
 | JetBrains Mono Nerd Font | upstream release, pinned |
 
 Everything installed is named in `packages.json`: the
@@ -138,17 +138,29 @@ cannot read its own manifest without it.
 The manifest stays true because installing goes through it:
 
     donbox pkg search ripgrep
-    donbox pkg add ripgrep
+    donbox pkg add dnf ripgrep
     donbox pkg remove
     donbox pkg list flatpak
     donbox pkg drift
 
-`search` and `remove` offer the chooser; the transaction itself
-opens a terminal, since sudo wants one and what the manager did
-is worth reading. A successful change is committed to
-`packages.json` alone, so whatever else is in flight in the
-working tree stays where it is, and a failed one changes
-nothing.
+`search` puts the Fedora repositories and Flathub in one list,
+around seventy-three thousand things, and hands it to `fzf`.
+Both managers answer in about a second, so the catalogue is
+built once and the chooser does the searching rather than a
+query running on every keystroke. A row reads kind, name and
+description; Tab marks as many as wanted, the pane on the right
+shows the full record of whatever is under the cursor, and one
+transaction is run per manager, so a mixed selection asks for a
+password once.
+
+`remove` offers the same chooser over what the manifest claims,
+which is the only honest answer to what is yours to remove.
+
+The transaction opens a terminal, since sudo wants one and what
+the manager did is worth reading. A successful change is
+committed to `packages.json` alone, so whatever else is in
+flight in the working tree stays where it is, and a failed one
+changes nothing.
 
 `drift` answers one direction only: what the manifest promises
 that is not installed. The reverse cannot be had from rpm, since
@@ -256,7 +268,7 @@ display:
 | --- | --- |
 | Notifications | opens the notification centre; right-click silences |
 | Updates | none; the count is the whole message |
-| VPN | NetBird with its peers and address, and any NetworkManager tunnel, each with a connect and disconnect |
+| VPN | NetBird and Tailscale with their peers, address and health, Tailscale's exit nodes, and any NetworkManager tunnel, each with a connect and disconnect |
 | Network | throughput, latency and loss to router and internet, addresses and DNS with copy buttons, a provider picker, and the networks in range |
 | Bluetooth | the radio, the paired devices with the charge of every cell they report, and whatever is in pairing range |
 | Microphone | live or muted, the input level, and which device records |
