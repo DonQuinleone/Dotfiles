@@ -21,10 +21,12 @@ PanelSurface {
 
     function settle(shown: bool): void {
         WorldClocks.watching = shown;
+        Weather.watching = shown;
         if (!shown) return;
         root.shownMonth = root.today;
         alarmEditor.reset();
         zoneField.reset();
+        weatherCard.settle();
         WorldClocks.listZones();
     }
 
@@ -116,6 +118,12 @@ PanelSurface {
                 }
             }
         }
+    }
+
+    WeatherCard {
+        id: weatherCard
+
+        width: parent.width
     }
 
     QuickSection {
