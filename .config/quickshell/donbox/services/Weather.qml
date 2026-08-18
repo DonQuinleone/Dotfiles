@@ -11,6 +11,11 @@ Singleton {
     readonly property int timeoutSeconds: 15
     readonly property int firstDay: 0
 
+    // Opening the pane is not news about the weather, so a
+    // reading this fresh is shown again rather than asked for
+    // again.
+    readonly property int freshMs: 600000
+
     readonly property string api:
         "https://api.open-meteo.com/v1/forecast"
 
@@ -72,6 +77,7 @@ Singleton {
     property var reading: null
     property bool fetching: false
     property bool failed: false
+    property real fetchedAtMs: 0
 
     readonly property bool ready: root.watching && Location.known
 
@@ -139,13 +145,29 @@ Singleton {
                 sunrise: root.clockOf(day.sunrise[root.firstDay]),
                 sunset: root.clockOf(day.sunset[root.firstDay])
             };
+            root.fetchedAtMs = Date.now();
             root.failed = false;
         } catch (error) {
             root.failed = true;
         }
     }
 
-    onReadyChanged: if (root.ready) root.refresh()
+    function stale(): bool {
+        return Date.now() - root.fetchedAtMs > root.freshMs;
+    }
+
+    onReadyChanged: if (root.ready && root.stale()) root.refresh()
+
+    // A reading belongs to the place it was taken at.
+    Connections {
+        target: Location
+
+        function onPlaceChanged(): void {
+            root.reading = null;
+            root.fetchedAtMs = 0;
+            root.refresh();
+        }
+    }
 
     Timer {
         running: root.ready
