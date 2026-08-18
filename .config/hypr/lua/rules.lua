@@ -42,10 +42,8 @@ hl.window_rule({
     pin = true,
 })
 
--- An XWayland menu or tooltip is an unmanaged popup with no
--- class and no title. Handing it focus takes focus off its
--- parent, and a menu whose parent loses focus closes in the
--- same instant it opens.
+-- An unmanaged popup takes focus off its parent, and a
+-- menu whose parent loses focus closes as it opens.
 hl.window_rule({
     match = {
         class = "^$",
@@ -58,8 +56,6 @@ hl.window_rule({
     no_focus = true,
 })
 
--- An application asking to maximise itself would undo the
--- tiling it sits in.
 hl.window_rule({
     match = { class = ".*" },
     suppress_event = "maximize",

@@ -118,10 +118,8 @@ Singleton {
         reader.running = true;
     }
 
-    // Open-Meteo gives the sun's times as local stamps without
-    // a zone, which is exactly the reading wanted, so the clock
-    // is taken from the text rather than parsed into a date and
-    // shifted back out of it.
+    // The stamps are already local, so the clock is read from
+    // the text rather than parsed and shifted back out.
     function clockOf(stamp: var): string {
         const written = `${stamp ?? ""}`;
         const mark = written.indexOf("T");
@@ -158,7 +156,6 @@ Singleton {
 
     onReadyChanged: if (root.ready && root.stale()) root.refresh()
 
-    // A reading belongs to the place it was taken at.
     Connections {
         target: Location
 

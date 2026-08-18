@@ -19,9 +19,8 @@ Singleton {
 
     readonly property string chime: "alarm"
 
-    // The alarm sound runs for six seconds and an eighth, so a
-    // shorter gap than this would start a second ring over the
-    // first and the two would sound as one muddle.
+    // The sound itself runs six seconds and an eighth; a
+    // shorter gap would ring over the last ring.
     readonly property int chimeEveryMs: 7000
 
     readonly property string stateHome:
@@ -48,11 +47,8 @@ Singleton {
         return `${root.padded(hour)}:${root.padded(minute)}`;
     }
 
-    // A row hands an alarm back through the model, which copies
-    // it, so the entry that comes back is never the one that was
-    // handed out and only what it says identifies it. The time
-    // it reads serves: setting a time already set re-arms the
-    // alarm standing there rather than adding a second one.
+    // The model hands out copies, so an alarm is found again
+    // by the time it reads. Two cannot share one.
     function keyOf(entry: var): string {
         return root.clockOf(entry.hour, entry.minute);
     }
@@ -101,8 +97,6 @@ Singleton {
         root.add(when.hour, when.minute);
     }
 
-    // "07:30" names a time of day; "+15" names a distance from
-    // now. Anything else names nothing.
     function parse(text: string): var {
         const trimmed = text.trim();
         const relative = trimmed.match(/^\+(\d{1,3})$/);
@@ -134,8 +128,6 @@ Singleton {
             "Dismiss this notification to silence it."]);
     }
 
-    // An alarm sounds once and disarms itself; ringing again
-    // tomorrow takes turning it back on.
     function sweep(when: date): void {
         const due = root.entries.filter(entry => entry.enabled
             && entry.hour === when.getHours()
@@ -183,9 +175,6 @@ Singleton {
         onDateChanged: root.sweep(this.date)
     }
 
-    // The chime keeps time with the notification rather than
-    // with the alarm: it sounds for as long as an alarm toast
-    // is on screen, and dismissing the toast is what ends it.
     Timer {
         interval: root.chimeEveryMs
         repeat: true

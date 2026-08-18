@@ -19,8 +19,6 @@ Column {
         root.settled();
     }
 
-    // Coordinates typed outright are taken as they stand; a
-    // place named is looked up.
     function submit(): void {
         const given = Location.coordinates(field.text);
         if (given) {

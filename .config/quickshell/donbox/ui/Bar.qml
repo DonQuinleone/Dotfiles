@@ -130,10 +130,8 @@ PanelWindow {
             interactive: root.primary
         }
 
-        // Only the primary bar builds the tray and its panes at
-        // all: an instance on another screen, even an invisible
-        // one, would answer to the same pane names and map over
-        // the real one.
+        // A second instance would answer to the same pane names
+        // and map over the real one.
         Loader {
             anchors.right: parent.right
             anchors.verticalCenter: parent.verticalCenter

@@ -34,10 +34,8 @@ Singleton {
     property var entries: []
     property bool doNotDisturb: false
 
-    // A row hands a notification back through the model, which
-    // copies it, so the copy has to name the one it came from.
-    // The number only has to outlast the run, since nothing off
-    // the disk is answered for until it has been read back in.
+    // The model hands out copies, so a copy has to name the
+    // one it came from.
     property int lastId: 0
 
     readonly property int pending: root.entries.length
@@ -50,9 +48,6 @@ Singleton {
         return root.lastId;
     }
 
-    // The entry a row hands back is a copy, so the one the
-    // store holds, and with it the live notification, is found
-    // again by id.
     function held(entry: var): var {
         return root.entries.find(item => item.id === entry.id)
             ?? entry;

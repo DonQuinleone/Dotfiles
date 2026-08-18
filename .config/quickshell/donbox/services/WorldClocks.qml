@@ -47,8 +47,6 @@ Singleton {
         return zone.includes(root.regionSeparator);
     }
 
-    // The database writes a city with underscores for spaces,
-    // which is not how anyone reads or types one.
     function pretty(zone: string): string {
         return zone.split("_").join(" ");
     }
@@ -64,8 +62,6 @@ Singleton {
             .join(root.regionSeparator);
     }
 
-    // Every word must appear somewhere in the zone, so "new
-    // york" and "america new" both reach America/New_York.
     function matching(query: string, limit: int): var {
         const words = query.toLowerCase().split(" ")
             .filter(word => word !== "");

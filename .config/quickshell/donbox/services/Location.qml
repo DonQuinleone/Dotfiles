@@ -4,12 +4,8 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 
-// Where the desktop believes it stands, for weather and for the
-// hours the sun keeps. It is asked for once and remembered in
-// state rather than configuration: coordinates say where
-// somebody lives, and nothing that says that belongs in a
-// repository. Nobody is asked to guess it from an address
-// either; the only service contacted is the one searched.
+// Kept in state rather than configuration: coordinates
+// say where somebody lives.
 Singleton {
     id: root
 
@@ -42,9 +38,6 @@ Singleton {
             .join(", ");
     }
 
-    // A pair of numbers is taken as coordinates outright, so a
-    // place too small or too private to search for can still be
-    // given exactly.
     function coordinates(query: string): var {
         const parts = query.split(",").map(part => part.trim());
         if (parts.length !== 2) return null;
@@ -121,8 +114,6 @@ Singleton {
         root.reparse();
     }
 
-    // Typing is not a question: the search waits for the typing
-    // to stop before asking anybody anything.
     Timer {
         id: hold
 

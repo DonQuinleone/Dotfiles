@@ -37,8 +37,8 @@ Singleton {
     property bool centreOpen: false
     property real closedCentreAtMs: 0
 
-    // Counted rather than filtered live, since a ListModel
-    // changing does not re-run a binding that reads it.
+    // A ListModel changing does not re-run a binding that
+    // reads it.
     property int alarmsShowing: 0
 
     function tint(urgency: int): color {

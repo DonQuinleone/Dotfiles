@@ -3,12 +3,9 @@ import Quickshell
 import Quickshell.Wayland
 import qs.services
 
-// A pane used to be an xdg popup of the bar, but the compositor
-// withholds pointer input from a popup whitelisted in a held
-// focus grab on a fractionally scaled output, which read as
-// panes that could not be clicked. A layer surface takes the
-// same place under the bar and is spared, so that is what a
-// pane is.
+// A layer surface, not a popup: the compositor withholds
+// pointer input from a popup held in a focus grab on a
+// fractionally scaled output.
 PanelWindow {
     id: root
 
@@ -18,14 +15,10 @@ PanelWindow {
     // this is the only place a pane decides it is on screen.
     required property string name
 
-    // The bar item the pane hangs beneath, for horizontal
-    // placement only: vertically it sits just under the bar.
     property Item under: null
 
-    // Every screen builds its own bar, so a pane named open
-    // would map on all of them at once and their focus grabs
-    // would cancel one another, closing it as it appeared. The
-    // caller says which instance is allowed on screen.
+    // Every screen builds its own bar, so the caller says
+    // which instance may map; two would cancel each other.
     property bool allowed: true
 
     property real widthFactor: 1.5
@@ -41,7 +34,6 @@ PanelWindow {
         ? root.screen.height * root.screenShare
         : content.implicitHeight
 
-    // Centred on its bar item, but never past a screen edge.
     readonly property real anchoredX: {
         if (!root.under || !root.visible) return root.gap;
         const centre = root.under.mapToItem(null,

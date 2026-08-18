@@ -16,9 +16,6 @@ Row {
     readonly property int cellWidth:
         (root.width - root.gap * (root.cells - 1)) / root.cells
 
-    // One height for whatever each cell leads with, so the
-    // three readings sit on a line whether a glyph or a drawn
-    // moon stands above them.
     readonly property int artHeight:
         (Theme.sizes.iconNormal ?? 0) * root.faceScale
 

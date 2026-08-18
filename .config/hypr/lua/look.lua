@@ -66,10 +66,8 @@ hl.config({
             indicator_height = GROUPBAR_INDICATOR_HEIGHT,
         },
     },
-    -- Focus dispatched to another monitor must carry the
-    -- pointer with it: follow_mouse rules otherwise, and the
-    -- first twitch of the mouse snaps focus straight back to
-    -- the screen it left.
+    -- Focus sent to another monitor must carry the pointer
+    -- with it, or follow_mouse snaps it straight back.
     cursor = {
         zoom_factor = ZOOM_UNMAGNIFIED,
         zoom_rigid = false,
@@ -77,13 +75,6 @@ hl.config({
         no_warps = false,
         warp_on_change_workspace = 1,
     },
-    -- Without focus_on_activate, a notification clicked or a
-    -- link handed to the browser raises the window but leaves
-    -- the keyboard where it was.
-    -- An X11 window is drawn at one pixel per point and then
-    -- stretched to fit a scaled screen, which is what makes it
-    -- look soft; at zero scaling it draws at the screen's own
-    -- resolution and the application is told the size instead.
     xwayland = {
         force_zero_scaling = true,
     },

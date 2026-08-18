@@ -8,8 +8,6 @@ Rectangle {
     property alias font: input.font
     property alias horizontalAlignment: input.horizontalAlignment
 
-    // A sample string sizes the box to the widest reading it
-    // will ever hold; without one the caller sets the width.
     property string sample: ""
     property string placeholder: ""
     property bool valid: true

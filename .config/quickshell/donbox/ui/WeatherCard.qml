@@ -9,8 +9,6 @@ Rectangle {
     readonly property bool shown: root.told && root.reading !== null
     readonly property int pad: Theme.sizes.popupPadding ?? 0
 
-    // Somewhere to be is the one thing nobody can guess, so the
-    // field stands open until it has been answered.
     property bool changing: false
 
     readonly property bool asking: root.changing || !root.told

@@ -17,9 +17,6 @@ hl.config({
         repeat_delay = REPEAT_DELAY_MS,
         repeat_rate = REPEAT_RATE_HZ,
         follow_mouse = FOLLOW_MOUSE_ALWAYS,
-        -- On a follow-mouse desktop, a closing window should
-        -- hand focus to whatever the pointer is already over,
-        -- not to whatever history ranks next.
         focus_on_close = 1,
         touchpad = {
             natural_scroll = false,

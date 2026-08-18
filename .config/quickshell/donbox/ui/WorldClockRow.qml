@@ -32,7 +32,6 @@ Rectangle {
             font.weight: Theme.fontWeights.medium ?? 0
         }
 
-        // Cities share names; the region says which one this is.
         Text {
             width: parent.width
             elide: Text.ElideRight

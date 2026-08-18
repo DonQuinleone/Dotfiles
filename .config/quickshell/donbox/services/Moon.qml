@@ -3,11 +3,9 @@ pragma Singleton
 import QtQuick
 import Quickshell
 
-// The moon's lit fraction, from Meeus, Astronomical Algorithms,
-// chapter 48. Counting whole months off a remembered new moon
-// is a good deal simpler, but the orbit is an ellipse and that
-// reckoning drifts by up to half a day, which at the crescents
-// is the difference between a third of the moon and a half.
+// The lit fraction, from Meeus chapter 48. Counting whole
+// months off a remembered new moon drifts half a day,
+// which at the crescents is a third of the moon.
 Singleton {
     id: root
 
@@ -42,8 +40,6 @@ Singleton {
             / root.daysPerCentury;
     }
 
-    // The moon's mean elongation from the sun, and the two mean
-    // anomalies the correction terms are built from.
     readonly property real elongation: {
         const time = root.centuries;
         return 297.8501921 + 445267.1114034 * time
@@ -67,7 +63,6 @@ Singleton {
             - Math.pow(time, 4) / 14712000;
     }
 
-    // The sun-moon-earth angle: nothing lit at 0, full at 180.
     readonly property real phaseAngle: {
         const spread = root.elongation;
         const sun = root.sunAnomaly;
@@ -88,8 +83,6 @@ Singleton {
     readonly property bool waxing:
         root.turn(root.elongation) < root.halfTurnDegrees
 
-    // The drawing wants a place in the month rather than an
-    // angle, and the two agree by definition of the lit part.
     readonly property real phase: {
         const lit = Math.max(0, Math.min(1, root.illuminated));
         const part = Math.acos(1 - 2 * lit) / (2 * Math.PI);

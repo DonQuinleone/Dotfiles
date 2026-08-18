@@ -1,11 +1,8 @@
 import QtQuick
 import qs.services
 
-// The moon as it actually looks tonight: a lit disc cut by the
-// terminator, which is a half ellipse whose width follows the
-// phase, flattening to a straight edge at the quarters and
-// bulging the other way as the moon fills. South of the equator
-// the whole thing is seen upside down, so the lit side swaps.
+// The terminator is a half ellipse whose width follows the
+// phase; south of the equator the lit side swaps.
 Canvas {
     id: root
 
