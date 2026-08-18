@@ -65,6 +65,7 @@ Item {
         id: dropdown
 
         name: "clock"
+        allowed: root.interactive
 
         today: clock.date
         anchor.item: root

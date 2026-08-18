@@ -2,40 +2,40 @@ import QtQuick
 import Quickshell.Hyprland
 import qs.services
 
-// The compositor refuses a grab for a surface it has not mapped
-// yet, and a pane arms its grab in the same pass that makes it
-// visible, so arming waits until the surface exists. A refused
-// grab is silent: it simply never reports a click landing
-// elsewhere, which reads as a pane that will not close.
+// The compositor refuses a grab for a surface it has not
+// mapped, and a refused grab is silent: it simply never
+// reports a click landing elsewhere, which reads as a pane
+// that will not close. Arming therefore waits for the backing
+// window to actually exist, the earliest moment a grab can be
+// granted, rather than racing the map with a timer.
 HyprlandFocusGrab {
     id: root
 
     required property var surface
 
-    property bool shown: false
+    // The caller's own idea of being on show, for surfaces that
+    // stay mapped through their closing motion.
+    property bool when: true
 
-    // A property rather than a child, since a focus grab is a
-    // plain object and has nowhere to put one.
-    property Timer arm: Timer {
-        interval: 1
+    readonly property bool shown: root.when
+        && root.surface.visible
+        && root.surface.backingWindowVisible
 
-        onTriggered: root.active = root.shown
-    }
+    // The window a pane hangs from is trusted alongside it, so
+    // a click on another pill switches panes rather than being
+    // spent on dismissing the first one.
+    readonly property var owner: root.surface.anchor?.window
+        ?? root.surface.parentWindow ?? null
 
     signal dismissed
 
-    windows: [root.surface]
+    windows: root.owner
+        ? [root.surface, root.owner]
+        : [root.surface]
+
+    onShownChanged: root.active = root.shown
 
     onActiveChanged: Panels.grabActive = root.active
-
-    onShownChanged: {
-        if (!root.shown) {
-            root.arm.stop();
-            root.active = false;
-            return;
-        }
-        root.arm.restart();
-    }
 
     onCleared: root.dismissed()
 }

@@ -68,7 +68,7 @@ PanelWindow {
 
     PopoverGrab {
         surface: root
-        shown: root.active
+        when: root.active
 
         onDismissed: Notifications.closeCentre()
     }

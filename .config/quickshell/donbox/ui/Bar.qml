@@ -123,15 +123,22 @@ PanelWindow {
             interactive: root.primary
         }
 
-        Row {
+        // Only the primary bar builds the tray and its panes at
+        // all: an instance on another screen, even an invisible
+        // one, would answer to the same pane names and map over
+        // the real one.
+        Loader {
             anchors.right: parent.right
             anchors.verticalCenter: parent.verticalCenter
-            spacing: Theme.spacing.normal ?? 0
-            visible: root.primary
+            active: root.primary
 
-            TrayRow {}
+            sourceComponent: Row {
+                spacing: Theme.spacing.normal ?? 0
 
-            VitalsCluster {}
+                TrayRow {}
+
+                VitalsCluster {}
+            }
         }
     }
 

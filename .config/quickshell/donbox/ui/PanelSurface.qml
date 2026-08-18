@@ -24,18 +24,21 @@ PopupWindow {
         ? root.screen.height * root.screenShare
         : content.implicitHeight
 
+    // Every screen builds its own bar, so a pane named open
+    // would map on all of them at once and their focus grabs
+    // would cancel one another, closing it as it appeared. The
+    // caller says which instance is allowed on screen; asking
+    // the popup for its own screen answers wrongly before it
+    // has mapped, which is never.
+    property bool allowed: true
+
     color: Qt.alpha(Theme.palette.bg ?? "black", 0)
     implicitWidth: root.panelWidth
     implicitHeight: frame.implicitHeight + root.gap
-    // Every screen builds its own bar, so a pane named open
-    // would map on all of them at once and their focus grabs
-    // would cancel one another, closing it as it appeared.
-    visible: Panels.isOpen(root.name)
-        && (!root.screen || Monitors.isPrimary(root.screen.name))
+    visible: root.allowed && Panels.isOpen(root.name)
 
     PopoverGrab {
         surface: root
-        shown: root.visible
 
         onDismissed: Panels.close()
     }
