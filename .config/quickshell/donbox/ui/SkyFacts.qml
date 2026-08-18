@@ -11,10 +11,16 @@ Row {
 
     readonly property int cells: 3
     readonly property int gap: Theme.spacing.tight ?? 0
-    readonly property real faceScale: 1.6
+    readonly property real faceScale: 1.8
 
     readonly property int cellWidth:
         (root.width - root.gap * (root.cells - 1)) / root.cells
+
+    // One height for whatever each cell leads with, so the
+    // three readings sit on a line whether a glyph or a drawn
+    // moon stands above them.
+    readonly property int artHeight:
+        (Theme.sizes.iconNormal ?? 0) * root.faceScale
 
     spacing: root.gap
 
@@ -23,18 +29,29 @@ Row {
         spacing: Theme.spacing.hair ?? 0
     }
 
+    component Art: Item {
+        default property alias body: holder.data
+
+        width: root.cellWidth
+        height: root.artHeight
+
+        Item {
+            id: holder
+
+            anchors.fill: parent
+        }
+    }
+
     component Face: Text {
-        anchors.horizontalCenter: parent?.horizontalCenter
-            ?? undefined
+        anchors.centerIn: parent
         color: Theme.palette.accentSoft ?? "white"
         font.family: Theme.fonts.mono ?? ""
-        font.pixelSize:
-            (Theme.sizes.iconNormal ?? 0) * root.faceScale
+        font.pixelSize: root.artHeight
     }
 
     component Reading: Text {
-        anchors.horizontalCenter: parent?.horizontalCenter
-            ?? undefined
+        width: root.cellWidth
+        horizontalAlignment: Text.AlignHCenter
         color: Theme.palette.fg ?? "white"
         font.family: Theme.fonts.mono ?? ""
         font.pixelSize: Theme.fontSizes.normal ?? 0
@@ -43,16 +60,19 @@ Row {
     }
 
     component Caption: Text {
-        anchors.horizontalCenter: parent?.horizontalCenter
-            ?? undefined
+        width: root.cellWidth
+        horizontalAlignment: Text.AlignHCenter
+        wrapMode: Text.WordWrap
         color: Theme.palette.fgDim ?? "white"
         font.family: Theme.fonts.ui ?? ""
         font.pixelSize: Theme.fontSizes.small ?? 0
     }
 
     Fact {
-        Face {
-            text: root.sunriseGlyph
+        Art {
+            Face {
+                text: root.sunriseGlyph
+            }
         }
 
         Reading {
@@ -65,8 +85,10 @@ Row {
     }
 
     Fact {
-        Face {
-            text: root.sunsetGlyph
+        Art {
+            Face {
+                text: root.sunsetGlyph
+            }
         }
 
         Reading {
@@ -79,10 +101,11 @@ Row {
     }
 
     Fact {
-        MoonDial {
-            anchors.horizontalCenter: parent.horizontalCenter
-            implicitWidth:
-                (Theme.sizes.iconNormal ?? 0) * root.faceScale
+        Art {
+            MoonDial {
+                anchors.centerIn: parent
+                implicitWidth: root.artHeight
+            }
         }
 
         Reading {
