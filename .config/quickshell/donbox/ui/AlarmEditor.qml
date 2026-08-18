@@ -5,18 +5,17 @@ Column {
     id: root
 
     readonly property var quickMinutes: [5, 15, 30, 60]
-    readonly property int pad: Theme.sizes.popupPadding ?? 0
 
     spacing: Theme.spacing.tight ?? 0
 
     function reset(): void {
         const now = new Date();
-        input.text =
+        field.text =
             Alarms.clockOf(now.getHours(), now.getMinutes());
     }
 
     function submit(): void {
-        const parsed = Alarms.parse(input.text);
+        const parsed = Alarms.parse(field.text);
         if (parsed === null) return;
         Alarms.add(parsed.hour, parsed.minute);
         root.reset();
@@ -27,45 +26,19 @@ Column {
     Row {
         spacing: Theme.spacing.tight ?? 0
 
-        Rectangle {
-            width: metrics.advanceWidth + root.pad * 2
-            height: Theme.sizes.hitTarget ?? 0
-            radius: Theme.radii.normal ?? 0
-            color: Theme.palette.surface ?? "transparent"
-            border.width: Theme.sizes.borderWidth ?? 0
-            border.color: input.activeFocus
-                ? (Theme.palette.accent ?? "transparent")
-                : (Theme.palette.border ?? "transparent")
+        TextField {
+            id: field
 
-            TextMetrics {
-                id: metrics
+            anchors.verticalCenter: parent.verticalCenter
+            sample: "+00:00"
+            horizontalAlignment: TextInput.AlignHCenter
+            valid: Alarms.parse(this.text) !== null
+            font.family: Theme.fonts.mono ?? ""
+            font.pixelSize: Theme.fontSizes.large ?? 0
+            font.weight: Theme.fontWeights.bold ?? 0
+            font.features: ({ "tnum": 1 })
 
-                font: input.font
-                text: "+00:00"
-            }
-
-            TextInput {
-                id: input
-
-                anchors.fill: parent
-                anchors.leftMargin: root.pad
-                anchors.rightMargin: root.pad
-                verticalAlignment: TextInput.AlignVCenter
-                horizontalAlignment: TextInput.AlignHCenter
-                color: Alarms.parse(this.text)
-                    ? (Theme.palette.fg ?? "white")
-                    : (Theme.palette.bad ?? "white")
-                selectionColor: Theme.palette.accent ?? "white"
-                selectedTextColor: Theme.onAccent
-                font.family: Theme.fonts.mono ?? ""
-                font.pixelSize: Theme.fontSizes.large ?? 0
-                font.weight: Theme.fontWeights.bold ?? 0
-                font.features: ({ "tnum": 1 })
-                clip: true
-
-                Keys.onReturnPressed: root.submit()
-                Keys.onEnterPressed: root.submit()
-            }
+            onAccepted: root.submit()
         }
 
         QuickChip {

@@ -47,9 +47,35 @@ Singleton {
         return zone.includes(root.regionSeparator);
     }
 
+    // The database writes a city with underscores for spaces,
+    // which is not how anyone reads or types one.
+    function pretty(zone: string): string {
+        return zone.split("_").join(" ");
+    }
+
     function labelOf(zone: string): string {
-        const parts = zone.split(root.regionSeparator);
-        return parts[parts.length - 1].split("_").join(" ");
+        const parts = root.pretty(zone).split(root.regionSeparator);
+        return parts[parts.length - 1];
+    }
+
+    function regionOf(zone: string): string {
+        const parts = root.pretty(zone).split(root.regionSeparator);
+        return parts.slice(0, parts.length - 1)
+            .join(root.regionSeparator);
+    }
+
+    // Every word must appear somewhere in the zone, so "new
+    // york" and "america new" both reach America/New_York.
+    function matching(query: string, limit: int): var {
+        const words = query.toLowerCase().split(" ")
+            .filter(word => word !== "");
+        if (words.length === 0) return [];
+        return root.available
+            .filter(zone => {
+                const reading = root.pretty(zone).toLowerCase();
+                return words.every(word => reading.includes(word));
+            })
+            .slice(0, limit);
     }
 
     function timeOf(zone: string): string {

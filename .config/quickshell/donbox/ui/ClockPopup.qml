@@ -16,18 +16,16 @@ PanelSurface {
     readonly property string onGlyph: "›"
 
     property date shownMonth: root.today
-    property bool picking: false
 
     onVisibleChanged: root.settle(root.visible)
 
     function settle(shown: bool): void {
         WorldClocks.watching = shown;
-        if (!shown) {
-            root.picking = false;
-            return;
-        }
+        if (!shown) return;
         root.shownMonth = root.today;
         alarmEditor.reset();
+        zoneField.reset();
+        WorldClocks.listZones();
     }
 
     function startOfGrid(month: date): date {
@@ -47,11 +45,6 @@ PanelSurface {
     function shiftMonth(delta: int): void {
         root.shownMonth = new Date(root.shownMonth.getFullYear(),
             root.shownMonth.getMonth() + delta, 1);
-    }
-
-    function openPicker(): void {
-        root.picking = !root.picking;
-        if (root.picking) WorldClocks.listZones();
     }
 
     Item {
@@ -174,17 +167,10 @@ PanelSurface {
             }
         }
 
-        QuickChip {
-            label: root.picking ? "Done" : "Add a time zone"
-            glyph: WorldClocks.glyph
-            selected: root.picking
+        ZoneField {
+            id: zoneField
 
-            onActivated: root.openPicker()
-        }
-
-        ZonePicker {
             width: parent.width
-            visible: root.picking
         }
     }
 }
