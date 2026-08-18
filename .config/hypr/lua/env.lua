@@ -12,20 +12,6 @@ local data = os.getenv("XDG_DATA_HOME")
 local state = os.getenv("XDG_STATE_HOME")
     or (os.getenv("HOME") .. "/.local/state")
 
--- GTK 3 takes its theme from the settings portal, which cannot
--- answer for itself, so a file chooser comes up in stock light
--- Adwaita unless the environment names the variant. The theme
--- script writes the answer here as it applies one.
-local function stored_gtk_theme()
-    local file = io.open(state .. "/theme/gtk-theme", "r")
-    if file == nil then
-        return nil
-    end
-    local variant = file:read("l")
-    file:close()
-    return variant
-end
-
 local cursor_size = tostring(
     saved.cursor_size or DEFAULT_CURSOR_SIZE)
 
@@ -52,11 +38,6 @@ local envs = {
     { "QT_LINUX_ACCESSIBILITY_ALWAYS_ON", "1" },
     { "GNOME_ACCESSIBILITY", "1" },
 }
-
-local gtk_theme = stored_gtk_theme()
-if gtk_theme then
-    table.insert(envs, { "GTK_THEME", gtk_theme })
-end
 
 for _, e in ipairs(envs) do
     hl.env(e[1], e[2])

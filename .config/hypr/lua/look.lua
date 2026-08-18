@@ -7,7 +7,7 @@ local CORNER_RADIUS = 10
 local BLUR_RADIUS = 8
 local BLUR_PASSES = 2
 
-local MASTER_AREA_FRACTION = 0.6
+local MASTER_AREA_FRACTION = 0.5
 local SCROLLING_COLUMN_FRACTION = 0.5
 
 -- Hyprland will not scroll a column into view for the pointer
