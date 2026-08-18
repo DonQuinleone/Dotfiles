@@ -21,8 +21,11 @@ readonly DEFAULT_LONGITUDE=-0.0008333
 readonly DEFAULT_DAY_TEMPERATURE=6500
 # Warming shifts every colour, so it eats the contrast the
 # palettes are checked against. Measured across all seventeen,
-# the tightest accent stops clearing WCAG AA below 5750K.
-readonly DEFAULT_NIGHT_TEMPERATURE=5800
+# this costs osaka-jade and solarised-dark-hc their AA accent
+# contrast, and leaves kanagawa-wave and tokyo-night-storm
+# inside a tenth of it; those accents want lifting before the
+# warmth is taken any further.
+readonly DEFAULT_NIGHT_TEMPERATURE=4500
 readonly DEFAULT_TRANSITION_MINUTES=90
 readonly DEFAULT_ENABLED=1
 readonly DEFAULT_NIGHT_START=""
