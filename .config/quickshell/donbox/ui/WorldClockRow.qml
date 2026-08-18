@@ -8,11 +8,12 @@ Rectangle {
 
     readonly property int gap: Theme.spacing.normal ?? 0
 
-    implicitHeight: Theme.sizes.hitTarget ?? 0
+    implicitHeight: Math.max(Theme.sizes.hitTarget ?? 0,
+        naming.implicitHeight + (Theme.spacing.tight ?? 0) * 2)
     radius: Theme.radii.normal ?? 0
     color: Theme.palette.surface ?? "transparent"
 
-    Text {
+    Column {
         id: naming
 
         anchors.left: parent.left
@@ -20,12 +21,26 @@ Rectangle {
         anchors.right: reading.left
         anchors.rightMargin: root.gap
         anchors.verticalCenter: parent.verticalCenter
-        elide: Text.ElideRight
-        text: WorldClocks.labelOf(root.zone)
-        color: Theme.palette.fg ?? "white"
-        font.family: Theme.fonts.ui ?? ""
-        font.pixelSize: Theme.fontSizes.normal ?? 0
-        font.weight: Theme.fontWeights.medium ?? 0
+
+        Text {
+            width: parent.width
+            elide: Text.ElideRight
+            text: WorldClocks.labelOf(root.zone)
+            color: Theme.palette.fg ?? "white"
+            font.family: Theme.fonts.ui ?? ""
+            font.pixelSize: Theme.fontSizes.normal ?? 0
+            font.weight: Theme.fontWeights.medium ?? 0
+        }
+
+        // Cities share names; the region says which one this is.
+        Text {
+            width: parent.width
+            elide: Text.ElideRight
+            text: WorldClocks.regionOf(root.zone)
+            color: Theme.palette.fgDim ?? "white"
+            font.family: Theme.fonts.ui ?? ""
+            font.pixelSize: Theme.fontSizes.small ?? 0
+        }
     }
 
     Text {
