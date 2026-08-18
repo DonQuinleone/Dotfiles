@@ -104,3 +104,13 @@ plan=$("${PROFILE}" apply docked --dry-run)
 
 assert_equal "a profile saved before depths falls back to eight" \
     "$(grep -c 'bitdepth.*8' <<<"${plan}")" "2"
+
+# Reconfiguring an output that already holds the mode asked of
+# it still blanks the screen, and detect runs on every reload.
+detected=$("${PROFILE}" detect --dry-run)
+
+assert_equal "detect leaves outputs already in place alone" \
+    "$(grep -c 'hl.monitor' <<<"${detected}")" "0"
+
+assert "detect still puts the workspaces where they belong" \
+    grep -q 'workspace.move' <<<"${detected}"
