@@ -1,78 +1,95 @@
 import QtQuick
 import qs.services
 
-Row {
+Column {
     id: root
 
-    property int hour: 7
-    property int minute: 0
+    readonly property var quickMinutes: [5, 15, 30, 60]
+    readonly property int pad: Theme.sizes.popupPadding ?? 0
 
-    readonly property string backGlyph: "‹"
-    readonly property string onGlyph: "›"
+    spacing: Theme.spacing.tight ?? 0
 
-    spacing: Theme.spacing.hair ?? 0
-
-    function shiftHour(delta: int): void {
-        root.hour = (root.hour + delta + Alarms.hoursPerDay)
-            % Alarms.hoursPerDay;
+    function reset(): void {
+        const now = new Date();
+        input.text =
+            Alarms.clockOf(now.getHours(), now.getMinutes());
     }
 
-    function shiftMinute(delta: int): void {
-        root.minute = (root.minute + delta + Alarms.minutesPerHour)
-            % Alarms.minutesPerHour;
+    function submit(): void {
+        const parsed = Alarms.parse(input.text);
+        if (parsed === null) return;
+        Alarms.add(parsed.hour, parsed.minute);
+        root.reset();
     }
 
-    component Reading: Text {
-        anchors.verticalCenter: parent?.verticalCenter ?? undefined
-        horizontalAlignment: Text.AlignHCenter
-        color: Theme.palette.fg ?? "white"
-        font.family: Theme.fonts.mono ?? ""
-        font.pixelSize: Theme.fontSizes.display ?? 0
-        font.weight: Theme.fontWeights.bold ?? 0
-        font.features: ({ "tnum": 1 })
+    Component.onCompleted: root.reset()
+
+    Row {
+        spacing: Theme.spacing.tight ?? 0
+
+        Rectangle {
+            width: metrics.advanceWidth + root.pad * 2
+            height: Theme.sizes.hitTarget ?? 0
+            radius: Theme.radii.normal ?? 0
+            color: Theme.palette.surface ?? "transparent"
+            border.width: Theme.sizes.borderWidth ?? 0
+            border.color: input.activeFocus
+                ? (Theme.palette.accent ?? "transparent")
+                : (Theme.palette.border ?? "transparent")
+
+            TextMetrics {
+                id: metrics
+
+                font: input.font
+                text: "+00:00"
+            }
+
+            TextInput {
+                id: input
+
+                anchors.fill: parent
+                anchors.leftMargin: root.pad
+                anchors.rightMargin: root.pad
+                verticalAlignment: TextInput.AlignVCenter
+                horizontalAlignment: TextInput.AlignHCenter
+                color: Alarms.parse(this.text)
+                    ? (Theme.palette.fg ?? "white")
+                    : (Theme.palette.bad ?? "white")
+                selectionColor: Theme.palette.accent ?? "white"
+                selectedTextColor: Theme.onAccent
+                font.family: Theme.fonts.mono ?? ""
+                font.pixelSize: Theme.fontSizes.large ?? 0
+                font.weight: Theme.fontWeights.bold ?? 0
+                font.features: ({ "tnum": 1 })
+                clip: true
+
+                Keys.onReturnPressed: root.submit()
+                Keys.onEnterPressed: root.submit()
+            }
+        }
+
+        QuickChip {
+            anchors.verticalCenter: parent.verticalCenter
+            label: "Add"
+            glyph: Alarms.glyph
+
+            onActivated: root.submit()
+        }
     }
 
-    Stepper {
-        glyph: root.backGlyph
+    Row {
+        spacing: Theme.spacing.tight ?? 0
 
-        onStepped: root.shiftHour(-1)
-    }
+        Repeater {
+            model: root.quickMinutes
 
-    Reading {
-        text: Alarms.padded(root.hour)
-    }
+            QuickChip {
+                required property int modelData
 
-    Stepper {
-        glyph: root.onGlyph
+                label: `+${this.modelData}`
 
-        onStepped: root.shiftHour(1)
-    }
-
-    Reading {
-        text: ":"
-    }
-
-    Stepper {
-        glyph: root.backGlyph
-
-        onStepped: root.shiftMinute(-Alarms.minuteStep)
-    }
-
-    Reading {
-        text: Alarms.padded(root.minute)
-    }
-
-    Stepper {
-        glyph: root.onGlyph
-
-        onStepped: root.shiftMinute(Alarms.minuteStep)
-    }
-
-    QuickChip {
-        anchors.verticalCenter: parent.verticalCenter
-        label: "Add"
-        glyph: Alarms.glyph
-
-        onActivated: Alarms.add(root.hour, root.minute)
+                onActivated: Alarms.addRelative(this.modelData)
+            }
+        }
     }
 }

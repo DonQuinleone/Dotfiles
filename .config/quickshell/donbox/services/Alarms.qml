@@ -11,7 +11,6 @@ Singleton {
     readonly property int hoursPerDay: 24
     readonly property int minutesPerHour: 60
     readonly property int msPerMinute: 60000
-    readonly property int minuteStep: 5
     readonly property int clockDigits: 2
 
     readonly property string appName: "Alarm"
@@ -65,10 +64,33 @@ Singleton {
         }]);
     }
 
-    function addRelative(minutes: int): void {
+    function inMinutes(minutes: int): var {
         const when =
             new Date(Date.now() + minutes * root.msPerMinute);
-        root.add(when.getHours(), when.getMinutes());
+        return {
+            hour: when.getHours(),
+            minute: when.getMinutes()
+        };
+    }
+
+    function addRelative(minutes: int): void {
+        const when = root.inMinutes(minutes);
+        root.add(when.hour, when.minute);
+    }
+
+    // "07:30" names a time of day; "+15" names a distance from
+    // now. Anything else names nothing.
+    function parse(text: string): var {
+        const trimmed = text.trim();
+        const relative = trimmed.match(/^\+(\d{1,3})$/);
+        if (relative) return root.inMinutes(Number(relative[1]));
+        const absolute = trimmed.match(/^(\d{1,2}):(\d{2})$/);
+        if (absolute === null) return null;
+        const hour = Number(absolute[1]);
+        const minute = Number(absolute[2]);
+        if (hour >= root.hoursPerDay) return null;
+        if (minute >= root.minutesPerHour) return null;
+        return { hour: hour, minute: minute };
     }
 
     function remove(entry: var): void {

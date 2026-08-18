@@ -27,6 +27,7 @@ PanelSurface {
             return;
         }
         root.shownMonth = root.today;
+        alarmEditor.reset();
     }
 
     function startOfGrid(month: date): date {
@@ -129,6 +130,8 @@ PanelSurface {
         title: "Alarms"
 
         AlarmEditor {
+            id: alarmEditor
+
             width: parent.width
         }
 
