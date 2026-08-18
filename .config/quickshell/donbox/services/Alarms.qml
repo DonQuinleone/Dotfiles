@@ -45,16 +45,36 @@ Singleton {
         return `${root.padded(hour)}:${root.padded(minute)}`;
     }
 
+    // A row hands an alarm back through the model, which copies
+    // it, so the entry that comes back is never the one that was
+    // handed out and only what it says identifies it. The time
+    // it reads serves: setting a time already set re-arms the
+    // alarm standing there rather than adding a second one.
+    function keyOf(entry: var): string {
+        return root.clockOf(entry.hour, entry.minute);
+    }
+
     function at(hour: int, minute: int): var {
         return root.entries.find(entry => entry.hour === hour
             && entry.minute === minute) ?? null;
     }
 
+    function setEnabled(entry: var, enabled: bool): void {
+        const key = root.keyOf(entry);
+        root.entries = root.entries.map(item => {
+            if (root.keyOf(item) !== key) return item;
+            return {
+                hour: item.hour,
+                minute: item.minute,
+                enabled: enabled
+            };
+        });
+    }
+
     function add(hour: int, minute: int): void {
         const found = root.at(hour, minute);
         if (found) {
-            found.enabled = true;
-            root.entries = root.entries.slice();
+            root.setEnabled(found, true);
             return;
         }
         root.entries = root.entries.concat([{
@@ -94,12 +114,13 @@ Singleton {
     }
 
     function remove(entry: var): void {
-        root.entries = root.entries.filter(item => item !== entry);
+        const key = root.keyOf(entry);
+        root.entries = root.entries.filter(
+            item => root.keyOf(item) !== key);
     }
 
     function toggle(entry: var): void {
-        entry.enabled = !entry.enabled;
-        root.entries = root.entries.slice();
+        root.setEnabled(entry, !entry.enabled);
     }
 
     function ring(entry: var): void {
@@ -113,16 +134,13 @@ Singleton {
     // An alarm sounds once and disarms itself; ringing again
     // tomorrow takes turning it back on.
     function sweep(when: date): void {
-        let rung = false;
-        for (const entry of root.entries) {
-            if (!entry.enabled) continue;
-            if (entry.hour !== when.getHours()) continue;
-            if (entry.minute !== when.getMinutes()) continue;
-            entry.enabled = false;
-            rung = true;
+        const due = root.entries.filter(entry => entry.enabled
+            && entry.hour === when.getHours()
+            && entry.minute === when.getMinutes());
+        for (const entry of due) {
+            root.setEnabled(entry, false);
             root.ring(entry);
         }
-        if (rung) root.entries = root.entries.slice();
     }
 
     function restored(saved: var): var {
