@@ -136,7 +136,8 @@
   ],
   "flatpak": [
     "com.slack.Slack",
-    "com.yubico.yubioath"
+    "com.yubico.yubioath",
+    "org.ghidra_sre.Ghidra"
   ],
   "defaults": {
     "org.mozilla.firefox.desktop": [
