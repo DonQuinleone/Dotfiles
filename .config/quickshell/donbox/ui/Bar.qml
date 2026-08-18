@@ -29,7 +29,11 @@ PanelWindow {
         right: true
     }
 
-    onFocusedChanged: if (root.focused) flash.restart()
+    onFocusedChanged: {
+        if (!root.focused) return;
+        if (Panels.open !== "") return;
+        flash.restart();
+    }
 
     Binding {
         target: Panels

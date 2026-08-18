@@ -17,6 +17,8 @@ PanelSurface {
 
     property date shownMonth: root.today
 
+    takesKeys: true
+
     onVisibleChanged: root.settle(root.visible)
 
     function settle(shown: bool): void {

@@ -21,6 +21,11 @@ PanelWindow {
     // which instance may map; two would cancel each other.
     property bool allowed: true
 
+    // Taking the keyboard moves the compositor's focus onto this
+    // surface and its screen, which spends the click that did it
+    // and flashes the bar as though a monitor had been chosen.
+    property bool takesKeys: false
+
     property real widthFactor: 1.5
     property real screenShare: 0.7
     property int contentSpacing: Theme.spacing.loose ?? 0
@@ -29,6 +34,12 @@ PanelWindow {
         (Theme.sizes.menuWidth ?? 0) * root.widthFactor
     readonly property int padding: Theme.sizes.popupPadding ?? 0
     readonly property int gap: Theme.spacing.tight ?? 0
+
+    // The track is only kept clear of the content when there is
+    // something to scroll, or every pane sits off to the left of
+    // the space it was given.
+    readonly property bool scrolls:
+        content.implicitHeight > root.tallest
 
     readonly property int tallest: root.screen
         ? root.screen.height * root.screenShare
@@ -49,7 +60,7 @@ PanelWindow {
     color: Qt.alpha(Theme.palette.bg ?? "black", 0)
     exclusionMode: ExclusionMode.Normal
     exclusiveZone: 0
-    focusable: true
+    focusable: root.takesKeys
     implicitWidth: root.panelWidth
     implicitHeight: frame.implicitHeight
     WlrLayershell.layer: WlrLayer.Top
@@ -88,7 +99,7 @@ PanelWindow {
             x: root.padding
             y: root.padding
             width: parent.width - root.padding * 2
-                - Metrics.trackWidth
+                - (root.scrolls ? Metrics.trackWidth : 0)
             height: Math.min(content.implicitHeight, root.tallest)
             contentWidth: this.width
             contentHeight: content.implicitHeight
