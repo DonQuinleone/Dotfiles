@@ -54,6 +54,20 @@ Singleton {
         label: "Unknown", glyph: "󰖐", dark: "󰖐"
     })
 
+    // What a reading looks like before there is one, so the
+    // card can lay itself out against something.
+    readonly property var blank: ({
+        temperature: null,
+        apparent: null,
+        code: 0,
+        wind: 0,
+        daylight: true,
+        high: null,
+        low: null,
+        sunrise: "",
+        sunset: ""
+    })
+
     property bool watching: false
     property var reading: null
     property bool fetching: false

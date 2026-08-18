@@ -37,7 +37,7 @@ Rectangle {
         WeatherHero {
             width: parent.width
             visible: root.shown
-            reading: root.reading ?? ({})
+            reading: root.reading ?? Weather.blank
         }
 
         Rectangle {
@@ -51,7 +51,7 @@ Rectangle {
         SkyFacts {
             width: parent.width
             visible: root.shown
-            reading: root.reading ?? ({})
+            reading: root.reading ?? Weather.blank
         }
 
         Text {
