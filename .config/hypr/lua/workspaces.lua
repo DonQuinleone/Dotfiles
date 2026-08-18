@@ -1,13 +1,23 @@
-local WORKSPACE_COUNT = 9
-local FIRST_WORKSPACE = 1
+local WORKSPACES_PER_RUN = 9
 
--- 1-9 live on the laptop panel until the dock's monitor
--- descriptions are captured; 11-19/21-29 join then.
-for index = FIRST_WORKSPACE, WORKSPACE_COUNT do
-    hl.workspace_rule({
-        workspace = tostring(index),
-        monitor = "eDP-1",
-        persistent = true,
-        default = (index == FIRST_WORKSPACE),
-    })
+-- The r~1..r~9 binds resolve against the focused monitor's own
+-- run, so every screen needs a full set and the numbers only
+-- have to be distinct. Hyprland leaves a run uncreated while
+-- its connector is absent, which is what keeps an undocked
+-- laptop down to one set rather than all three.
+local runs = {
+    { monitor = "DP-5",  first = 1 },
+    { monitor = "DP-6",  first = 11 },
+    { monitor = "eDP-1", first = 21 },
+}
+
+for _, run in ipairs(runs) do
+    for offset = 0, WORKSPACES_PER_RUN - 1 do
+        hl.workspace_rule({
+            workspace = tostring(run.first + offset),
+            monitor = run.monitor,
+            persistent = true,
+            default = offset == 0,
+        })
+    end
 end
