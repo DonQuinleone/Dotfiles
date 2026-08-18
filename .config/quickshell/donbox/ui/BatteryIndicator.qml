@@ -33,9 +33,7 @@ BarPill {
 
         name: "power"
 
-        anchor.item: root
-        anchor.edges: Edges.Bottom
-        anchor.gravity: Edges.Bottom
+        under: root
     }
 
     content: [

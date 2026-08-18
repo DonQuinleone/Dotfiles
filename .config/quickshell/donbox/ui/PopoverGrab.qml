@@ -17,15 +17,14 @@ HyprlandFocusGrab {
     // stay mapped through their closing motion.
     property bool when: true
 
+    // A second window trusted alongside the surface, the bar
+    // above all, so a click on another pill switches panes
+    // rather than being spent on dismissing the first one.
+    property var owner: null
+
     readonly property bool shown: root.when
         && root.surface.visible
         && root.surface.backingWindowVisible
-
-    // The window a pane hangs from is trusted alongside it, so
-    // a click on another pill switches panes rather than being
-    // spent on dismissing the first one.
-    readonly property var owner: root.surface.anchor?.window
-        ?? root.surface.parentWindow ?? null
 
     signal dismissed
 

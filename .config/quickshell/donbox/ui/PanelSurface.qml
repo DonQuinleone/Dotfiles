@@ -1,8 +1,15 @@
 import QtQuick
 import Quickshell
+import Quickshell.Wayland
 import qs.services
 
-PopupWindow {
+// A pane used to be an xdg popup of the bar, but the compositor
+// withholds pointer input from a popup whitelisted in a held
+// focus grab on a fractionally scaled output, which read as
+// panes that could not be clicked. A layer surface takes the
+// same place under the bar and is spared, so that is what a
+// pane is.
+PanelWindow {
     id: root
 
     default property alias body: content.data
@@ -10,6 +17,16 @@ PopupWindow {
     // Every pane answers to the same name the pill toggles, so
     // this is the only place a pane decides it is on screen.
     required property string name
+
+    // The bar item the pane hangs beneath, for horizontal
+    // placement only: vertically it sits just under the bar.
+    property Item under: null
+
+    // Every screen builds its own bar, so a pane named open
+    // would map on all of them at once and their focus grabs
+    // would cancel one another, closing it as it appeared. The
+    // caller says which instance is allowed on screen.
+    property bool allowed: true
 
     property real widthFactor: 1.5
     property real screenShare: 0.7
@@ -24,32 +41,49 @@ PopupWindow {
         ? root.screen.height * root.screenShare
         : content.implicitHeight
 
-    // Every screen builds its own bar, so a pane named open
-    // would map on all of them at once and their focus grabs
-    // would cancel one another, closing it as it appeared. The
-    // caller says which instance is allowed on screen; asking
-    // the popup for its own screen answers wrongly before it
-    // has mapped, which is never.
-    property bool allowed: true
+    // Centred on its bar item, but never past a screen edge.
+    readonly property real anchoredX: {
+        if (!root.under || !root.visible) return root.gap;
+        const centre = root.under.mapToItem(null,
+            root.under.width / 2, 0).x;
+        const rightmost = (root.screen?.width ?? root.panelWidth)
+            - root.panelWidth - root.gap;
+        return Math.max(root.gap,
+            Math.min(centre - root.panelWidth / 2, rightmost));
+    }
 
-    color: Qt.alpha(Theme.palette.bg ?? "black", 0)
-    implicitWidth: root.panelWidth
-    implicitHeight: frame.implicitHeight + root.gap
+    screen: Panels.host?.screen ?? null
     visible: root.allowed && Panels.isOpen(root.name)
+    color: Qt.alpha(Theme.palette.bg ?? "black", 0)
+    exclusionMode: ExclusionMode.Normal
+    exclusiveZone: 0
+    focusable: true
+    implicitWidth: root.panelWidth
+    implicitHeight: frame.implicitHeight
+    WlrLayershell.layer: WlrLayer.Top
+    WlrLayershell.namespace: "donbox-pane"
+
+    anchors {
+        top: true
+        left: true
+    }
+
+    margins {
+        top: root.gap
+        left: root.anchoredX
+    }
 
     PopoverGrab {
         surface: root
+        owner: Panels.host
 
         onDismissed: Panels.close()
     }
 
-
     Rectangle {
         id: frame
 
-        anchors.left: parent.left
-        anchors.right: parent.right
-        anchors.bottom: parent.bottom
+        anchors.fill: parent
         implicitHeight: scroller.height + root.padding * 2
         color: Theme.palette.bgAlt ?? "black"
         radius: Theme.radii.large ?? 0

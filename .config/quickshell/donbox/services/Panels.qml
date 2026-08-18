@@ -17,6 +17,11 @@ Singleton {
     // something each pane has to arrange with its neighbours.
     property string open: root.none
 
+    // The primary screen's bar registers itself here, giving
+    // every pane its screen to map on and its window to trust
+    // inside a focus grab.
+    property var host: null
+
     property real closedAtMs: 0
     property bool grabActive: false
 

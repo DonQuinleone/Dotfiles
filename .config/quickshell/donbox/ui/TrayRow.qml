@@ -57,9 +57,7 @@ Row {
                 name: `tray.${slot.modelData.id}`
 
                 handle: slot.modelData.menu
-                anchor.item: slot
-                anchor.edges: Edges.Bottom
-                anchor.gravity: Edges.Bottom
+                under: slot
             }
         }
     }

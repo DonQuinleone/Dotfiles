@@ -51,8 +51,6 @@ BarPill {
 
         name: "audio"
 
-        anchor.item: root
-        anchor.edges: Edges.Bottom
-        anchor.gravity: Edges.Bottom
+        under: root
     }
 }

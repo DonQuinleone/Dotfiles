@@ -31,6 +31,13 @@ PanelWindow {
 
     onFocusedChanged: if (root.focused) flash.restart()
 
+    Binding {
+        target: Panels
+        property: "host"
+        value: root
+        when: root.primary
+    }
+
     Rectangle {
         anchors.fill: parent
         color: root.focused

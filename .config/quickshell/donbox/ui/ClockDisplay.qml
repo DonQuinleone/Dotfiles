@@ -68,8 +68,6 @@ Item {
         allowed: root.interactive
 
         today: clock.date
-        anchor.item: root
-        anchor.edges: Edges.Bottom
-        anchor.gravity: Edges.Bottom
+        under: root
     }
 }
