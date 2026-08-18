@@ -38,10 +38,39 @@ program_name() {
     return 1
 }
 
+# This script carries the program's name on its own command
+# line, as do the shells that led here and every subshell it
+# opens, all of which a search would otherwise take for the
+# program already running.
+SELF=$(readlink -f -- "${BASH_SOURCE[0]}")
+readonly SELF
+
+line_of() {
+    cat "/proc/$1/cmdline" 2>/dev/null | tr '\0' ' '
+}
+
+led_here() {
+    local pid="$1" walk=$$
+    while [[ "${walk}" -gt 1 ]]; do
+        [[ "${walk}" == "${pid}" ]] && return 0
+        walk=$(ps -o ppid= -p "${walk}" 2>/dev/null | tr -d ' ')
+        [[ -n "${walk}" ]] || break
+    done
+    return 1
+}
+
 program_present() {
-    local name
+    local name pid line
     name=$(program_name "$@") || return 1
-    pgrep -f -- "${name}" >/dev/null 2>&1
+    while read -r pid; do
+        [[ -n "${pid}" ]] || continue
+        line=$(line_of "${pid}")
+        [[ -n "${line}" ]] || continue
+        [[ "${line}" == *"${SELF}"* ]] && continue
+        led_here "${pid}" && continue
+        return 0
+    done < <(pgrep -f -- "${name}" 2>/dev/null || true)
+    return 1
 }
 
 window_present && exit 0
