@@ -1,6 +1,9 @@
 # shellcheck shell=bash
 
-readonly TMUX_THEME_FILE="${CONFIG_HOME}/tmux/theme.conf"
+# Kept in state: stow links the whole tmux directory, so a
+# generated file written beside the config lands in the
+# repository.
+readonly TMUX_THEME_FILE="${STATE_DIR}/tmux-theme.conf"
 
 write_tmux_theme() {
     cat >"${TMUX_THEME_FILE}" <<EOF
