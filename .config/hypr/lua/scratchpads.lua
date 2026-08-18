@@ -2,7 +2,10 @@ local apps = require("apps")
 
 local ARRANGE_DELAY_MS = 200
 
-local donbox = os.getenv("HOME") .. "/.local/bin/donbox"
+-- The session does not always carry ~/.local/bin, so anything
+-- kept there is named in full.
+local bin = os.getenv("HOME") .. "/.local/bin/"
+local donbox = bin .. "donbox"
 
 -- A pad is a workspace of its own laid over the desktop, and its
 -- panes divide it in the order they are written. They are tiled
@@ -31,7 +34,8 @@ local pads = {
             },
             {
                 class   = "TeamSpeak 3",
-                command = "env QT_SCALE_FACTOR=1.5 teamspeak3",
+                command = "env QT_SCALE_FACTOR=1.5 "
+                    .. bin .. "teamspeak3",
                 share   = 1 / 3,
             },
         },
