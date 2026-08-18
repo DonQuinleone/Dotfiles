@@ -25,6 +25,10 @@ source "${MODULE_DIR}/hyprland.sh"
 source "${MODULE_DIR}/ghostty.sh"
 # shellcheck source=theme.d/kitty.sh
 source "${MODULE_DIR}/kitty.sh"
+# shellcheck source=theme.d/fzf.sh
+source "${MODULE_DIR}/fzf.sh"
+# shellcheck source=theme.d/tmux.sh
+source "${MODULE_DIR}/tmux.sh"
 # shellcheck source=theme.d/icons.sh
 source "${MODULE_DIR}/icons.sh"
 # shellcheck source=theme.d/gtk.sh
@@ -66,6 +70,8 @@ readonly LIVE_APPLIERS=(
 readonly DEFERRED_APPLIERS=(
     apply_ghostty
     apply_kitty
+    apply_fzf
+    apply_tmux
     apply_icons
     apply_gtk
     apply_qt

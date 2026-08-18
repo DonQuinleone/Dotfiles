@@ -17,4 +17,8 @@ if status is-interactive
 
     command -q fzf
     and fzf --fish | source
+
+    set -l fzf_theme "$XDG_STATE_HOME/theme/fzf-opts"
+    test -r $fzf_theme
+    and set -gx FZF_DEFAULT_OPTS (cat $fzf_theme)
 end
