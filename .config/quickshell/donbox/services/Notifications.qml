@@ -37,6 +37,10 @@ Singleton {
     property bool centreOpen: false
     property real closedCentreAtMs: 0
 
+    // Counted rather than filtered live, since a ListModel
+    // changing does not re-run a binding that reads it.
+    property int alarmsShowing: 0
+
     function tint(urgency: int): color {
         return Theme.palette[root.tintRoles[urgency] ?? "accent"]
             ?? "transparent";
@@ -172,6 +176,16 @@ Singleton {
         notification.closed.connect(() => root.drop(toast));
         toastModel.insert(0, { toast: toast });
         root.overflow();
+        root.recountAlarms();
+    }
+
+    function recountAlarms(): void {
+        let count = 0;
+        for (let index = 0; index < toastModel.count; index++) {
+            const entry = toastModel.get(index).toast.entry;
+            if (entry.app === Alarms.appName) count++;
+        }
+        root.alarmsShowing = count;
     }
 
     function indexOf(toast: var): int {
@@ -213,6 +227,7 @@ Singleton {
         if (index < 0) return;
         toastModel.remove(index);
         toast.destroy();
+        root.recountAlarms();
     }
 
     function finish(toast: var): void {

@@ -10,12 +10,17 @@ Singleton {
     readonly property int saveDelayMs: 1000
     readonly property int hoursPerDay: 24
     readonly property int minutesPerHour: 60
+    readonly property int msPerMinute: 60000
     readonly property int minuteStep: 5
     readonly property int clockDigits: 2
 
     readonly property string appName: "Alarm"
     readonly property string urgency: "critical"
     readonly property string glyph: "󰀠"
+
+    readonly property string chime: "/usr/share/sounds/"
+        + "freedesktop/stereo/alarm-clock-elapsed.oga"
+    readonly property int chimeEveryMs: 3000
 
     readonly property string stateHome:
         Quickshell.env("XDG_STATE_HOME")
@@ -41,11 +46,6 @@ Singleton {
         return `${root.padded(hour)}:${root.padded(minute)}`;
     }
 
-    function dayKey(when: date): string {
-        return `${when.getFullYear()}-${when.getMonth()}`
-            + `-${when.getDate()}`;
-    }
-
     function at(hour: int, minute: int): var {
         return root.entries.find(entry => entry.hour === hour
             && entry.minute === minute) ?? null;
@@ -61,9 +61,14 @@ Singleton {
         root.entries = root.entries.concat([{
             hour: hour,
             minute: minute,
-            enabled: true,
-            firedOn: ""
+            enabled: true
         }]);
+    }
+
+    function addRelative(minutes: int): void {
+        const when =
+            new Date(Date.now() + minutes * root.msPerMinute);
+        root.add(when.getHours(), when.getMinutes());
     }
 
     function remove(entry: var): void {
@@ -72,7 +77,6 @@ Singleton {
 
     function toggle(entry: var): void {
         entry.enabled = !entry.enabled;
-        entry.firedOn = "";
         root.entries = root.entries.slice();
     }
 
@@ -81,20 +85,18 @@ Singleton {
             "--app-name", root.appName,
             "--urgency", root.urgency,
             `Alarm ${root.clockOf(entry.hour, entry.minute)}`,
-            "The alarm you set has gone off."]);
+            "Dismiss this notification to silence it."]);
     }
 
-    // The firing day is remembered so that a shell restarted
-    // inside the same minute does not sound the alarm twice.
+    // An alarm sounds once and disarms itself; ringing again
+    // tomorrow takes turning it back on.
     function sweep(when: date): void {
-        const key = root.dayKey(when);
         let rung = false;
         for (const entry of root.entries) {
             if (!entry.enabled) continue;
             if (entry.hour !== when.getHours()) continue;
             if (entry.minute !== when.getMinutes()) continue;
-            if (entry.firedOn === key) continue;
-            entry.firedOn = key;
+            entry.enabled = false;
             rung = true;
             root.ring(entry);
         }
@@ -105,8 +107,7 @@ Singleton {
         return {
             hour: saved.hour ?? 0,
             minute: saved.minute ?? 0,
-            enabled: saved.enabled ?? true,
-            firedOn: saved.firedOn ?? ""
+            enabled: saved.enabled ?? true
         };
     }
 
@@ -137,6 +138,19 @@ Singleton {
         precision: SystemClock.Minutes
 
         onDateChanged: root.sweep(this.date)
+    }
+
+    // The chime keeps time with the notification rather than
+    // with the alarm: it sounds for as long as an alarm toast
+    // is on screen, and dismissing the toast is what ends it.
+    Timer {
+        interval: root.chimeEveryMs
+        repeat: true
+        triggeredOnStart: true
+        running: Notifications.alarmsShowing > 0
+
+        onTriggered: Quickshell.execDetached(
+            ["pw-play", root.chime])
     }
 
     Timer {
