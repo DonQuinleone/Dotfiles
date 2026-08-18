@@ -34,13 +34,44 @@ Singleton {
     property var entries: []
     property bool doNotDisturb: false
 
+    // A row hands a notification back through the model, which
+    // copies it, so the copy has to name the one it came from.
+    // The number only has to outlast the run, since nothing off
+    // the disk is answered for until it has been read back in.
+    property int lastId: 0
+
     readonly property int pending: root.entries.length
 
     readonly property int unseen:
         root.entries.filter(entry => !entry.seen).length
 
+    function nextId(): int {
+        root.lastId += 1;
+        return root.lastId;
+    }
+
+    // The entry a row hands back is a copy, so the one the
+    // store holds, and with it the live notification, is found
+    // again by id.
+    function held(entry: var): var {
+        return root.entries.find(item => item.id === entry.id)
+            ?? entry;
+    }
+
+    function detach(entry: var): var {
+        const stored = root.held(entry);
+        const live = stored.live ?? entry.live;
+        stored.live = null;
+        return live;
+    }
+
+    function drop(entry: var): void {
+        root.entries =
+            root.entries.filter(item => item.id !== entry.id);
+    }
+
     function restored(saved: var): var {
-        const entry = { actions: [], live: null };
+        const entry = { id: root.nextId(), actions: [], live: null };
         for (const name in root.fields) {
             entry[name] = saved[name] ?? root.fields[name];
         }
@@ -56,32 +87,31 @@ Singleton {
     }
 
     function close(entry: var): void {
-        const live = entry.live;
-        entry.live = null;
+        const live = root.detach(entry);
         if (live) live.dismiss();
     }
 
     function record(entry: var): void {
+        entry.id = root.nextId();
         const kept = [entry].concat(root.entries);
         kept.slice(root.cap).forEach(item => root.close(item));
         root.entries = kept.slice(0, root.cap);
     }
 
     function release(entry: var): void {
-        if (entry.actions.length > 0) return;
-        const live = entry.live;
-        entry.live = null;
+        if (root.held(entry).actions.length > 0) return;
+        const live = root.detach(entry);
         if (live) live.expire();
     }
 
     function discard(entry: var): void {
-        entry.live = null;
-        root.entries = root.entries.filter(item => item !== entry);
+        root.held(entry).live = null;
+        root.drop(entry);
     }
 
     function forget(entry: var): void {
         root.close(entry);
-        root.entries = root.entries.filter(item => item !== entry);
+        root.drop(entry);
     }
 
     function clearApp(app: string): void {
