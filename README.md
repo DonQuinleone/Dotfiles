@@ -92,6 +92,17 @@ are themed around their content rather than through it: the
 chrome takes the palette while the page and the picture are left
 as they were drawn.
 
+The clock in the bar opens the month, the weather, the hours the
+sun keeps and the moon drawn as it actually looks tonight,
+terminator and all, from Meeus rather than from counting whole
+months off a remembered new moon. Where the desktop stands is
+asked for once, by name or as plain coordinates, and kept in
+`$XDG_STATE_HOME/donbox` rather than here, since coordinates say
+where somebody lives; Open-Meteo answers both the search and the
+forecast without an account or a key, and nothing else is asked
+anything. Alarms are set by typing a time, or a distance from
+now such as `+15`, and ring until the notification is dismissed.
+
 `Super+F` opens yazi, which lays a directory out in the columns a
 Finder does, from the COPR the manifest names since Fedora does
 not package it.
