@@ -1,4 +1,8 @@
+local apps = require("apps")
+
 local ARRANGE_DELAY_MS = 200
+
+local donbox = os.getenv("HOME") .. "/.local/bin/donbox"
 
 -- A pad is a workspace of its own laid over the desktop, and its
 -- panes divide it in the order they are written. They are tiled
@@ -12,7 +16,7 @@ local pads = {
         name = "term",
         panes = {
             {
-                class = "com.donquinleone.scratchterm",
+                class = apps.classes.scratchpad,
                 share = 1,
             },
         },
@@ -53,14 +57,11 @@ local function workspace_of(pad)
     return "special:" .. pad.name
 end
 
--- Ghostty only honours --class when it is a valid GTK
--- application id and it is not folding into a running instance.
 local function command_for(pane)
     if pane.command then
         return pane.command
     end
-    return "ghostty --gtk-single-instance=false --class="
-        .. pane.class
+    return donbox .. " term --class " .. pane.class
 end
 
 local function windows_for(pane)

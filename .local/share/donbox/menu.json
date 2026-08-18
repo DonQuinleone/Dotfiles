@@ -122,12 +122,12 @@
     "session.settings.network": {
       "label": "Network connections",
       "icon": "network-wired",
-      "action": "ghostty --class=com.donquinleone.settings --gtk-single-instance=false -e nmtui"
+      "action": "donbox term --role settings -- nmtui"
     },
     "session.settings.audio": {
       "label": "Audio routing",
       "icon": "audio-volume-high",
-      "action": "ghostty --class=com.donquinleone.settings --gtk-single-instance=false -e wiremix"
+      "action": "donbox term --role settings -- wiremix"
     },
     "session.caffeine": {
       "label": "Stay awake",
@@ -187,7 +187,7 @@
     "webapp.install": {
       "label": "Install",
       "icon": "list-add",
-      "action": "ghostty --class=com.donquinleone.settings -e donbox webapp install"
+      "action": "donbox term --role settings -- donbox webapp install"
     },
     "webapp.remove": {
       "label": "Remove",

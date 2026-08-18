@@ -128,6 +128,7 @@ assert_status "a search matching nothing still fails" \
 # search has nowhere to prompt, which is the menu's case.
 : >"${CALLS}"
 env -u DONBOX_PKG_WINDOW DONBOX_TERMINAL="${WORKSPACE}/term" \
+    DONBOX_APPS_FILE="${ROOT}/.config/donbox/apps.lua" \
     "${PKG}" search ripgrep >/dev/null 2>&1 </dev/null || true
 assert_equal "a search without a terminal opens one for itself" \
     "$(grep -c 'term .* DONBOX_PKG_WINDOW=1 .* search ripgrep' \

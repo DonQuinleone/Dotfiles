@@ -12,11 +12,9 @@ REPO=$(cd -- "${BIN_DIR}/../.." && pwd)
 readonly REPO
 readonly MANIFEST="${DONBOX_MANIFEST:-${REPO}/packages.json}"
 
-readonly TERMINAL="${DONBOX_TERMINAL:-ghostty}"
-# Ghostty drops a class that is not a valid GTK application ID,
-# and folds into a running instance unless told not to; either
-# leaves the window without the rule that sizes it.
-readonly WINDOW_CLASS="com.donquinleone.packages"
+LAUNCHER="$(dirname -- "$(readlink -f -- "${BASH_SOURCE[0]}")")/donbox-term"
+readonly LAUNCHER
+readonly WINDOW_ROLE="packages"
 readonly FONT_POINTS=14
 readonly CLOSE_PROMPT="Press any key to close this window."
 
@@ -69,12 +67,9 @@ hold_window_open() {
 # neither, so a window is opened for it and the command re-run
 # inside.
 reopen_in_terminal() {
-    command -v "${TERMINAL}" >/dev/null 2>&1 ||
-        die "${TERMINAL} is not installed"
-    exec "${TERMINAL}" --class="${WINDOW_CLASS}" \
-        --font-size="${FONT_POINTS}" \
-        --gtk-single-instance=false \
-        -e env DONBOX_PKG_WINDOW=1 "${SCRIPT}" "$@"
+    exec "${LAUNCHER}" --role "${WINDOW_ROLE}" \
+        --font-size "${FONT_POINTS}" \
+        -- env DONBOX_PKG_WINDOW=1 "${SCRIPT}" "$@"
 }
 
 wait_for_key() {

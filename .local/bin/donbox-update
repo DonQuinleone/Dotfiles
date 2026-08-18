@@ -17,11 +17,10 @@
 # geometry at roughly 104 columns at twenty.
 set -euo pipefail
 
-# Ghostty drops a class that is not a valid GTK application ID,
-# leaving the window with the default one and no rule to match.
-readonly WINDOW_CLASS="com.donquinleone.update"
+LAUNCHER="$(dirname -- "$(readlink -f -- "${BASH_SOURCE[0]}")")/donbox-term"
+readonly LAUNCHER
+readonly WINDOW_ROLE="update"
 readonly FONT_POINTS=26
-readonly TERMINAL="ghostty"
 readonly PACKAGE_MANAGER="dnf"
 readonly INSTALL_MODE="install"
 readonly CLOSE_PROMPT="Press any key to close this window."
@@ -40,10 +39,9 @@ require_command() {
 }
 
 open_window() {
-    require_command "${TERMINAL}"
-    exec "${TERMINAL}" --class="${WINDOW_CLASS}" \
-        --font-size="${FONT_POINTS}" \
-        -e "${SCRIPT}" "${INSTALL_MODE}"
+    exec "${LAUNCHER}" --role "${WINDOW_ROLE}" \
+        --font-size "${FONT_POINTS}" \
+        -- "${SCRIPT}" "${INSTALL_MODE}"
 }
 
 run_transaction() {

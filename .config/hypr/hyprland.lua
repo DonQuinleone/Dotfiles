@@ -1,7 +1,12 @@
 local source = debug.getinfo(1, "S").source:sub(2)
 local root = source:match("(.*/)") .. "lua/"
 
-package.path = root .. "?.lua;" .. package.path
+local config = os.getenv("XDG_CONFIG_HOME")
+    or (os.getenv("HOME") .. "/.config")
+
+package.path = root .. "?.lua;"
+    .. config .. "/donbox/?.lua;"
+    .. package.path
 
 local modules = {
     "env",

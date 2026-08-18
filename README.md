@@ -22,7 +22,7 @@
 
 My Fedora desktop kept as a single GNU Stow package: a Hyprland
 session under a Quickshell desktop, seventeen themes that switch
-the whole system at once, and Ghostty, Neovim and fish beneath
+the whole system at once, and kitty, Neovim and fish beneath
 it. A fresh machine is one clone and one command away.
 
 I am visually impaired, and that decides the design. The
@@ -45,7 +45,8 @@ exactly where it appears.
 | `.config/quickshell` | bar, launcher, notifications |
 | `.config/nvim` | the editor |
 | `.config/fish` | the shell |
-| `.config/ghostty` | the terminal |
+| `.config/kitty` | the terminal |
+| `.config/donbox` | the applications the desktop reaches for |
 | `.local/bin` | `donbox` and its subcommands |
 | `.local/share/donbox` | theme modules and templates |
 | `Pictures/walls` | the wallpapers |

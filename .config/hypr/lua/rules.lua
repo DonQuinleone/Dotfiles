@@ -1,3 +1,5 @@
+local apps = require("apps")
+
 -- Centring measures the whole monitor rather than the area the
 -- panel leaves free, so a tall window would slide underneath
 -- it. Sizing against the free height keeps the window clear of
@@ -20,13 +22,13 @@ end
 -- editor needs nearly the whole screen to hold the ninety-odd
 -- columns a 72-column configuration file wants.
 local terminals = {
-    { class = "com.donquinleone.activity", width = 0.75,
+    { class = apps.classes.activity, width = 0.75,
       height = 0.90 },
-    { class = "com.donquinleone.settings", width = 0.92,
+    { class = apps.classes.settings, width = 0.92,
       height = 0.92 },
-    { class = "com.donquinleone.update", width = 0.75,
+    { class = apps.classes.update, width = 0.75,
       height = 0.90 },
-    { class = "com.donquinleone.packages", width = 0.80,
+    { class = apps.classes.packages, width = 0.80,
       height = 0.88 },
 }
 

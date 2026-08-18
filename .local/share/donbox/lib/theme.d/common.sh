@@ -140,6 +140,21 @@ bare_hex() {
     printf '%s\n' "${hex,,}"
 }
 
+# A pale background has no headroom. At the translucency a dark
+# theme wears comfortably the wallpaper bleeds through it, and
+# the terminal washes out to near white with the picture still
+# legible behind the text.
+readonly TERMINAL_DARK_OPACITY=0.8
+readonly TERMINAL_LIGHT_OPACITY=0.97
+
+terminal_opacity() {
+    if theme_is_dark; then
+        printf '%s\n' "${TERMINAL_DARK_OPACITY}"
+        return
+    fi
+    printf '%s\n' "${TERMINAL_LIGHT_OPACITY}"
+}
+
 load_palette() {
     local key value
     PALETTE=()

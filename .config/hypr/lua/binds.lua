@@ -1,4 +1,5 @@
 local actions = require("actions")
+local apps = require("apps")
 local gaps = require("gaps")
 local layouts = require("layouts")
 local scratchpads = require("scratchpads")
@@ -13,9 +14,9 @@ local locked = { locked = true }
 local mouse = { mouse = true }
 
 local binds = {
-    { "SUPER",           "Return",                hl.dsp.exec_cmd("ghostty")                             },
-    { "SUPER",           "b",                     hl.dsp.exec_cmd("firefox")                             },
-    { "SUPER",           "f",                     hl.dsp.exec_cmd("ghostty -e yazi")                     },
+    { "SUPER",           "Return",                hl.dsp.exec_cmd(donbox .. " term")                     },
+    { "SUPER",           "b",                     hl.dsp.exec_cmd(apps.browser)                          },
+    { "SUPER",           "f",                     hl.dsp.exec_cmd(donbox .. " term -- " .. apps.files)   },
     { "SUPER",           "a",                     hl.dsp.exec_cmd(donbox .. " activity")                 },
 
     { "SUPER",           "space",                 hl.dsp.exec_cmd("qs -c donbox ipc call launcher toggle") },

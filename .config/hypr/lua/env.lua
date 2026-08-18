@@ -1,5 +1,6 @@
 local DEFAULT_CURSOR_SIZE = 48
 
+local apps = require("apps")
 local saved = require("settings").load()
 
 local cache = os.getenv("XDG_CACHE_HOME")
@@ -29,6 +30,8 @@ local cursor_size = tostring(
     saved.cursor_size or DEFAULT_CURSOR_SIZE)
 
 local envs = {
+    { "TERMINAL", apps.terminal },
+    { "EDITOR", apps.editor },
     { "XCURSOR_THEME", "Adwaita" },
     { "XCURSOR_SIZE", cursor_size },
     { "HYPRCURSOR_SIZE", cursor_size },

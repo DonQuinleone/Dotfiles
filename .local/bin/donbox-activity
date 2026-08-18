@@ -10,12 +10,11 @@
 # roughly 104 by 28.
 set -euo pipefail
 
-# Ghostty drops a class that is not a valid GTK application ID,
-# leaving the window with the default one and no rule to match.
-readonly WINDOW_CLASS="com.donquinleone.activity"
+LAUNCHER="$(dirname -- "$(readlink -f -- "${BASH_SOURCE[0]}")")/donbox-term"
+readonly LAUNCHER
+readonly WINDOW_ROLE="activity"
 readonly FONT_POINTS=20
 readonly MONITOR="btop"
-readonly TERMINAL="ghostty"
 
 die() {
     printf 'donbox activity: %s\n' "$*" >&2
@@ -27,8 +26,7 @@ require_command() {
         die "$1 is not installed but is required"
 }
 
-require_command "${TERMINAL}"
 require_command "${MONITOR}"
 
-exec "${TERMINAL}" --class="${WINDOW_CLASS}" \
-    --font-size="${FONT_POINTS}" -e "${MONITOR}"
+exec "${LAUNCHER}" --role "${WINDOW_ROLE}" \
+    --font-size "${FONT_POINTS}" -- "${MONITOR}"

@@ -6,12 +6,9 @@ set -euo pipefail
 
 readonly CONFIG_HOME="${XDG_CONFIG_HOME:-${HOME}/.config}"
 readonly EDITOR_COMMAND=nvim
-readonly TERMINAL=ghostty
-# Ghostty drops a class that is not a valid GTK application ID,
-# and folds into a running instance unless told not to; either
-# leaves the window without the rule that sizes it, and a folded
-# window also returns before the editor has been closed.
-readonly WINDOW_CLASS="com.donquinleone.settings"
+LAUNCHER="$(dirname -- "$(readlink -f -- "${BASH_SOURCE[0]}")")/donbox-term"
+readonly LAUNCHER
+readonly WINDOW_ROLE="settings"
 
 file=""
 prepare=""
@@ -74,16 +71,14 @@ modified_at() {
 
 main() {
     read_arguments "$@"
-    require_command "${TERMINAL}"
     require_command "${EDITOR_COMMAND}"
 
     local path="${CONFIG_HOME}/${file}" before
     ensure_file "${path}"
     before=$(modified_at "${path}")
 
-    "${TERMINAL}" --class="${WINDOW_CLASS}" \
-        --gtk-single-instance=false \
-        -e "${EDITOR_COMMAND}" "${path}"
+    "${LAUNCHER}" --role "${WINDOW_ROLE}" \
+        -- "${EDITOR_COMMAND}" "${path}"
 
     [[ "$(modified_at "${path}")" != "${before}" ]] || return 0
     [[ -n "${reload}" ]] || return 0
