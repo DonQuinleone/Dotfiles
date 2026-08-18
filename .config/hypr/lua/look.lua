@@ -66,16 +66,26 @@ hl.config({
             indicator_height = GROUPBAR_INDICATOR_HEIGHT,
         },
     },
+    -- Focus dispatched to another monitor must carry the
+    -- pointer with it: follow_mouse rules otherwise, and the
+    -- first twitch of the mouse snaps focus straight back to
+    -- the screen it left.
     cursor = {
         zoom_factor = ZOOM_UNMAGNIFIED,
         zoom_rigid = false,
         zoom_detached_camera = false,
-        no_warps = true,
+        no_warps = false,
+        warp_on_change_workspace = 1,
     },
+    -- Without focus_on_activate, a notification clicked or a
+    -- link handed to the browser raises the window but leaves
+    -- the keyboard where it was.
     misc = {
         disable_hyprland_logo = true,
         force_default_wallpaper = 0,
         allow_session_lock_restore = true,
+        focus_on_activate = true,
+        on_focus_under_fullscreen = 1,
     },
     -- A passphrase prompt grabs the keyboard, which otherwise
     -- takes the magnifier away at exactly the moment there is
@@ -83,6 +93,7 @@ hl.config({
     -- lock rather than a grab, so it is unaffected.
     binds = {
         disable_keybind_grabbing = true,
+        hide_special_on_workspace_change = true,
     },
     animations = {
         enabled = true,
