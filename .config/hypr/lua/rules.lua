@@ -40,6 +40,29 @@ hl.window_rule({
     pin = true,
 })
 
+-- An XWayland menu or tooltip is an unmanaged popup with no
+-- class and no title. Handing it focus takes focus off its
+-- parent, and a menu whose parent loses focus closes in the
+-- same instant it opens.
+hl.window_rule({
+    match = {
+        class = "^$",
+        title = "^$",
+        xwayland = true,
+        float = true,
+        fullscreen = false,
+        pin = false,
+    },
+    no_focus = true,
+})
+
+-- An application asking to maximise itself would undo the
+-- tiling it sits in.
+hl.window_rule({
+    match = { class = ".*" },
+    suppress_event = "maximize",
+})
+
 -- Each surface enters from the edge it lives on, so the motion
 -- says where the thing came from; the centred ones have no edge
 -- to come from and grow in place instead. The wallpaper never
