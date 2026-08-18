@@ -155,6 +155,35 @@ terminal_opacity() {
     printf '%s\n' "${TERMINAL_LIGHT_OPACITY}"
 }
 
+readonly TERMINAL_BRIGHT_LIFT=30
+
+# The sixteen colours every terminal program reaches for. A
+# palette states meanings rather than hues, so the three that
+# carry one keep it and the rest are mixed from the accent: a
+# theme with no blue in it should not grow one for the sake of
+# a directory listing.
+terminal_palette() {
+    local -a ordinary=(
+        "${COLOURS[bgAlt]}"
+        "${COLOURS[bad]}"
+        "${COLOURS[good]}"
+        "${COLOURS[warn]}"
+        "${COLOURS[accent]}"
+        "$(mix "${COLOURS[accent]}" "${COLOURS[bad]}" 50)"
+        "${COLOURS[accentSoft]}"
+        "${COLOURS[fg]}"
+    )
+    local index colour
+    for index in "${!ordinary[@]}"; do
+        printf '%s\t%s\n' "${index}" "${ordinary[index]}"
+    done
+    for index in "${!ordinary[@]}"; do
+        colour=$(mix "${ordinary[index]}" "${COLOURS[fg]}" \
+            "${TERMINAL_BRIGHT_LIFT}")
+        printf '%s\t%s\n' "$((index + 8))" "${colour}"
+    done
+}
+
 load_palette() {
     local key value
     PALETTE=()

@@ -80,6 +80,13 @@ hl.config({
     -- Without focus_on_activate, a notification clicked or a
     -- link handed to the browser raises the window but leaves
     -- the keyboard where it was.
+    -- An X11 window is drawn at one pixel per point and then
+    -- stretched to fit a scaled screen, which is what makes it
+    -- look soft; at zero scaling it draws at the screen's own
+    -- resolution and the application is told the size instead.
+    xwayland = {
+        force_zero_scaling = true,
+    },
     misc = {
         disable_hyprland_logo = true,
         force_default_wallpaper = 0,

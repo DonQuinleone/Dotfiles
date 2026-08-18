@@ -12,6 +12,9 @@ selection-background = $(bare_hex "${COLOURS[accent]}")
 selection-foreground = $(bare_hex "${COLOURS[onAccent]}")
 cursor-color = $(bare_hex "${COLOURS[accent]}")
 EOF
+    terminal_palette | while IFS=$'\t' read -r index colour; do
+        printf 'palette = %s=%s\n' "${index}" "${colour}"
+    done >>"${GHOSTTY_THEME_FILE}"
 }
 
 apply_ghostty() {

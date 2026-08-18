@@ -14,6 +14,9 @@ cursor ${COLOURS[accent]}
 cursor_text_color background
 url_color ${COLOURS[accentSoft]}
 EOF
+    terminal_palette | while IFS=$'\t' read -r index colour; do
+        printf 'color%s %s\n' "${index}" "${colour}"
+    done >>"${KITTY_THEME_FILE}"
 }
 
 apply_kitty() {

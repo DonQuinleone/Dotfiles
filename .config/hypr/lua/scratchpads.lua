@@ -31,7 +31,11 @@ local pads = {
             },
             {
                 class   = "TeamSpeak 3",
-                command = "teamspeak3",
+                -- Its own Qt draws at whatever DPI it is told,
+                -- and under zero-scaled XWayland nobody tells
+                -- it, so it would come out a third too small on
+                -- the screen this pad usually opens over.
+                command = "env QT_FONT_DPI=144 teamspeak3",
                 share   = 1 / 3,
             },
         },
