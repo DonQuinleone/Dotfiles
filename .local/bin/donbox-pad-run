@@ -42,10 +42,11 @@ program_pattern() {
 # line, as do the shells that led here and every subshell it
 # opens, all of which a search would otherwise take for the
 # program already running.
-# By name rather than by path: this is reached through a
-# symlink, and a command line says the name it was called by
-# rather than the file it landed on.
-readonly SELF="${BASH_SOURCE[0]##*/}"
+# Anything mentioning this launcher is asking for the program
+# rather than being it: this script under either of its names,
+# the shell the compositor ran it from, and the subshells it
+# opens, all of which carry the program's name.
+readonly SELF="pad-run"
 
 line_of() {
     cat "/proc/$1/cmdline" 2>/dev/null | tr '\0' ' '

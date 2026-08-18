@@ -91,3 +91,12 @@ windows '[]'
 "${WORKSPACE}/linked-pad-run" "com.example.absent" -- nosuchprogram
 assert "a symlinked launcher still knows itself" \
     [ -s "${STARTED}" ]
+
+# A shell that mentions the program on its way to asking for it
+# is not the program, however it was started.
+windows '[]'
+: >"${STARTED}"
+setsid "${PAD_RUN}" "com.example.absent" -- nosuchprogram &
+sleep 2
+assert "a detached ask still starts the program" \
+    [ -s "${STARTED}" ]
