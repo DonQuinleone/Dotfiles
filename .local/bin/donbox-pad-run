@@ -42,8 +42,10 @@ program_pattern() {
 # line, as do the shells that led here and every subshell it
 # opens, all of which a search would otherwise take for the
 # program already running.
-SELF=$(readlink -f -- "${BASH_SOURCE[0]}")
-readonly SELF
+# By name rather than by path: this is reached through a
+# symlink, and a command line says the name it was called by
+# rather than the file it landed on.
+readonly SELF="${BASH_SOURCE[0]##*/}"
 
 line_of() {
     cat "/proc/$1/cmdline" 2>/dev/null | tr '\0' ' '

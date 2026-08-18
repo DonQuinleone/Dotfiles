@@ -81,3 +81,13 @@ sleep 2
 kill "${OTHER}" "${WANTED}" 2>/dev/null || true
 assert "another program sharing a word is not mistaken for it" \
     grep -q "the.app.wanted" "${STARTED}"
+
+# Reached through a symlink, as the router leaves it: a command
+# line says the name it was called by, not the file behind it.
+ln -sf "${PAD_RUN}" "${WORKSPACE}/linked-pad-run"
+
+windows '[]'
+: >"${STARTED}"
+"${WORKSPACE}/linked-pad-run" "com.example.absent" -- nosuchprogram
+assert "a symlinked launcher still knows itself" \
+    [ -s "${STARTED}" ]
