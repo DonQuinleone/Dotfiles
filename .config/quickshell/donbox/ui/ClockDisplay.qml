@@ -5,6 +5,8 @@ import qs.services
 Item {
     id: root
 
+    property bool interactive: true
+
     readonly property string timeFormat: "HH:mm"
     readonly property string dateFormat: "ddd d MMM"
 
@@ -55,6 +57,8 @@ Item {
 
     PanelToggle {
         surface: dropdown
+        enabled: root.interactive
+        visible: root.interactive
     }
 
     ClockPopup {

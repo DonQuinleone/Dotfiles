@@ -12,6 +12,8 @@ PanelWindow {
     readonly property string monitorName: root.modelData.name
     readonly property bool focused:
         Hyprland.focusedMonitor?.name === root.monitorName
+    readonly property bool primary:
+        Monitors.isPrimary(root.monitorName)
 
     screen: root.modelData
     visible: BarVisibility.isVisible(root.monitorName)
@@ -118,12 +120,14 @@ PanelWindow {
 
         ClockDisplay {
             anchors.centerIn: parent
+            interactive: root.primary
         }
 
         Row {
             anchors.right: parent.right
             anchors.verticalCenter: parent.verticalCenter
             spacing: Theme.spacing.normal ?? 0
+            visible: root.primary
 
             TrayRow {}
 

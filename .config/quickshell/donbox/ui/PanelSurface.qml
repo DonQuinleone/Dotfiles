@@ -27,7 +27,11 @@ PopupWindow {
     color: Qt.alpha(Theme.palette.bg ?? "black", 0)
     implicitWidth: root.panelWidth
     implicitHeight: frame.implicitHeight + root.gap
+    // Every screen builds its own bar, so a pane named open
+    // would map on all of them at once and their focus grabs
+    // would cancel one another, closing it as it appeared.
     visible: Panels.isOpen(root.name)
+        && (!root.screen || Monitors.isPrimary(root.screen.name))
 
     PopoverGrab {
         surface: root
