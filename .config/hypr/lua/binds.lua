@@ -55,10 +55,10 @@ local binds = {
     { "SUPER + SHIFT",   "k",                     hl.dsp.window.move({ direction = "up" })               },
     { "SUPER + SHIFT",   "l",                     hl.dsp.window.move({ direction = "right" })            },
 
-    { "SUPER",           "comma",                 hl.dsp.focus({ monitor = "-1" })                       },
-    { "SUPER",           "period",                hl.dsp.focus({ monitor = "+1" })                       },
-    { "SUPER + SHIFT",   "comma",                 hl.dsp.window.move({ monitor = "-1" })                 },
-    { "SUPER + SHIFT",   "period",                hl.dsp.window.move({ monitor = "+1" })                 },
+    { "SUPER",           "comma",                 hl.dsp.focus({ monitor = "+1" })                       },
+    { "SUPER",           "period",                hl.dsp.focus({ monitor = "-1" })                       },
+    { "SUPER + SHIFT",   "comma",                 hl.dsp.window.move({ monitor = "+1" })                 },
+    { "SUPER + SHIFT",   "period",                hl.dsp.window.move({ monitor = "-1" })                 },
 
     { "SUPER + CTRL",    "h",                     actions.resize(-RESIZE_STEP, 0)                        },
     { "SUPER + CTRL",    "j",                     actions.resize(0, RESIZE_STEP)                         },
