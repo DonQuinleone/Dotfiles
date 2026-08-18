@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+# donbox:summary=Start a pad's program unless it is already there
+# donbox:args=<class> -- <command...>
+# donbox:hidden=true
+set -euo pipefail
+
+die() {
+    printf 'donbox pad-run: %s\n' "$*" >&2
+    exit 1
+}
+
+[[ $# -ge 3 ]] || die "usage: donbox pad-run <class> -- <command...>"
+
+readonly WINDOW_CLASS="$1"
+shift
+[[ "$1" == "--" ]] || die "the command must follow --"
+shift
+
+window_present() {
+    hyprctl -j clients | python3 -c 'import json, sys
+wanted = sys.argv[1]
+windows = json.load(sys.stdin)
+sys.exit(0 if any(w["class"] == wanted for w in windows) else 1)' \
+        "${WINDOW_CLASS}"
+}
+
+# The command may carry an env prefix, and the program itself
+# may exec something else with a name of its own, so the pattern
+# is the word that names it rather than the whole line.
+program_name() {
+    local word
+    for word in "$@"; do
+        [[ "${word}" == "env" ]] && continue
+        [[ "${word}" == *=* ]] && continue
+        printf '%s\n' "$(basename -- "${word}")"
+        return 0
+    done
+    return 1
+}
+
+program_present() {
+    local name
+    name=$(program_name "$@") || return 1
+    pgrep -f -- "${name}" >/dev/null 2>&1
+}
+
+window_present && exit 0
+program_present "$@" && exit 0
+
+exec "$@"

@@ -183,6 +183,7 @@ ShellRoot {
 
         function dismissAll(): void {
             Notifications.dismissAll();
+            NotificationStore.clear();
         }
     }
 

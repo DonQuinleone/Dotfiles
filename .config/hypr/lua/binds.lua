@@ -21,7 +21,7 @@ local binds = {
 
     { "SUPER",           "space",                 hl.dsp.exec_cmd("qs -c donbox ipc call launcher toggle") },
     { "SUPER + CTRL",    "b",                     hl.dsp.exec_cmd("qs -c donbox ipc call bar toggleFocused") },
-    { "SUPER + CTRL",    "c",                     hl.dsp.exec_cmd(donbox .. " menu session.settings")    },
+    { "SUPER + ALT",     "c",                     hl.dsp.exec_cmd(donbox .. " menu session.settings")    },
 
     { "SUPER",           "n",                     hl.dsp.exec_cmd("qs -c donbox ipc call notifications toggleCentre") },
     { "SUPER + SHIFT",   "n",                     hl.dsp.exec_cmd("qs -c donbox ipc call notifications toggleDnd")    },

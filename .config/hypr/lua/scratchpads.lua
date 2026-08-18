@@ -31,11 +31,7 @@ local pads = {
             },
             {
                 class   = "TeamSpeak 3",
-                -- Its own Qt draws at whatever DPI it is told,
-                -- and under zero-scaled XWayland nobody tells
-                -- it, so it would come out a third too small on
-                -- the screen this pad usually opens over.
-                command = "env QT_FONT_DPI=144 teamspeak3",
+                command = "env QT_SCALE_FACTOR=1.5 teamspeak3",
                 share   = 1 / 3,
             },
         },
@@ -72,11 +68,13 @@ local function windows_for(pane)
     return hl.get_windows({ class = pane.class })
 end
 
+-- A program can be running with no window of its own yet, or
+-- none left, and starting a second copy of it fails rather than
+-- filling the pane.
 local function start_missing(pad)
     for _, pane in ipairs(pad.panes) do
-        if #windows_for(pane) == 0 then
-            hl.exec_cmd(command_for(pane))
-        end
+        hl.exec_cmd(donbox .. " pad-run '" .. pane.class
+            .. "' -- " .. command_for(pane))
     end
 end
 
