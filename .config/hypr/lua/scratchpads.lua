@@ -117,6 +117,11 @@ local function master_window(pad)
     return best
 end
 
+local function on_pad(pad, window)
+    return window ~= nil and window.workspace ~= nil
+        and window.workspace.name == workspace_of(pad)
+end
+
 local function arrange(pad)
     if #pad.panes < 2 or not showing(pad) then
         return
@@ -126,6 +131,7 @@ local function arrange(pad)
     if first == nil or master == nil then
         return
     end
+    local focused = hl.get_active_window()
     -- Focusing into the pad is what puts the messages that
     -- follow on its workspace rather than on the one behind it.
     hl.dispatch(hl.dsp.focus({
@@ -136,6 +142,14 @@ local function arrange(pad)
     end
     hl.dispatch(hl.dsp.layout(string.format(
         "mfact exact %.4f", pad.panes[1].share)))
+    -- Arranging is about the layout, not about focus: whoever
+    -- on the pad held it, a dialog above all, gets it back.
+    if on_pad(pad, focused)
+        and focused.address ~= first.address then
+        hl.dispatch(hl.dsp.focus({
+            window = "address:" .. focused.address,
+        }))
+    end
 end
 
 local function pad_on_screen()
@@ -160,13 +174,15 @@ local function pad_owns(pad, window)
     return false
 end
 
--- A window one of a pad's applications opens, a link, a dialog,
--- a sign-in, is work in its own right rather than part of the
--- pad, so it is put on the workspace the pad is covering and the
--- pad gets out of its way.
+-- A tiled window opened over a pad is work in its own right
+-- rather than part of the pad, so it is put on the workspace
+-- the pad is covering and the pad gets out of its way. A
+-- floating one is a dialog, a menu, a picker, and belongs to
+-- whatever opened it: moving it would tear it away from its
+-- parent mid-interaction.
 local function on_window_open(window)
     local pad = pad_on_screen()
-    if pad == nil or window == nil then
+    if pad == nil or window == nil or window.floating then
         return
     end
     if pad_owns(pad, window) then
