@@ -9,7 +9,11 @@ Rectangle {
     readonly property bool shown: root.told && root.reading !== null
     readonly property int pad: Theme.sizes.popupPadding ?? 0
 
-    property bool asking: false
+    // Somewhere to be is the one thing nobody can guess, so the
+    // field stands open until it has been answered.
+    property bool changing: false
+
+    readonly property bool asking: root.changing || !root.told
 
     implicitHeight: layout.implicitHeight + root.pad * 2
     radius: Theme.radii.large ?? 0
@@ -18,7 +22,8 @@ Rectangle {
     border.color: Theme.palette.border ?? "transparent"
 
     function settle(): void {
-        root.asking = !root.told;
+        root.changing = false;
+        finder.reset();
     }
 
     Column {
@@ -31,27 +36,27 @@ Rectangle {
 
         WeatherHero {
             width: parent.width
-            visible: root.shown && !root.asking
+            visible: root.shown
             reading: root.reading ?? ({})
         }
 
         Rectangle {
             width: parent.width
             height: Theme.sizes.focusEdge ?? 0
-            visible: root.shown && !root.asking
+            visible: root.shown
             color: Theme.palette.border ?? "transparent"
             opacity: Theme.opacities.edge ?? 1
         }
 
         SkyFacts {
             width: parent.width
-            visible: root.shown && !root.asking
+            visible: root.shown
             reading: root.reading ?? ({})
         }
 
         Text {
             width: parent.width
-            visible: root.told && !root.shown && !root.asking
+            visible: root.told && !root.shown
             text: Weather.failed
                 ? "The forecast could not be fetched."
                 : "Fetching the forecast…"
@@ -62,9 +67,10 @@ Rectangle {
 
         Text {
             width: parent.width
-            visible: !root.told && !root.asking
+            visible: !root.told
             wrapMode: Text.WordWrap
-            text: "Say where you are for weather and sun times."
+            text: "Where are you? The weather, the sunrise and "
+                + "the sunset all wait on the answer."
             color: Theme.palette.fgDim ?? "white"
             font.family: Theme.fonts.ui ?? ""
             font.pixelSize: Theme.fontSizes.normal ?? 0
@@ -76,12 +82,14 @@ Rectangle {
             width: parent.width
             visible: root.asking
 
-            onSettled: root.asking = false
+            onSettled: root.changing = false
         }
 
         Item {
             width: parent.width
-            implicitHeight: place.implicitHeight
+            visible: root.told
+            implicitHeight: Math.max(place.implicitHeight,
+                change.implicitHeight)
 
             Text {
                 id: place
@@ -91,7 +99,6 @@ Rectangle {
                 anchors.rightMargin: Theme.spacing.tight ?? 0
                 anchors.verticalCenter: parent.verticalCenter
                 elide: Text.ElideRight
-                visible: root.told
                 text: Location.place?.name ?? ""
                 color: Theme.palette.fgDim ?? "white"
                 font.family: Theme.fonts.ui ?? ""
@@ -103,14 +110,12 @@ Rectangle {
 
                 anchors.right: parent.right
                 anchors.verticalCenter: parent.verticalCenter
-                label: root.asking
-                    ? "Cancel"
-                    : (root.told ? "Change" : "Set location")
-                selected: root.asking
+                label: root.changing ? "Done" : "Change"
+                selected: root.changing
 
                 onActivated: {
-                    root.asking = !root.asking;
-                    if (!root.asking) finder.reset();
+                    root.changing = !root.changing;
+                    finder.reset();
                 }
             }
         }
