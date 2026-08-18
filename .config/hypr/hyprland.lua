@@ -18,6 +18,7 @@ local modules = {
     "rules",
     "binds",
     "switches",
+    "reload",
     "apply",
     "autostart",
 }
