@@ -115,6 +115,8 @@ resolve_plan() {
 import json
 import sys
 
+DEFAULT_BITDEPTH = 8
+
 profile = json.load(open(sys.argv[1]))
 monitors = json.load(open(sys.argv[2]))
 
@@ -147,6 +149,7 @@ for output in profile["outputs"]:
         output["position"],
         str(output["scale"]),
         str(output["transform"]),
+        str(output.get("bitdepth", DEFAULT_BITDEPTH)),
         workspaces,
     ))
 
@@ -166,16 +169,18 @@ PY
 
 apply_plan() {
     local plan="$1" dry_run="$2"
-    local connector mode position scale transform workspaces
+    local connector mode position scale transform bitdepth
+    local workspaces
     while IFS=$'\t' read -r connector mode position scale \
-        transform workspaces; do
+        transform bitdepth workspaces; do
         [[ -n "${connector}" ]] || continue
         local monitor_call
         monitor_call="hl.monitor({ output = \"${connector}\""
         monitor_call+=", mode = \"${mode}\""
         monitor_call+=", position = \"${position}\""
         monitor_call+=", scale = ${scale}"
-        monitor_call+=", transform = ${transform} })"
+        monitor_call+=", transform = ${transform}"
+        monitor_call+=", bitdepth = ${bitdepth} })"
 
         eval_lua "${monitor_call}" \
             "configuring ${connector}" "${dry_run}"
@@ -208,6 +213,17 @@ cmd_save() {
 import json
 import sys
 
+DEFAULT_BITDEPTH = 8
+
+# Hyprland reports the depth it settled on as a buffer format
+# rather than the number the monitor rule asks for.
+BITDEPTH_BY_FORMAT = {
+    "XRGB2101010": 10,
+    "ARGB2101010": 10,
+    "XBGR2101010": 10,
+    "ABGR2101010": 10,
+}
+
 monitors = json.load(open(sys.argv[1]))
 workspaces = json.load(open(sys.argv[2]))
 
@@ -233,6 +249,9 @@ for monitor in monitors:
         "position": f'{monitor["x"]}x{monitor["y"]}',
         "scale": monitor["scale"],
         "transform": monitor["transform"],
+        "bitdepth": BITDEPTH_BY_FORMAT.get(
+            monitor["currentFormat"], DEFAULT_BITDEPTH
+        ),
         "workspaces": workspace_ids,
     })
 
