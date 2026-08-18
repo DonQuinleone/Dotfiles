@@ -6,9 +6,10 @@ set -euo pipefail
 BIN_DIR=$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")
 readonly BIN_DIR
 readonly PANEL_OUTPUT="eDP-1"
-PROFILES_DIR="${XDG_STATE_HOME:-${HOME}/.local/state}"
-PROFILES_DIR="${PROFILES_DIR}/hypr/monitor-profiles"
-readonly PROFILES_DIR
+STATE_DIR="${XDG_STATE_HOME:-${HOME}/.local/state}/hypr"
+readonly STATE_DIR
+readonly PROFILES_DIR="${STATE_DIR}/monitor-profiles"
+readonly RULES_FILE="${STATE_DIR}/monitor-rules.lua"
 
 die() {
     printf 'donbox monitor profile: %s\n' "$*" >&2
@@ -202,7 +203,7 @@ sys.exit(1)' \
 apply_plan() {
     local plan="$1" dry_run="$2" only_changed="${3:-false}"
     local connector mode position scale transform bitdepth
-    local workspaces
+    local workspaces rules=""
     while IFS=$'\t' read -r connector mode position scale \
         transform bitdepth workspaces; do
         [[ -n "${connector}" ]] || continue
@@ -213,6 +214,7 @@ apply_plan() {
         monitor_call+=", scale = ${scale}"
         monitor_call+=", transform = ${transform}"
         monitor_call+=", bitdepth = ${bitdepth} })"
+        rules+="${monitor_call}"$'\n'
 
         if [[ "${only_changed}" != "true" ]] \
             || ! already_configured "${connector}" "${mode}" \
@@ -229,6 +231,16 @@ apply_plan() {
                 "${dry_run}"
         done
     done <<<"${plan}"
+
+    # monitors.lua re-emits this file on every config load, so a
+    # reload offers the compositor the exact rules it is already
+    # running and it leaves every output untouched. Written whole,
+    # skipped rows included, because it must mirror the full
+    # active layout, not just what this run changed.
+    if [[ "${dry_run}" != "true" ]]; then
+        mkdir -p "${STATE_DIR}"
+        printf '%s' "${rules}" >"${RULES_FILE}"
+    fi
 }
 
 cmd_save() {
