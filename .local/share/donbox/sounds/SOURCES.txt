@@ -1,6 +1,6 @@
 Notification sounds bundled for notify-sound.
 
-All five files are converted (ffmpeg, straight PCM re-encode, no
+All six files are converted (ffmpeg, straight PCM re-encode, no
 edits) from the freedesktop.org sound theme shipped in Fedora's
 sound-theme-freedesktop package (/usr/share/sounds/freedesktop).
 Converting to WAV avoids depending on an Ogg Vorbis decoder at
@@ -11,6 +11,10 @@ notification time.
     warning.wav   from dialog-warning.oga
     added.wav     from device-added.oga
     critical.wav  from bell.oga
+    alarm.wav     from alarm-clock-elapsed.oga
+
+alarm.wav runs for six seconds and one eighth, which is what
+sets the gap an alarm leaves between rings.
 
 Licence and authorship, per the theme's own CREDITS file:
 
@@ -20,6 +24,10 @@ Licence and authorship, per the theme's own CREDITS file:
     critical.wav
         Dr. Richard Boulanger et al., Berklee44 collection.
         CC-BY 3.0 Unported.
+
+    alarm.wav
+        Tim/corsica_s, freesound.org sample 67091. CC-BY-SA,
+        relicensed with the author's permission.
 
 dialog-error.oga is byte-identical to dialog-warning.oga in the
 upstream theme (same MD5 sum), so only one is offered here, as

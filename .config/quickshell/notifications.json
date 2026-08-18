@@ -13,6 +13,9 @@
   "applications": {
     "Slack": {
       "sound": "message"
+    },
+    "Alarm": {
+      "sound": null
     }
   }
 }

@@ -17,9 +17,12 @@ Singleton {
     readonly property string urgency: "critical"
     readonly property string glyph: "󰀠"
 
-    readonly property string chime: "/usr/share/sounds/"
-        + "freedesktop/stereo/alarm-clock-elapsed.oga"
-    readonly property int chimeEveryMs: 3000
+    readonly property string chime: "alarm"
+
+    // The alarm sound runs for six seconds and an eighth, so a
+    // shorter gap than this would start a second ring over the
+    // first and the two would sound as one muddle.
+    readonly property int chimeEveryMs: 7000
 
     readonly property string stateHome:
         Quickshell.env("XDG_STATE_HOME")
@@ -189,8 +192,7 @@ Singleton {
         triggeredOnStart: true
         running: Notifications.alarmsShowing > 0
 
-        onTriggered: Quickshell.execDetached(
-            ["pw-play", root.chime])
+        onTriggered: NotificationRules.playSound(root.chime)
     }
 
     Timer {
