@@ -60,3 +60,24 @@ assert "a program already running is not started again" \
     [ ! -s "${STARTED}" ]
 
 assert_status "a command is required" 1 "${PAD_RUN}" only-a-class
+
+# "flatpak" alone answers for every flatpak on the machine, so
+# one running must not stand in for another.
+cat >"${WORKSPACE}/holder" <<STUB
+#!/usr/bin/env bash
+printf 'held %s\\n' "\$*" >>"${STARTED}"
+sleep 40
+STUB
+chmod +x "${WORKSPACE}/holder"
+
+windows '[]'
+: >"${STARTED}"
+holder other.app.entirely &
+readonly OTHER=$!
+sleep 1
+"${PAD_RUN}" "com.example.absent" -- holder the.app.wanted &
+readonly WANTED=$!
+sleep 2
+kill "${OTHER}" "${WANTED}" 2>/dev/null || true
+assert "another program sharing a word is not mistaken for it" \
+    grep -q "the.app.wanted" "${STARTED}"

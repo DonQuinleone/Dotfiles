@@ -45,11 +45,12 @@ hl.config({
         },
     },
     master = {
-        new_status = "master",
-        new_on_top = true,
+        new_status = "slave",
+        new_on_top = false,
         mfact = MASTER_AREA_FRACTION,
     },
     scrolling = {
+        direction = "right",
         fullscreen_on_one_column = true,
         column_width = SCROLLING_COLUMN_FRACTION,
         follow_min_visible = SCROLLING_FOLLOW_MIN_VISIBLE,

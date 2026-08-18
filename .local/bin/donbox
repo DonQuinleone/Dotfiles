@@ -192,6 +192,11 @@ main() {
         return 0
     fi
 
+    # GTK reads this instead of the palette written for it, and a
+    # session that set it once keeps handing it to everything it
+    # starts until it is restarted.
+    unset GTK_THEME
+
     exec "${path}" "$@"
 }
 

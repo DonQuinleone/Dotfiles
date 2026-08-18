@@ -24,18 +24,18 @@ sys.exit(0 if any(w["class"] == wanted for w in windows) else 1)' \
         "${WINDOW_CLASS}"
 }
 
-# The command may carry an env prefix, and the program itself
-# may exec something else with a name of its own, so the pattern
-# is the word that names it rather than the whole line.
-program_name() {
-    local word
+# The whole command, less any env prefix: "flatpak" alone would
+# answer for every flatpak on the machine, and the program a
+# command starts often runs under a name of its own.
+program_pattern() {
+    local word pattern=""
     for word in "$@"; do
-        [[ "${word}" == "env" ]] && continue
-        [[ "${word}" == *=* ]] && continue
-        printf '%s\n' "$(basename -- "${word}")"
-        return 0
+        [[ -z "${pattern}" && "${word}" == "env" ]] && continue
+        [[ -z "${pattern}" && "${word}" == *=* ]] && continue
+        pattern+="${pattern:+ }${word}"
     done
-    return 1
+    [[ -n "${pattern}" ]] || return 1
+    printf '%s\n' "${pattern}"
 }
 
 # This script carries the program's name on its own command
@@ -61,7 +61,7 @@ led_here() {
 
 program_present() {
     local name pid line
-    name=$(program_name "$@") || return 1
+    name=$(program_pattern "$@") || return 1
     while read -r pid; do
         [[ -n "${pid}" ]] || continue
         line=$(line_of "${pid}")

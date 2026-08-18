@@ -29,6 +29,8 @@ source "${MODULE_DIR}/kitty.sh"
 source "${MODULE_DIR}/fzf.sh"
 # shellcheck source=theme.d/tmux.sh
 source "${MODULE_DIR}/tmux.sh"
+# shellcheck source=theme.d/slack.sh
+source "${MODULE_DIR}/slack.sh"
 # shellcheck source=theme.d/icons.sh
 source "${MODULE_DIR}/icons.sh"
 # shellcheck source=theme.d/gtk.sh
@@ -72,6 +74,7 @@ readonly DEFERRED_APPLIERS=(
     apply_kitty
     apply_fzf
     apply_tmux
+    apply_slack
     apply_icons
     apply_gtk
     apply_qt
