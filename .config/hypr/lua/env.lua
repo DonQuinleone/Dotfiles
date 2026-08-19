@@ -34,6 +34,10 @@ local envs = {
     { "MOZ_DISABLE_LANGPACKS", "1" },
     { "NPM_CONFIG_CACHE", cache .. "/npm" },
     { "GNUPGHOME", data .. "/gnupg" },
+    -- A terminal started by the compositor never sources
+    -- the shell config, so Claude Code would otherwise fall
+    -- back to ~/.claude and keep a second set of settings.
+    { "CLAUDE_CONFIG_DIR", data .. "/claude" },
     { "QT_ACCESSIBILITY", "1" },
     { "QT_LINUX_ACCESSIBILITY_ALWAYS_ON", "1" },
     { "GNOME_ACCESSIBILITY", "1" },
