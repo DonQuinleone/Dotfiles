@@ -136,7 +136,8 @@
   ],
   "flatpak": [
     "com.slack.Slack",
-    "com.yubico.yubioath"
+    "com.yubico.yubioath",
+    "org.localsend.localsend_app"
   ],
   "defaults": {
     "org.mozilla.firefox.desktop": [
