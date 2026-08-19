@@ -104,6 +104,17 @@ forecast without an account or a key, and nothing else is asked
 anything. Alarms are set by typing a time, or a distance from
 now such as `+15`, and ring until the notification is dismissed.
 
+Push to talk is `Super+~`. Holding the key opens the TeamSpeak
+microphone for as long as it is down; tapping it leaves the
+microphone latched open until the next press, and a filled pill
+appears in the bar, breathing while it is latched, with a sound
+at each end. TeamSpeak's own hotkeys are an X11 key grab, and
+XWayland only feeds those while a TeamSpeak window holds focus,
+so a synthesised key would arrive from behind a browser without
+the release that closes it again. `donbox ptt` speaks to the
+client's ClientQuery socket instead, which answers whatever is
+in front, and the pill can be clicked to shut the microphone.
+
 `Super+F` opens yazi, which lays a directory out in the columns a
 Finder does, from the COPR the manifest names since Fedora does
 not package it.

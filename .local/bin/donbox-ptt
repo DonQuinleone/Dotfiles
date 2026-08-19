@@ -1,0 +1,233 @@
+#!/usr/bin/env bash
+# donbox:summary=Open the TeamSpeak microphone while you talk
+# donbox:args=[status|press|release|toggle]
+set -euo pipefail
+
+BIN_DIR="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
+readonly BIN_DIR
+readonly NOTIFY="${BIN_DIR}/donbox-notify"
+readonly NOTIFY_SOUND="${BIN_DIR}/donbox-notify-sound"
+
+STATE_DIR="${XDG_STATE_HOME:-${HOME}/.local/state}/donbox"
+readonly STATE_DIR
+readonly STATE_FILE="${STATE_DIR}/ptt"
+readonly LOCK_FILE="${STATE_DIR}/ptt.lock"
+readonly PRESS_FILE="${XDG_RUNTIME_DIR:-/tmp}/donbox-ptt.press"
+
+CONFIG_HOME="${XDG_CONFIG_HOME:-${HOME}/.config}"
+readonly CONFIG_HOME
+readonly QUERY_INI="${CONFIG_HOME}/ts3client/clientquery.ini"
+readonly QUERY_HOST=127.0.0.1
+QUERY_PORT="${DONBOX_PTT_PORT:-25639}"
+readonly QUERY_PORT
+readonly QUERY_TIMEOUT_S=1
+
+# A press shorter than this leaves the microphone latched open;
+# hold for longer and it closes again when the key comes up.
+readonly TAP_MS=250
+
+readonly OFF=off
+readonly HELD=held
+readonly LATCHED=latched
+
+readonly MUTED=1
+readonly UNMUTED=0
+
+readonly OPEN_SOUND=added
+readonly CLOSE_SOUND=message
+readonly NOTIFY_MS=4000
+
+# Assigned by the exec that takes the lock.
+LOCK_FD=
+
+die() {
+    printf 'donbox ptt: %s\n' "$*" >&2
+    [[ -x "${NOTIFY}" ]] &&
+        "${NOTIFY}" --transient -a TeamSpeak -u critical \
+            -t "${NOTIFY_MS}" "Push to talk" "$*" || true
+    exit 1
+}
+
+usage() {
+    printf 'usage: donbox ptt [status|press|release|toggle]\n' >&2
+    exit 1
+}
+
+sound() {
+    [[ -x "${NOTIFY_SOUND}" ]] || return 0
+    "${NOTIFY_SOUND}" "$1" || true
+}
+
+now_ms() {
+    local stamp="${EPOCHREALTIME/[.,]/}"
+    printf '%s' "$((stamp / 1000))"
+}
+
+state() {
+    local recorded
+    recorded="$(cat "${STATE_FILE}" 2>/dev/null || true)"
+    printf '%s' "${recorded:-${OFF}}"
+}
+
+record() {
+    mkdir -p "${STATE_DIR}"
+    if [[ -f "${STATE_FILE}" && "$(state)" == "$1" ]]; then
+        return 0
+    fi
+    printf '%s\n' "$1" >"${STATE_FILE}"
+}
+
+api_key() {
+    [[ -r "${QUERY_INI}" ]] ||
+        die "TeamSpeak has no ClientQuery config at ${QUERY_INI}"
+    local key
+    key="$(sed -n 's/^api_key=//p' "${QUERY_INI}" | head -1)"
+    [[ -n "${key}" ]] ||
+        die "${QUERY_INI} carries no api_key"
+    printf '%s' "${key}"
+}
+
+# TeamSpeak's own hotkeys are an X11 key grab, and XWayland only
+# feeds those while a TeamSpeak window holds focus, so a bind
+# that reached the client from behind a browser would need a
+# synthesised key the client never sees released. ClientQuery
+# answers on a loopback socket whatever is focused.
+converse() {
+    "$@" <>"/dev/tcp/${QUERY_HOST}/${QUERY_PORT}" 2>/dev/null
+}
+
+# Reads the socket on stdin, writes back down the same
+# descriptor, and leaves stdout for the answer itself. The client
+# ends its lines with newline then carriage return, so the stray
+# return arrives at the head of the following line.
+ask() {
+    local line
+    printf '%s\n' "$1" >&0
+    while IFS= read -r -t "${QUERY_TIMEOUT_S}" line; do
+        line="${line//$'\r'/}"
+        case "${line}" in
+            "error id=0 msg=ok") return 0 ;;
+            error\ id=*) return 1 ;;
+            *) printf '%s\n' "${line}" ;;
+        esac
+    done
+    return 1
+}
+
+authenticate() {
+    ask "auth apikey=$(api_key)" >/dev/null
+}
+
+mute_exchange() {
+    authenticate || return 1
+    ask "clientupdate client_input_muted=$1" >/dev/null
+}
+
+state_exchange() {
+    authenticate || return 1
+    local clid property="client_input_muted"
+    clid="$(ask whoami | sed -n 's/^clid=\([0-9]*\).*/\1/p')"
+    [[ -n "${clid}" ]] || return 0
+    ask "clientvariable clid=${clid} ${property}" |
+        sed -n "s/.*${property}=\([01]\).*/\1/p"
+}
+
+set_muted() {
+    converse mute_exchange "$1" ||
+        die "TeamSpeak is not answering on" \
+            "${QUERY_HOST}:${QUERY_PORT}"
+}
+
+# Answers 1 when muted, 0 when open and empty when the client is
+# absent or on no server, where it has no microphone to gate.
+query_muted() {
+    converse state_exchange || true
+}
+
+open_microphone() {
+    set_muted "${UNMUTED}"
+    record "${HELD}"
+    now_ms >"${PRESS_FILE}"
+    sound "${OPEN_SOUND}"
+}
+
+close_microphone() {
+    set_muted "${MUTED}"
+    record "${OFF}"
+    sound "${CLOSE_SOUND}"
+}
+
+held_for_ms() {
+    local pressed
+    pressed="$(cat "${PRESS_FILE}" 2>/dev/null || true)"
+    [[ -n "${pressed}" ]] || {
+        printf '%s' "${TAP_MS}"
+        return 0
+    }
+    printf '%s' "$(( $(now_ms) - pressed ))"
+}
+
+# Anything other than a closed microphone closes on a press,
+# so a release the compositor never delivered cannot strand one
+# open with no way back.
+cmd_press() {
+    if [[ "$(state)" == "${OFF}" ]]; then
+        open_microphone
+        return 0
+    fi
+    close_microphone
+}
+
+cmd_release() {
+    [[ "$(state)" == "${HELD}" ]] || return 0
+    if (( $(held_for_ms) < TAP_MS )); then
+        record "${LATCHED}"
+        return 0
+    fi
+    close_microphone
+}
+
+cmd_toggle() {
+    if [[ "$(state)" == "${OFF}" ]]; then
+        open_microphone
+        record "${LATCHED}"
+    else
+        close_microphone
+    fi
+    cmd_status
+}
+
+# The client is the authority: one restarted behind the bar's
+# back would otherwise leave a live pill over a muted microphone.
+cmd_status() {
+    local muted current
+    current="$(state)"
+    muted="$(query_muted || true)"
+    case "${muted}" in
+        "${MUTED}"|"") current="${OFF}" ;;
+        "${UNMUTED}")
+            [[ "${current}" == "${OFF}" ]] && current="${LATCHED}"
+            ;;
+    esac
+    record "${current}"
+    printf '%s\n' "${current}"
+}
+
+declare -rA COMMANDS=(
+    [status]=cmd_status
+    [press]=cmd_press
+    [release]=cmd_release
+    [toggle]=cmd_toggle
+)
+
+main() {
+    (($# <= 1)) || usage
+    local handler="${COMMANDS[${1:-status}]:-}"
+    [[ -n "${handler}" ]] || usage
+    mkdir -p "${STATE_DIR}"
+    exec {LOCK_FD}>"${LOCK_FILE}"
+    flock "${LOCK_FD}"
+    "${handler}"
+}
+
+main "$@"

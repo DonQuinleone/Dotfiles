@@ -12,6 +12,7 @@ local RESIZE_STEP = 60
 local held = { locked = true, repeating = true }
 local locked = { locked = true }
 local mouse = { mouse = true }
+local released = { release = true }
 
 local binds = {
     { "SUPER",           "Return",                hl.dsp.exec_cmd(donbox .. " term")                     },
@@ -98,6 +99,9 @@ local binds = {
     { "",                "XF86AudioPause",        hl.dsp.exec_cmd("playerctl play-pause"),                           locked },
     { "",                "XF86AudioNext",         hl.dsp.exec_cmd("playerctl next"),                                 locked },
     { "",                "XF86AudioPrev",         hl.dsp.exec_cmd("playerctl previous"),                             locked },
+
+    { "SUPER + SHIFT",   "numbersign",            hl.dsp.exec_cmd(donbox .. " ptt press")                            },
+    { "SUPER + SHIFT",   "numbersign",            hl.dsp.exec_cmd(donbox .. " ptt release"),                released  },
 
     { "SUPER",                  "p",              hl.dsp.exec_cmd(donbox .. " screenshot output")        },
     { "SUPER + SHIFT",          "p",              hl.dsp.exec_cmd(donbox .. " screenshot region")        },

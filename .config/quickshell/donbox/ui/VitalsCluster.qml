@@ -16,6 +16,8 @@ Row {
 
     BluetoothIndicator {}
 
+    TalkIndicator {}
+
     MicrophoneIndicator {}
 
     SoundIndicator {}
