@@ -1,13 +1,10 @@
 # shellcheck shell=bash
 # shellcheck source-path=SCRIPTDIR
 
-# Get the aliases and functions
 if [ -f ~/.bashrc ]; then
     # shellcheck source=.bashrc
     . ~/.bashrc
 fi
-
-# User specific environment and startup programs
 
 # start-hyprland execs a login shell to collect the environment
 # before launching the compositor. Defaults if unset: theme

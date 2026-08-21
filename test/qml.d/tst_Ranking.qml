@@ -42,6 +42,7 @@ TestCase {
     }
 
     function test_a_wider_gap_costs_more() {
-        verify(ranking.score("fxr", "fr") > ranking.score("fxxxr", "fr"));
+        verify(ranking.score("fxr", "fr")
+            > ranking.score("fxxxr", "fr"));
     }
 }

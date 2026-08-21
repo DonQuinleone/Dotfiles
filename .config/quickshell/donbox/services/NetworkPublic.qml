@@ -10,7 +10,8 @@ Singleton {
     // A resolver answers with the address it was asked from, so
     // the lookup costs one packet and tells no web server
     // anything it did not already need in order to reply.
-    readonly property var script: [Preferences.donbox, "network", "public"]
+    readonly property var script:
+        [Preferences.donbox, "network", "public"]
 
     property bool watching: false
     property string ipv4: ""

@@ -7,7 +7,8 @@ import Quickshell.Io
 Singleton {
     id: root
 
-    readonly property var script: [Preferences.donbox, "network", "speed"]
+    readonly property var script:
+        [Preferences.donbox, "network", "speed"]
 
     readonly property string idleWords: "Not measured yet"
     readonly property string busyWords: "Measuring, about a quarter"

@@ -50,24 +50,24 @@ on_mains_power() {
     return 1
 }
 
+profile_for() {
+    (($1)) || {
+        echo "undocked"
+        return
+    }
+    echo "docked"
+}
+
 detect_profile() {
     local external_count
-    if external_count=$(external_monitor_count); then
-        if [[ "${external_count}" -gt 0 ]]; then
-            echo "docked"
-        else
-            echo "undocked"
-        fi
+    if ! external_count=$(external_monitor_count); then
+        echo "idle-profile: hyprctl/jq unavailable, falling back" \
+            "to the mains-power heuristic" >&2
+        profile_for "$(on_mains_power && echo 1 || echo 0)"
         return
     fi
 
-    echo "idle-profile: hyprctl/jq unavailable, falling back" \
-        "to the mains-power heuristic" >&2
-    if on_mains_power; then
-        echo "docked"
-    else
-        echo "undocked"
-    fi
+    profile_for "$((external_count > 0))"
 }
 
 running_hypridle_pid() {
@@ -85,6 +85,13 @@ running_hypridle_config() {
         [[ "${arg}" == "-c" ]] && expect_config="yes"
     done < "/proc/${pid}/cmdline"
     return 1
+}
+
+holds_config() {
+    local current
+    current=$(running_hypridle_config "$1") || return 1
+    [[ "$(readlink -f "${current}" 2>/dev/null)" \
+        == "$(readlink -f "$2")" ]]
 }
 
 wait_for_exit() {
@@ -111,7 +118,7 @@ main() {
         exit 1
     }
 
-    local profile config pid current
+    local profile config pid
     profile=$(detect_profile)
     case "${profile}" in
         docked) config="${DOCKED_CONFIG}" ;;
@@ -127,17 +134,16 @@ main() {
     }
 
     pid=$(running_hypridle_pid)
-    if [[ -n "${pid}" ]]; then
-        current=$(running_hypridle_config "${pid}") || current=""
-        if [[ "$(readlink -f "${current}" 2>/dev/null)" \
-            == "$(readlink -f "${config}")" ]]; then
-            echo "idle-profile: ${profile} already active" \
-                "(pid ${pid})"
-            return 0
-        fi
+    if [[ -n "${pid}" ]] && holds_config "${pid}" "${config}"; then
+        echo "idle-profile: ${profile} already active" \
+            "(pid ${pid})"
+        return 0
+    fi
+
+    [[ -z "${pid}" ]] || {
         kill "${pid}"
         wait_for_exit "${pid}"
-    fi
+    }
 
     start_hypridle "${config}"
     echo "idle-profile: switched to ${profile} (${config})"
