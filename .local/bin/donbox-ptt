@@ -21,6 +21,7 @@ readonly QUERY_HOST=127.0.0.1
 QUERY_PORT="${DONBOX_PTT_PORT:-25639}"
 readonly QUERY_PORT
 readonly QUERY_TIMEOUT_S=1
+readonly MICROSECONDS_PER_MILLISECOND=1000
 
 # A press shorter than this leaves the microphone latched open;
 # hold for longer and it closes again when the key comes up.
@@ -60,7 +61,7 @@ sound() {
 
 now_ms() {
     local stamp="${EPOCHREALTIME/[.,]/}"
-    printf '%s' "$((stamp / 1000))"
+    printf '%s' "$((stamp / MICROSECONDS_PER_MILLISECOND))"
 }
 
 state() {

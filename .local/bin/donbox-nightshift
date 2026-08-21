@@ -31,6 +31,8 @@ readonly DEFAULT_ENABLED=1
 readonly DEFAULT_NIGHT_START=""
 readonly DEFAULT_NIGHT_END=""
 readonly SECONDS_PER_DAY=86400
+readonly SECONDS_PER_MINUTE=60
+readonly MINUTES_PER_HOUR=60
 readonly MIN_TEMPERATURE_K=1000
 readonly MAX_TEMPERATURE_K=20000
 
@@ -99,7 +101,7 @@ if [[ -n "${NIGHT_START}" && -z "${NIGHT_END}" ]] ||
 fi
 
 clock_minutes() {
-    printf '%s\n' "$(( 10#${1%%:*} * 60 + 10#${1##*:} ))"
+    printf '%s\n' "$(( 10#${1%%:*} * MINUTES_PER_HOUR + 10#${1##*:} ))"
 }
 
 # The schedule is built around a night that spans midnight, so
@@ -176,7 +178,7 @@ schedule_target() {
     read -r yesterday_sunset today_sunrise today_sunset \
         <<<"${sun_output}"
     now=$(date +%s)
-    half=$(( TRANSITION_MINUTES * 60 / 2 ))
+    half=$(( TRANSITION_MINUTES * SECONDS_PER_MINUTE / 2 ))
 
     if (( now >= yesterday_sunset + half &&
             now < today_sunrise - half )); then
