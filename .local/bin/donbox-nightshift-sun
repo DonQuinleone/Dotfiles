@@ -199,7 +199,7 @@ def main():
             latitude, longitude, today, tzinfo, rising=False
         )
     except ValueError as error:
-        print(f"night-shift-sun: {error}", file=sys.stderr)
+        print(f"nightshift-sun: {error}", file=sys.stderr)
         return 1
 
     print(

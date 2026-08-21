@@ -6,7 +6,9 @@ set -euo pipefail
 BIN_DIR=$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")
 readonly BIN_DIR
 readonly NIGHT_SHIFT="${BIN_DIR}/donbox-nightshift"
-readonly STATE_DIR="${XDG_STATE_HOME:-${HOME}/.local/state}/night-shift"
+STATE_DIR="${XDG_STATE_HOME:-${HOME}/.local/state}"
+STATE_DIR+="/donbox/nightshift"
+readonly STATE_DIR
 readonly DAEMON_LOG="${STATE_DIR}/daemon.log"
 readonly POLL_SECONDS=60
 readonly SOCKET_WAIT_ATTEMPTS=20
@@ -14,11 +16,11 @@ readonly SOCKET_WAIT_INTERVAL_SECONDS="0.25"
 
 # A session restart runs autostart again while the previous
 # daemon is still alive, so the lock keeps one of each.
-exec 9>"${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/night-shift.lock"
+exec 9>"${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/nightshift.lock"
 flock -n 9 || exit 0
 
 die() {
-    printf 'night-shift-daemon: %s\n' "$1" >&2
+    printf 'nightshift-daemon: %s\n' "$1" >&2
     exit 1
 }
 
@@ -51,7 +53,7 @@ wait_for_first_apply() {
 
 start_hyprsunset
 wait_for_first_apply ||
-    echo "night-shift-daemon: hyprsunset socket never" \
+    echo "nightshift-daemon: hyprsunset socket never" \
         "came up" >>"${DAEMON_LOG}"
 
 while true; do

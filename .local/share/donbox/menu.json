@@ -110,8 +110,8 @@
     "session.settings.nightshift": {
       "label": "Night shift",
       "icon": "night-light-symbolic",
-      "description": "night-shift.conf",
-      "action": "donbox settings edit night-shift.conf --prepare 'donbox nightshift defaults' --reload 'donbox nightshift apply'"
+      "description": "donbox/nightshift.conf",
+      "action": "donbox settings edit donbox/nightshift.conf --prepare 'donbox nightshift defaults' --reload 'donbox nightshift apply'"
     },
     "session.settings.autostart": {
       "label": "Session startup",

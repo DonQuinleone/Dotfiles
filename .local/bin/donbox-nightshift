@@ -9,9 +9,9 @@ readonly SUN_HELPER="${BIN_DIR}/donbox-nightshift-sun"
 
 readonly CONFIG_HOME="${XDG_CONFIG_HOME:-${HOME}/.config}"
 readonly STATE_HOME="${XDG_STATE_HOME:-${HOME}/.local/state}"
-readonly STATE_DIR="${STATE_HOME}/night-shift"
+readonly STATE_DIR="${STATE_HOME}/donbox/nightshift"
 readonly OVERRIDE_FILE="${STATE_DIR}/override"
-readonly USER_CONFIG="${CONFIG_HOME}/night-shift.conf"
+readonly USER_CONFIG="${CONFIG_HOME}/donbox/nightshift.conf"
 
 # London, the astral library's own placeholder default: close
 # enough to the UK to be a sensible fallback, and nobody's real
@@ -237,7 +237,7 @@ cmd_apply() {
     require_command hyprctl
     hyprctl hyprsunset temperature "${temperature}" >/dev/null ||
         die "hyprctl could not reach hyprsunset" \
-            "(is night-shift-daemon running?)"
+            "(is the nightshift daemon running?)"
     printf 'donbox nightshift: %sK (%s)\n' "${temperature}" "${phase}"
 }
 
