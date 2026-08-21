@@ -1,8 +1,9 @@
 # shellcheck shell=bash
 
-readonly FASTFETCH_DIR="${CONFIG_HOME}/fastfetch"
-readonly FASTFETCH_CONFIG_FILE="${FASTFETCH_DIR}/config.jsonc"
-readonly FASTFETCH_LOGO_FILE="${FASTFETCH_DIR}/logo/logo-color.txt"
+readonly FASTFETCH_CONFIG_FILE="${STATE_DIR}/fastfetch.jsonc"
+FASTFETCH_LOGO_FILE="${CONFIG_HOME}/fastfetch"
+FASTFETCH_LOGO_FILE+="/logo/logo-color.txt"
+readonly FASTFETCH_LOGO_FILE
 
 # os-release names no variant at all, and fedora-release owns the
 # file, so a root edit would be undone by the next update.
@@ -59,6 +60,6 @@ EOF
 }
 
 apply_fastfetch() {
-    mkdir -p "$(dirname "${FASTFETCH_CONFIG_FILE}")"
+    mkdir -p "${STATE_DIR}"
     write_fastfetch_config
 }

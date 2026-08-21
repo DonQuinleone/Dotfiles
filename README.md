@@ -51,7 +51,18 @@ exactly where it appears.
 | `.local/share/donbox` | theme modules and templates |
 | `Pictures/walls` | the wallpapers |
 | `packages.json` | the manifest for the machine |
+| `migrations` | one script per rename, run once each |
 | `test/shell.d` | one suite per area |
+
+Nothing generated is kept here. Applying a theme rewrites a file
+for every tool that takes one, and applications write settings of
+their own, so all of it goes to `~/.local/state/donbox/current`,
+symlinked back for the few that will only read from a path of
+their own choosing: lsd, fastfetch and fish's universal
+variables. Versioned configuration lives under `~/.config/donbox`
+instead. Without that split stow folds a directory into a link to
+the repository, and every file written there afterwards lands in
+the working tree.
 
 Anything that can be told to live under `$XDG_*` does, so `$HOME`
 holds this repository, the links stow makes and very little else.

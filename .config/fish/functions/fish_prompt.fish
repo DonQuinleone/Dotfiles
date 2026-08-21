@@ -3,7 +3,7 @@ function fish_prompt --description 'User, working directory, prompt sign'
     set -l muted C0C0C0
     set -l on_background E7E7E7
 
-    set -l theme_file "$XDG_STATE_HOME/theme/shell-colours.fish"
+    set -l theme_file "$XDG_STATE_HOME/donbox/current/shell-colours.fish"
     test -r $theme_file
     and source $theme_file
 

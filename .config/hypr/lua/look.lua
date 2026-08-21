@@ -104,4 +104,4 @@ motion.apply(motion.stored())
 -- Palette-driven colours are written by the theme script and
 -- are absent until it has run once, so Hyprland's own defaults
 -- stand in on a machine that has never applied a theme.
-pcall(dofile, state .. "/theme/hyprland.lua")
+pcall(dofile, state .. "/donbox/current/hyprland.lua")

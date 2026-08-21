@@ -2,13 +2,14 @@
 
 readonly CONFIG_HOME="${XDG_CONFIG_HOME:-${HOME}/.config}"
 readonly DATA_HOME="${XDG_DATA_HOME:-${HOME}/.local/share}"
-readonly STATE_DIR="${XDG_STATE_HOME:-${HOME}/.local/state}/theme"
+STATE_DIR="${XDG_STATE_HOME:-${HOME}/.local/state}"
+STATE_DIR+="/donbox/current"
+readonly STATE_DIR
 readonly THEME_JSON_DIR="${CONFIG_HOME}/quickshell/themes"
-readonly ACTIVE_JSON="${THEME_JSON_DIR}/current.json"
+readonly ACTIVE_JSON="${STATE_DIR}/theme.json"
 readonly ACTIVE_NAME_FILE="${STATE_DIR}/current"
 readonly WALLPAPER_ROOT="${HOME}/Pictures/walls"
 readonly WALLPAPER_STATE_DIR="${STATE_DIR}/wallpapers"
-readonly GENERATED_SLUG="current"
 readonly FALLBACK_SLUG="ember"
 
 readonly COLOUR_CHANNELS=3
@@ -50,13 +51,10 @@ require_command() {
 }
 
 theme_slugs() {
-    local path slug
+    local path
     for path in "${THEME_JSON_DIR}"/*.json; do
         [[ -f "${path}" ]] || continue
-        slug=$(basename "${path}" .json)
-        if [[ "${slug}" != "${GENERATED_SLUG}" ]]; then
-            printf '%s\n' "${slug}"
-        fi
+        basename "${path}" .json
     done
 }
 

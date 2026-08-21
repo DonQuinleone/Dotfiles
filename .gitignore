@@ -1,8 +1,2 @@
 .claude/
 HANDOFF.md
-
-.config/fastfetch/config.jsonc
-.config/fish/fish_variables
-.config/lsd/colors.yaml
-.config/quickshell/settings.json
-.config/quickshell/themes/current.json

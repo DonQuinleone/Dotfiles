@@ -5,7 +5,7 @@ readonly BORDER_GRADIENT_ANGLE=45
 
 readonly HYPR_LOOK_LOADER='dofile((os.getenv("XDG_STATE_HOME")'\
 ' or (os.getenv("HOME") .. "/.local/state"))'\
-' .. "/theme/hyprland.lua")'
+' .. "/donbox/current/hyprland.lua")'
 
 hypr_font() {
     jq -r "$1" "${THEME_SOURCE}"

@@ -1,5 +1,5 @@
 local FILE_NAME = "nvim.lua"
-local STATE_SUBDIRECTORY = "/theme"
+local STATE_SUBDIRECTORY = "/donbox/current"
 local DEFAULT_STATE_HOME = "/.local/state"
 
 local M = { file_name = FILE_NAME }

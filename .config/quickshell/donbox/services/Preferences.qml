@@ -52,7 +52,7 @@ Singleton {
         Quickshell.env("XCURSOR_THEME") ?? root.fallbackCursorTheme
 
     readonly property string path:
-        `${root.configHome}/quickshell/settings.json`
+        `${root.stateHome}/donbox/current/settings.json`
 
     readonly property string stateDirectory: `${root.stateHome}/hypr`
 

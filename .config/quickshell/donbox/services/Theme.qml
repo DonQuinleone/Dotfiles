@@ -7,7 +7,6 @@ import Quickshell.Io
 Singleton {
     id: root
 
-    readonly property string activeTheme: "current"
     readonly property string fallbackTheme: "ember"
 
     property bool usingFallback: false
@@ -18,8 +17,13 @@ Singleton {
         Quickshell.env("XDG_CONFIG_HOME")
         ?? `${Quickshell.env("HOME")}/.config`
 
+    readonly property string generatedDir:
+        (Quickshell.env("XDG_STATE_HOME")
+            ?? `${Quickshell.env("HOME")}/.local/state`)
+        + "/donbox/current"
+
     readonly property string path:
-        `${root.themeDir}/${root.activeTheme}.json`
+        `${root.generatedDir}/theme.json`
 
     readonly property string themeDir:
         `${root.configHome}/quickshell/themes`

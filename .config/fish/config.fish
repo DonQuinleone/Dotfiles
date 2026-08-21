@@ -18,11 +18,11 @@ if status is-interactive
     command -q fzf
     and fzf --fish | source
 
-    set -l fzf_theme "$XDG_STATE_HOME/theme/fzf-opts"
+    set -l fzf_theme "$XDG_STATE_HOME/donbox/current/fzf-opts"
     test -r $fzf_theme
     and set -gx FZF_DEFAULT_OPTS (cat $fzf_theme)
 
-    set -l fish_theme "$XDG_STATE_HOME/theme/fish-syntax.fish"
+    set -l fish_theme "$XDG_STATE_HOME/donbox/current/fish-syntax.fish"
     test -r $fish_theme
     and source $fish_theme
 end
