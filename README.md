@@ -136,8 +136,9 @@ which writes the same `hl.monitor` Lua this configuration is
 written in. `donbox monitor arrange <profile>` opens it, holds
 off the profile that would otherwise be reapplied by the reload
 it triggers, and saves the layout it leaves behind. The firewall
-is manafirewall over firewalld, run in its ncurses interface;
-neither leaves a window manager's idea of a settings app behind.
+is firewalld, and `firewall-cmd` is the whole of its interface:
+manafirewall is the only text front end packaged for it, and it
+connects and then never draws what it read.
 
 Both scripts are idempotent, so re-running either after a pull is
 safe. `bootstrap.sh` restows the package and clears away links
