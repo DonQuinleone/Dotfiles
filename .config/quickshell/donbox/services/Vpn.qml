@@ -14,7 +14,7 @@ Singleton {
     // daemon that brings up its own interface is asked directly,
     // and each answers the same questions so the pane can draw
     // them from one description.
-    readonly property var daemons: [VpnNetbird, VpnTailscale]
+    readonly property var daemons: [VpnTailscale, VpnNetbird]
 
     readonly property var tunnelKinds: ["vpn", "wireguard"]
 
