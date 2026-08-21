@@ -25,3 +25,7 @@ install -d -m 700 "$HOME/.local/share/gnupg"
 # Stow 2.4 skips the whole package when its stow directory is also the
 # target, so the repo itself is the stow directory and "." the package.
 stow --dir "$REPO" --target "$HOME" --restow --verbose .
+
+# The links have to be in place before a migration can move
+# what they point at.
+"$HOME/.local/bin/donbox" migrate

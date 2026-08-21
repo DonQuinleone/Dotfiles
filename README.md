@@ -124,6 +124,15 @@ safe. `bootstrap.sh` restows the package and clears away links
 that no longer belong, and refuses to run unless the repo sits
 directly in `$HOME`, since the symlinks are relative to that.
 
+Code arrives by pull, but the state it expects does not, so a
+second machine would meet new code over old state and need
+repairing by hand. `migrations/` holds one script per rename or
+move, named for the second it was written, and `donbox migrate`
+runs whichever this machine has not seen yet, recording each in
+`~/.local/state/donbox/migrations`. `bootstrap.sh` calls it once
+the links are in place. Every migration is idempotent and stops
+the run if it fails, so nothing later builds on a half-move.
+
     ./test/shell
 
 Each `test/shell.d/*-test.sh` is an independent suite; the first

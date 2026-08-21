@@ -1,0 +1,72 @@
+#!/usr/bin/env bash
+# donbox:summary=Bring this machine's state up to what the repo expects
+set -euo pipefail
+
+readonly PREFIX="donbox migrate"
+
+REPO=$(cd -- \
+    "$(dirname -- "$(readlink -f "${BASH_SOURCE[0]}")")/../.." &&
+    pwd)
+readonly REPO
+readonly MIGRATIONS_DIR="${REPO}/migrations"
+
+APPLIED_DIR="${XDG_STATE_HOME:-${HOME}/.local/state}"
+APPLIED_DIR+="/donbox/migrations"
+readonly APPLIED_DIR
+
+die() {
+    printf '%s: %s\n' "${PREFIX}" "$*" >&2
+    exit 1
+}
+
+usage() {
+    printf 'usage: %s\n' "${PREFIX}" >&2
+    exit 1
+}
+
+name_of() {
+    local stem="${1##*/}"
+    printf '%s' "${stem%.sh}"
+}
+
+# Ten-digit timestamps sort as text in the order they were
+# written, so the glob is already the running order.
+pending() {
+    local path
+    for path in "${MIGRATIONS_DIR}"/*.sh; do
+        [[ -f "${path}" ]] || continue
+        [[ ! -e "${APPLIED_DIR}/$(name_of "${path}")" ]] || continue
+        printf '%s\n' "${path}"
+    done
+}
+
+apply() {
+    local path="$1" name
+    name=$(name_of "${path}")
+    [[ -x "${path}" ]] || die "${name} is not executable"
+    printf '%s: applying %s\n' "${PREFIX}" "${name}"
+    "${path}" || die "${name} failed, and was not recorded"
+    : >"${APPLIED_DIR}/${name}"
+}
+
+main() {
+    (($# == 0)) || usage
+
+    mkdir -p "${APPLIED_DIR}"
+
+    local -a queue=()
+    mapfile -t queue < <(pending)
+
+    ((${#queue[@]} > 0)) || {
+        printf '%s: already up to date\n' "${PREFIX}"
+        return 0
+    }
+
+    local path
+    for path in "${queue[@]}"; do
+        apply "${path}"
+    done
+    printf '%s: applied %d\n' "${PREFIX}" "${#queue[@]}"
+}
+
+main "$@"
