@@ -24,7 +24,7 @@ Item {
             anchors.verticalCenter: parent.verticalCenter
             implicitSize: Theme.sizes.trayIcon ?? 0
             visible: root.entry.icon !== ""
-            source: root.entry.icon
+            source: Icons.sourceFor(root.entry.icon)
             asynchronous: true
         }
 

@@ -1,5 +1,4 @@
 import QtQuick
-import Quickshell
 import Quickshell.Widgets
 import qs.services
 
@@ -10,7 +9,6 @@ Item {
     property int size: Metrics.rowIcon
 
     readonly property bool swatch: root.name.startsWith("#")
-    readonly property bool absolute: root.name.startsWith("/")
 
     implicitWidth: root.size
     implicitHeight: root.size
@@ -29,8 +27,6 @@ Item {
         anchors.fill: parent
         visible: !root.swatch
         asynchronous: true
-        source: root.absolute
-            ? `file://${root.name}`
-            : Quickshell.iconPath(root.name, true)
+        source: Icons.sourceFor(root.name)
     }
 }

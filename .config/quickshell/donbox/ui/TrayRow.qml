@@ -28,7 +28,7 @@ Row {
             IconImage {
                 anchors.centerIn: parent
                 implicitSize: Theme.sizes.trayIcon ?? 0
-                source: slot.modelData.icon
+                source: Icons.sourceFor(slot.modelData.icon)
                 asynchronous: true
             }
 

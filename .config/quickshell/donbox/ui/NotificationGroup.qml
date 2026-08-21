@@ -22,7 +22,7 @@ Column {
                 anchors.verticalCenter: parent.verticalCenter
                 implicitSize: Theme.sizes.trayIcon ?? 0
                 visible: root.modelData.icon !== ""
-                source: root.modelData.icon
+                source: Icons.sourceFor(root.modelData.icon)
                 asynchronous: true
             }
 
