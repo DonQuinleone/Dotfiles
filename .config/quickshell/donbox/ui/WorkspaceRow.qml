@@ -8,6 +8,10 @@ Row {
 
     required property string monitorName
 
+    // Each screen owns a run of nine ids of its own, so the
+    // numbers on it are its position in that run rather than the
+    // id: every screen counts from 1, and Super+1..9 lands where
+    // it reads, since both count the same way.
     readonly property var workspaces: Hyprland.workspaces.values
         .filter(workspace => workspace.id > 0
             && workspace.monitor?.name === root.monitorName)
@@ -40,6 +44,7 @@ Row {
             id: chip
 
             required property var modelData
+            required property int index
 
             readonly property bool active: chip.modelData.active
             readonly property bool occupied:
@@ -73,7 +78,7 @@ Row {
                 id: number
 
                 anchors.centerIn: parent
-                text: chip.modelData.id
+                text: chip.index + 1
                 color: chip.look.text
                 font.family: Theme.fonts.mono ?? ""
                 font.pixelSize: Theme.fontSizes.large ?? 0
