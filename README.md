@@ -53,6 +53,7 @@ exactly where it appears.
 | `packages.json` | the manifest for the machine |
 | `migrations` | one script per rename, run once each |
 | `test/shell.d` | one suite per area |
+| `test/qml.d` | the same, for the shell's own logic |
 
 Nothing generated is kept here. Applying a theme rewrites a file
 for every tool that takes one, and applications write settings of
@@ -145,11 +146,20 @@ the links are in place. Every migration is idempotent and stops
 the run if it fails, so nothing later builds on a half-move.
 
     ./test/shell
+    ./test/qml
 
 Each `test/shell.d/*-test.sh` is an independent suite; the first
 failed assertion ends its file and the runner carries on, so one
 broken area cannot hide the rest. New behaviour lands with a
 suite beside it.
+
+The shell's own logic is tested the same way. Anything that is a
+function rather than a surface lives in
+`.config/quickshell/donbox/services/logic`, importing nothing but
+QtQuick, and the Quickshell singleton above it is a facade over
+that. `./test/qml` runs the `tst_*.qml` cases against those with
+Qt's own runner, headless, so no compositor is needed and nothing
+opens on screen.
 
 ## Installing
 

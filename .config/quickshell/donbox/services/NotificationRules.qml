@@ -4,6 +4,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import Quickshell.Services.Notifications
+import "logic"
 
 Singleton {
     id: root
@@ -29,40 +30,18 @@ Singleton {
     readonly property var defaults: root.data.defaults ?? ({})
     readonly property var applications: root.data.applications ?? ({})
 
-    function plain(value: var): string {
-        if (value === undefined || value === null) return "";
-        return `${value}`;
-    }
-
-    function ruleFor(appName: var, desktopEntry: var): var {
-        const apps = root.applications;
-        const exact = apps[desktopEntry] ?? apps[appName];
-        if (exact) return exact;
-        const wanted = root.plain(appName).toLowerCase();
-        const key = Object.keys(apps)
-            .find(name => name.toLowerCase() === wanted);
-        return key ? apps[key] : ({});
-    }
-
-    function fallbackFor(urgency: int): var {
-        return root.defaults[root.urgencyNames[urgency]] ?? ({});
-    }
-
-    function setting(rule: var, fallback: var, name: string): var {
-        return rule[name] !== undefined ? rule[name] : fallback[name];
-    }
-
     function playSound(name: var): void {
-        const sound = root.plain(name);
+        const sound = match.plain(name);
         if (!sound) return;
         Quickshell.execDetached(root.soundCommand.concat([sound]));
     }
 
     function announce(notification: var): void {
-        const rule = root.ruleFor(
+        const rule = match.ruleFor(root.applications,
             notification.appName, notification.desktopEntry);
-        const fallback = root.fallbackFor(notification.urgency);
-        root.playSound(root.setting(rule, fallback, "sound"));
+        const fallback = match.fallbackFor(root.defaults,
+            root.urgencyNames[notification.urgency]);
+        root.playSound(match.setting(rule, fallback, "sound"));
     }
 
     function reparse(): void {
@@ -72,6 +51,10 @@ Singleton {
             console.error(
                 `donbox: ${root.path} is not valid JSON:`, error);
         }
+    }
+
+    NotificationMatch {
+        id: match
     }
 
     Component.onCompleted: root.reparse()

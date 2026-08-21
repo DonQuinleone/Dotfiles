@@ -3,6 +3,7 @@ pragma Singleton
 import QtQuick
 import Quickshell
 import Quickshell.Hyprland
+import "logic"
 
 Singleton {
     id: root
@@ -10,17 +11,17 @@ Singleton {
     readonly property int refreshIntervalMs: 2000
 
     function layoutOf(workspace): string {
-        return workspace?.lastIpcObject?.tiledLayout ?? "";
+        return facts.layoutOf(workspace);
     }
 
-    // A workspace reports the layout its tiles are arranged by
-    // even when the window in front of them is floating, so the
-    // focused window is asked instead.
     function floatingOn(workspaceName: string): bool {
-        const focused = Hyprland.activeToplevel?.lastIpcObject ?? null;
-        if (!focused) return false;
-        if (focused.workspace?.name !== workspaceName) return false;
-        return focused.floating === true;
+        return facts.floatingOn(
+            Hyprland.activeToplevel?.lastIpcObject ?? null,
+            workspaceName);
+    }
+
+    WorkspaceFacts {
+        id: facts
     }
 
     // Refreshing before Hyprland finishes its own first fetch
