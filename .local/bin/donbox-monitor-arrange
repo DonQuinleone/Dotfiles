@@ -10,6 +10,7 @@ STATE_DIR="${XDG_STATE_HOME:-${HOME}/.local/state}/hypr"
 readonly STATE_DIR
 readonly ARRANGING_FLAG="${STATE_DIR}/arranging"
 readonly OUTPUTS_FILE="${STATE_DIR}/nwg-monitors.conf"
+readonly WORKSPACES_FILE="${STATE_DIR}/nwg-workspaces.conf"
 
 die() {
     printf 'donbox monitor arrange: %s\n' "$*" >&2
@@ -52,7 +53,10 @@ main() {
     : >"${ARRANGING_FLAG}"
     trap release EXIT
 
-    "${ARRANGER}" --monitors_path "${OUTPUTS_FILE}"
+    # Both paths are given: either default is a file written
+    # into ~/.config/hypr, which stow folded into the repo.
+    "${ARRANGER}" --monitors_path "${OUTPUTS_FILE}" \
+        --workspaces_path "${WORKSPACES_FILE}"
 
     release
     trap - EXIT
