@@ -68,8 +68,8 @@
     "session.settings.magnifier": {
       "label": "Magnifier and cursor",
       "icon": "zoom-in",
-      "description": "quickshell/settings.json",
-      "action": "donbox settings edit quickshell/settings.json"
+      "description": "donbox/current/settings.json",
+      "action": "donbox settings edit state:donbox/current/settings.json"
     },
     "session.settings.look": {
       "label": "Layout and decoration",
@@ -94,6 +94,12 @@
       "icon": "video-display",
       "description": "hypr/lua/monitors.lua",
       "action": "donbox settings edit hypr/lua/monitors.lua --reload 'hyprctl reload'"
+    },
+    "session.settings.displays": {
+      "label": "Displays",
+      "icon": "video-display",
+      "description": "Arrange the monitors and keep the layout",
+      "action": "donbox term --role settings -- donbox monitor arrange"
     },
     "session.settings.workspaces": {
       "label": "Workspaces",

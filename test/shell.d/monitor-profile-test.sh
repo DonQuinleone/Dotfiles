@@ -114,3 +114,20 @@ assert_equal "detect leaves outputs already in place alone" \
 
 assert "detect still puts the workspaces where they belong" \
     grep -q 'workspace.move' <<<"${detected}"
+
+# nwg-displays reloads the compositor to apply what was dragged
+# into place, and every reload comes back through detect.
+readonly ARRANGING="${XDG_STATE_HOME}/hypr/arranging"
+
+: >"${ARRANGING}"
+standing_down=$("${PROFILE}" detect --dry-run)
+rm -f "${ARRANGING}"
+
+assert_equal "detect touches nothing while a layout is arranged" \
+    "$(grep -c 'hl\.' <<<"${standing_down}")" "0"
+
+assert "detect says why it did nothing" \
+    grep -q 'arranging' <<<"${standing_down}"
+
+assert "detect picks the profile up again afterwards" \
+    grep -q 'workspace.move' <<<"$("${PROFILE}" detect --dry-run)"

@@ -5,6 +5,7 @@
 set -euo pipefail
 
 readonly CONFIG_HOME="${XDG_CONFIG_HOME:-${HOME}/.config}"
+readonly STATE_HOME="${XDG_STATE_HOME:-${HOME}/.local/state}"
 readonly EDITOR_COMMAND=nvim
 LAUNCHER="$(dirname -- "$(readlink -f -- "${BASH_SOURCE[0]}")")/donbox-term"
 readonly LAUNCHER
@@ -69,11 +70,21 @@ modified_at() {
     stat -c %Y "$1"
 }
 
+# A file the desktop writes rather than one it is given lives
+# under the state directory, so both roots can be named.
+resolve() {
+    case "$1" in
+    state:*) printf '%s/%s' "${STATE_HOME}" "${1#state:}" ;;
+    *) printf '%s/%s' "${CONFIG_HOME}" "$1" ;;
+    esac
+}
+
 main() {
     read_arguments "$@"
     require_command "${EDITOR_COMMAND}"
 
-    local path="${CONFIG_HOME}/${file}" before
+    local path before
+    path=$(resolve "${file}")
     ensure_file "${path}"
     before=$(modified_at "${path}")
 

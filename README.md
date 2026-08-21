@@ -131,6 +131,14 @@ in front, and the pill can be clicked to shut the microphone.
 Finder does, from the COPR the manifest names since Fedora does
 not package it.
 
+Monitors are arranged by dragging them about in nwg-displays,
+which writes the same `hl.monitor` Lua this configuration is
+written in. `donbox monitor arrange <profile>` opens it, holds
+off the profile that would otherwise be reapplied by the reload
+it triggers, and saves the layout it leaves behind. The firewall
+is manafirewall over firewalld, run in its ncurses interface;
+neither leaves a window manager's idea of a settings app behind.
+
 Both scripts are idempotent, so re-running either after a pull is
 safe. `bootstrap.sh` restows the package and clears away links
 that no longer belong, and refuses to run unless the repo sits

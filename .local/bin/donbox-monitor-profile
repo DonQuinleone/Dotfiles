@@ -10,6 +10,7 @@ STATE_DIR="${XDG_STATE_HOME:-${HOME}/.local/state}/hypr"
 readonly STATE_DIR
 readonly PROFILES_DIR="${STATE_DIR}/monitor-profiles"
 readonly RULES_FILE="${STATE_DIR}/monitor-rules.lua"
+readonly ARRANGING_FLAG="${STATE_DIR}/arranging"
 
 die() {
     printf 'donbox monitor profile: %s\n' "$*" >&2
@@ -364,6 +365,14 @@ cmd_apply() {
 
 cmd_detect() {
     local dry_run="$1"
+
+    # "monitor arrange" is dragging the outputs about, and this
+    # would put the profile it is replacing back over its work.
+    [[ ! -e "${ARRANGING_FLAG}" ]] || {
+        echo "monitor-profile: standing down while arranging"
+        return 0
+    }
+
     mkdir -p "${PROFILES_DIR}"
     local monitors_json
     monitors_json=$(new_tmp_file)
