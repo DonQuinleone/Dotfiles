@@ -1,0 +1,15 @@
+[Unit]
+Description=Start the session off the tailnet
+ConditionPathExists=/usr/bin/tailscale
+
+[Service]
+# tailscaled reconnects on boot whenever it was left connected,
+# and remembers nothing else. It is a system service this cannot
+# be ordered against, hence the retry while its socket is absent.
+Type=oneshot
+ExecStart=/usr/bin/tailscale down
+Restart=on-failure
+RestartSec=2s
+
+[Install]
+WantedBy=default.target
