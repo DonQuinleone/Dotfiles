@@ -20,6 +20,7 @@ local binds = {
     { "SUPER",           "f",                     hl.dsp.exec_cmd(donbox .. " term -- " .. apps.files)   },
     { "SUPER",           "a",                     hl.dsp.exec_cmd(donbox .. " activity")                 },
     { "SUPER",           "i",                     hl.dsp.exec_cmd(donbox .. " term -- claude --dangerously-skip-permissions") },
+    { "SUPER",           "o",                     hl.dsp.exec_cmd(donbox .. " sso")                     },
 
     { "SUPER",           "space",                 hl.dsp.exec_cmd("qs -c donbox ipc call launcher toggle") },
     { "SUPER + CTRL",    "b",                     hl.dsp.exec_cmd("qs -c donbox ipc call bar toggleFocused") },
