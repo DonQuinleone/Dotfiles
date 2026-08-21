@@ -30,7 +30,7 @@
   refactor any that has.
 - When splitting an oversized file, keep the original as a thin facade that re-exports the moved items, so external callers keep their existing paths and the change stays small and reviewable; only rename call sites when the new structure is the point.
 - Opening curly braces go on the same line as the statement, never the line below.
-- Wrap everything at 72 columns: code, comments, prose and commit messages alike.
+- Wrap everything at 72 columns: code, comments, prose and commit messages alike. The one exception is an aligned data table, where the columns are the readability and wrapping would destroy it.
 - Follow clean code practices: prioritise readability and simplicity, so code reads clearly without needing explanation.
 - READMEs and user-facing docs are written to the standard of a well-run open-source project, not generic boilerplate: lead with what it is and why, then concrete usage, where any images or artefacts are hosted, a configuration reference, and how to build and contribute. Reflect the actual project (real names, URLs, commands), never placeholder-generic text.
 - Don't repeat yourself: extract shared logic rather than duplicating it; keep one source of truth for every fact or value.
