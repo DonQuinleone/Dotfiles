@@ -315,3 +315,9 @@ source = "https://github.com/obra/superpowers.git"
 source_commit = "b36e0829c6d0140e93cfef2ca599b1b07d4a7797"
 source_path = "skills/writing-skills"
 licence = "MIT"
+
+[cpanel-whm]
+source = "hand-written"
+source_commit = ""
+source_path = ""
+licence = "MIT"
