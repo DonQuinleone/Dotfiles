@@ -1,0 +1,317 @@
+[ansible-docs]
+source = "https://github.com/leogallego/claude-ansible-skills.git"
+source_commit = "2f0bb2b55e7adaec381bd9ee0adaaecc9b870690"
+source_path = "ansible-docs/skills/ansible-docs"
+licence = "GPL-3.0-or-later"
+
+[ansible-good-practices]
+source = "https://github.com/leogallego/claude-ansible-skills.git"
+source_commit = "2f0bb2b55e7adaec381bd9ee0adaaecc9b870690"
+source_path = "ansible-good-practices/skills/ansible-good-practices"
+licence = "GPL-3.0-or-later"
+
+[ansible-new-collection]
+source = "https://github.com/leogallego/claude-ansible-skills.git"
+source_commit = "2f0bb2b55e7adaec381bd9ee0adaaecc9b870690"
+source_path = "ansible-new-collection/skills/ansible-new-collection"
+licence = "GPL-3.0-or-later"
+
+[ansible-new-ee]
+source = "https://github.com/leogallego/claude-ansible-skills.git"
+source_commit = "2f0bb2b55e7adaec381bd9ee0adaaecc9b870690"
+source_path = "ansible-new-ee/skills/ansible-new-ee"
+licence = "GPL-3.0-or-later"
+
+[ansible-new-molecule]
+source = "https://github.com/leogallego/claude-ansible-skills.git"
+source_commit = "2f0bb2b55e7adaec381bd9ee0adaaecc9b870690"
+source_path = "ansible-new-molecule/skills/ansible-new-molecule"
+licence = "GPL-3.0-or-later"
+
+[ansible-new-role]
+source = "https://github.com/leogallego/claude-ansible-skills.git"
+source_commit = "2f0bb2b55e7adaec381bd9ee0adaaecc9b870690"
+source_path = "ansible-new-role/skills/ansible-new-role"
+licence = "GPL-3.0-or-later"
+
+[ansible-quick-convert]
+source = "https://github.com/realsigridjin/hello-ansible-skills.git"
+source_commit = "3062baada51d4fb2279334a7e8bf3e7d02347fde"
+source_path = "skills/ansible-convert"
+licence = "MIT"
+
+[ansible-quick-debug]
+source = "https://github.com/realsigridjin/hello-ansible-skills.git"
+source_commit = "3062baada51d4fb2279334a7e8bf3e7d02347fde"
+source_path = "skills/ansible-debug"
+licence = "MIT"
+
+[ansible-quick-interactive]
+source = "https://github.com/realsigridjin/hello-ansible-skills.git"
+source_commit = "3062baada51d4fb2279334a7e8bf3e7d02347fde"
+source_path = "skills/ansible-interactive"
+licence = "MIT"
+
+[ansible-quick-playbook]
+source = "https://github.com/realsigridjin/hello-ansible-skills.git"
+source_commit = "3062baada51d4fb2279334a7e8bf3e7d02347fde"
+source_path = "skills/ansible-playbook"
+licence = "MIT"
+
+[ansible-zen]
+source = "https://github.com/leogallego/claude-ansible-skills.git"
+source_commit = "2f0bb2b55e7adaec381bd9ee0adaaecc9b870690"
+source_path = "ansible-zen/skills/ansible-zen"
+licence = "GPL-3.0-or-later"
+
+[brainstorming]
+source = "https://github.com/obra/superpowers.git"
+source_commit = "b36e0829c6d0140e93cfef2ca599b1b07d4a7797"
+source_path = "skills/brainstorming"
+licence = "MIT"
+
+[changelog-generator]
+source = "https://github.com/alirezarezvani/claude-skills.git"
+source_commit = "98180dafc4f0bc9d629bd479fc6107674cfb3cf8"
+source_path = "engineering/skills/changelog-generator"
+licence = "MIT"
+
+[ci-cd]
+source = "https://github.com/ahmedasmar/devops-claude-skills.git"
+source_commit = "1489c33ad8829a11219e423327d6b59f8339cee4"
+source_path = "ci-cd/skills"
+licence = "MIT"
+
+[ci-cd-pipeline-builder]
+source = "https://github.com/alirezarezvani/claude-skills.git"
+source_commit = "98180dafc4f0bc9d629bd479fc6107674cfb3cf8"
+source_path = "engineering/skills/ci-cd-pipeline-builder"
+licence = "MIT"
+
+[claude-api]
+source = "https://github.com/anthropics/skills.git"
+source_commit = "3b3fad96af16a10759d930941b4520ba0c40edae"
+source_path = "skills/claude-api"
+licence = "Apache-2.0"
+
+[dependency-auditor]
+source = "https://github.com/alirezarezvani/claude-skills.git"
+source_commit = "98180dafc4f0bc9d629bd479fc6107674cfb3cf8"
+source_path = "engineering/skills/dependency-auditor"
+licence = "MIT"
+
+[diataxis-audit]
+source = "https://github.com/keithpatton/diataxis-agent-skill.git"
+source_commit = "5b095a5e7aebe77ce4af855809123e12d92b9efd"
+source_path = "diataxis"
+licence = "CC-BY-SA-4.0"
+
+[diataxis-docs]
+source = "https://github.com/PeterKnego/diataxis-docs-skill.git"
+source_commit = "de11e3bb2dd56d04849f70d8b1964b5593d369ec"
+source_path = "skills/diataxis-docs"
+licence = "MIT"
+
+[doc-coauthoring]
+source = "https://github.com/anthropics/skills.git"
+source_commit = "3b3fad96af16a10759d930941b4520ba0c40edae"
+source_path = "skills/doc-coauthoring"
+licence = "unstated"
+
+[docker-development]
+source = "https://github.com/alirezarezvani/claude-skills.git"
+source_commit = "98180dafc4f0bc9d629bd479fc6107674cfb3cf8"
+source_path = "engineering/docker-development/skills/docker-development"
+licence = "MIT"
+
+[env-secrets-manager]
+source = "https://github.com/alirezarezvani/claude-skills.git"
+source_commit = "98180dafc4f0bc9d629bd479fc6107674cfb3cf8"
+source_path = "engineering/skills/env-secrets-manager"
+licence = "MIT"
+
+[executing-plans]
+source = "https://github.com/obra/superpowers.git"
+source_commit = "b36e0829c6d0140e93cfef2ca599b1b07d4a7797"
+source_path = "skills/executing-plans"
+licence = "MIT"
+
+[extract]
+source = "https://github.com/alirezarezvani/claude-skills.git"
+source_commit = "98180dafc4f0bc9d629bd479fc6107674cfb3cf8"
+source_path = "engineering-team/self-improving-agent/skills/extract"
+licence = "MIT"
+
+[gitops-workflows]
+source = "https://github.com/ahmedasmar/devops-claude-skills.git"
+source_commit = "1489c33ad8829a11219e423327d6b59f8339cee4"
+source_path = "gitops-workflows/skills"
+licence = "MIT"
+
+[good-readme]
+source = "https://github.com/adewale/good-readme.git"
+source_commit = "8631fbc0f457776cb976915930cb1fd621dca476"
+source_path = "skills/good-readme"
+licence = "MIT"
+
+[helm-chart-builder]
+source = "https://github.com/alirezarezvani/claude-skills.git"
+source_commit = "98180dafc4f0bc9d629bd479fc6107674cfb3cf8"
+source_path = "engineering/helm-chart-builder/skills/helm-chart-builder"
+licence = "MIT"
+
+[iac-terraform]
+source = "https://github.com/ahmedasmar/devops-claude-skills.git"
+source_commit = "1489c33ad8829a11219e423327d6b59f8339cee4"
+source_path = "iac-terraform/skills"
+licence = "MIT"
+
+[incident-commander]
+source = "https://github.com/alirezarezvani/claude-skills.git"
+source_commit = "98180dafc4f0bc9d629bd479fc6107674cfb3cf8"
+source_path = "engineering-team/skills/incident-commander"
+licence = "MIT"
+
+[k8s-troubleshooter]
+source = "https://github.com/ahmedasmar/devops-claude-skills.git"
+source_commit = "1489c33ad8829a11219e423327d6b59f8339cee4"
+source_path = "k8s-troubleshooter/skills"
+licence = "MIT"
+
+[kubernetes-operator]
+source = "https://github.com/alirezarezvani/claude-skills.git"
+source_commit = "98180dafc4f0bc9d629bd479fc6107674cfb3cf8"
+source_path = "engineering/skills/kubernetes-operator"
+licence = "MIT"
+
+[mcp-builder]
+source = "https://github.com/anthropics/skills.git"
+source_commit = "3b3fad96af16a10759d930941b4520ba0c40edae"
+source_path = "skills/mcp-builder"
+licence = "Apache-2.0"
+
+[memory-review]
+source = "https://github.com/alirezarezvani/claude-skills.git"
+source_commit = "98180dafc4f0bc9d629bd479fc6107674cfb3cf8"
+source_path = "engineering-team/self-improving-agent/skills/memory-review"
+licence = "MIT"
+
+[memory-status]
+source = "https://github.com/alirezarezvani/claude-skills.git"
+source_commit = "98180dafc4f0bc9d629bd479fc6107674cfb3cf8"
+source_path = "engineering-team/self-improving-agent/skills/memory-status"
+licence = "MIT"
+
+[migration-architect]
+source = "https://github.com/alirezarezvani/claude-skills.git"
+source_commit = "98180dafc4f0bc9d629bd479fc6107674cfb3cf8"
+source_path = "engineering/skills/migration-architect"
+licence = "MIT"
+
+[monitoring-observability]
+source = "https://github.com/ahmedasmar/devops-claude-skills.git"
+source_commit = "1489c33ad8829a11219e423327d6b59f8339cee4"
+source_path = "monitoring-observability/skills"
+licence = "MIT"
+
+[observability-designer]
+source = "https://github.com/alirezarezvani/claude-skills.git"
+source_commit = "98180dafc4f0bc9d629bd479fc6107674cfb3cf8"
+source_path = "engineering/skills/observability-designer"
+licence = "MIT"
+
+[promote]
+source = "https://github.com/alirezarezvani/claude-skills.git"
+source_commit = "98180dafc4f0bc9d629bd479fc6107674cfb3cf8"
+source_path = "engineering-team/self-improving-agent/skills/promote"
+licence = "MIT"
+
+[receiving-code-review]
+source = "https://github.com/obra/superpowers.git"
+source_commit = "b36e0829c6d0140e93cfef2ca599b1b07d4a7797"
+source_path = "skills/receiving-code-review"
+licence = "MIT"
+
+[remember]
+source = "https://github.com/alirezarezvani/claude-skills.git"
+source_commit = "98180dafc4f0bc9d629bd479fc6107674cfb3cf8"
+source_path = "engineering-team/self-improving-agent/skills/remember"
+licence = "MIT"
+
+[requesting-code-review]
+source = "https://github.com/obra/superpowers.git"
+source_commit = "b36e0829c6d0140e93cfef2ca599b1b07d4a7797"
+source_path = "skills/requesting-code-review"
+licence = "MIT"
+
+[runbook-generator]
+source = "https://github.com/alirezarezvani/claude-skills.git"
+source_commit = "98180dafc4f0bc9d629bd479fc6107674cfb3cf8"
+source_path = "engineering/skills/runbook-generator"
+licence = "MIT"
+
+[secrets-vault-manager]
+source = "https://github.com/alirezarezvani/claude-skills.git"
+source_commit = "98180dafc4f0bc9d629bd479fc6107674cfb3cf8"
+source_path = "engineering/skills/secrets-vault-manager"
+licence = "MIT"
+
+[security-guidance]
+source = "https://github.com/alirezarezvani/claude-skills.git"
+source_commit = "98180dafc4f0bc9d629bd479fc6107674cfb3cf8"
+source_path = "engineering/security-guidance/skills/security-guidance"
+licence = "MIT"
+
+[self-improving-agent]
+source = "https://github.com/alirezarezvani/claude-skills.git"
+source_commit = "98180dafc4f0bc9d629bd479fc6107674cfb3cf8"
+source_path = "engineering-team/self-improving-agent/skills/self-improving-agent"
+licence = "MIT"
+
+[skill-creator]
+source = "https://github.com/anthropics/skills.git"
+source_commit = "3b3fad96af16a10759d930941b4520ba0c40edae"
+source_path = "skills/skill-creator"
+licence = "Apache-2.0"
+
+[skill-security-auditor]
+source = "https://github.com/alirezarezvani/claude-skills.git"
+source_commit = "98180dafc4f0bc9d629bd479fc6107674cfb3cf8"
+source_path = "engineering/skills/skill-security-auditor"
+licence = "MIT"
+
+[slo-architect]
+source = "https://github.com/alirezarezvani/claude-skills.git"
+source_commit = "98180dafc4f0bc9d629bd479fc6107674cfb3cf8"
+source_path = "engineering/skills/slo-architect"
+licence = "MIT"
+
+[sql-database-assistant]
+source = "https://github.com/alirezarezvani/claude-skills.git"
+source_commit = "98180dafc4f0bc9d629bd479fc6107674cfb3cf8"
+source_path = "engineering/skills/sql-database-assistant"
+licence = "MIT"
+
+[systematic-debugging]
+source = "https://github.com/obra/superpowers.git"
+source_commit = "b36e0829c6d0140e93cfef2ca599b1b07d4a7797"
+source_path = "skills/systematic-debugging"
+licence = "MIT"
+
+[terraform-patterns]
+source = "https://github.com/alirezarezvani/claude-skills.git"
+source_commit = "98180dafc4f0bc9d629bd479fc6107674cfb3cf8"
+source_path = "engineering/terraform-patterns/skills/terraform-patterns"
+licence = "MIT"
+
+[writing-plans]
+source = "https://github.com/obra/superpowers.git"
+source_commit = "b36e0829c6d0140e93cfef2ca599b1b07d4a7797"
+source_path = "skills/writing-plans"
+licence = "MIT"
+
+[writing-skills]
+source = "https://github.com/obra/superpowers.git"
+source_commit = "b36e0829c6d0140e93cfef2ca599b1b07d4a7797"
+source_path = "skills/writing-skills"
+licence = "MIT"
