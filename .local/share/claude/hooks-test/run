@@ -1,0 +1,433 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+root=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)
+readonly root
+readonly HOOKS_DIR="$root/hooks"
+readonly STYLE_CHECK="$root/lib/style-check.sh"
+readonly FINDINGS_STATUS=1
+readonly BLOCK_STATUS=2
+
+workspace=$(mktemp -d)
+readonly workspace
+trap 'rm -rf "$workspace"' EXIT
+
+readonly STDERR_FILE="$workspace/stderr"
+NOTIFY_LOG="$workspace/notifications"
+export NOTIFY_LOG
+
+passed=0
+failed=0
+last_status=0
+last_stderr=""
+last_log=""
+
+pass() {
+  printf 'ok   %s\n' "$1"
+  passed=$((passed + 1))
+}
+
+fail() {
+  printf 'FAIL %s\n' "$1"
+  failed=$((failed + 1))
+}
+
+assert_status() {
+  local -r label=$1 expected=$2
+  if (( last_status == expected )); then
+    pass "$label (status $expected)"
+    return 0
+  fi
+  fail "$label: status $last_status, expected $expected"
+}
+
+assert_output_contains() {
+  local -r label=$1 haystack=$2 needle=$3
+  if [[ $haystack == *"$needle"* ]]; then
+    pass "$label (contains \"$needle\")"
+    return 0
+  fi
+  fail "$label: output lacks \"$needle\": $haystack"
+}
+
+assert_output_empty() {
+  local -r label=$1 haystack=$2
+  if [[ -z $haystack ]]; then
+    pass "$label (no output)"
+    return 0
+  fi
+  fail "$label: unexpected output: $haystack"
+}
+
+fixture() {
+  local -r name=$1 content=$2
+  local -r path="$workspace/$name"
+  printf '%s\n' "$content" >"$path"
+  printf '%s' "$path"
+}
+
+stub_dir() {
+  local -r name=$1
+  local -r directory="$workspace/$name"
+  mkdir -p "$directory"
+  local tool
+  for tool in "${@:2}"; do
+    cat >"$directory/$tool" <<'STUB'
+#!/usr/bin/env bash
+printf '%s %s\n' "${0##*/}" "$*" >>"$NOTIFY_LOG"
+STUB
+    chmod +x "$directory/$tool"
+  done
+  printf '%s' "$directory"
+}
+
+tool_payload() {
+  local -r event=$1 tool=$2 key=$3 value=$4
+  jq -n --arg event "$event" --arg tool "$tool" \
+    --arg key "$key" --arg value "$value" \
+    '{hook_event_name: $event, tool_name: $tool,
+      tool_input: {($key): $value}}'
+}
+
+run_command() {
+  last_status=0
+  "$@" >/dev/null 2>"$STDERR_FILE" || last_status=$?
+  last_stderr=$(cat "$STDERR_FILE")
+}
+
+run_hook() {
+  local -r hook=$1 payload=$2
+  last_status=0
+  printf '%s' "$payload" | "$HOOKS_DIR/$hook" \
+    >/dev/null 2>"$STDERR_FILE" || last_status=$?
+  last_stderr=$(cat "$STDERR_FILE")
+}
+
+run_write_hook() {
+  local -r hook=$1 tool=$2 path=$3
+  local payload
+  payload=$(tool_payload PostToolUse "$tool" file_path "$path")
+  run_hook "$hook" "$payload"
+}
+
+run_bash_hook() {
+  local -r command=$1
+  local payload
+  payload=$(tool_payload PreToolUse Bash command "$command")
+  run_hook commit-gate "$payload"
+}
+
+run_notify_hook() {
+  local -r stubs=$1 payload=$2
+  : >"$NOTIFY_LOG"
+  last_status=0
+  printf '%s' "$payload" |
+    env "${@:3}" PATH="$stubs:$PATH" "$HOOKS_DIR/notify" \
+      >/dev/null 2>"$STDERR_FILE" || last_status=$?
+  last_stderr=$(cat "$STDERR_FILE")
+  last_log=$(cat "$NOTIFY_LOG")
+}
+
+test_shellcheck_flags_faulty_script() {
+  local path
+  # shellcheck disable=SC2016
+  path=$(fixture broken.sh '#!/usr/bin/env bash
+rm $target')
+  run_write_hook shellcheck-on-write Write "$path"
+  assert_status 'shellcheck: faulty script blocks' "$BLOCK_STATUS"
+  assert_output_contains 'shellcheck: names the fault' \
+    "$last_stderr" SC2086
+}
+
+test_shellcheck_passes_clean_script() {
+  local path
+  path=$(fixture clean.sh '#!/usr/bin/env bash
+printf "%s\n" "ok"')
+  run_write_hook shellcheck-on-write Edit "$path"
+  assert_status 'shellcheck: clean script passes' 0
+  assert_output_empty 'shellcheck: clean script is quiet' "$last_stderr"
+}
+
+test_shellcheck_reads_shebang_without_extension() {
+  local path
+  # shellcheck disable=SC2016
+  path=$(fixture helper '#!/bin/sh
+rm $target')
+  run_write_hook shellcheck-on-write MultiEdit "$path"
+  assert_status 'shellcheck: shebang detected' "$BLOCK_STATUS"
+}
+
+test_shellcheck_skips_other_files() {
+  local path
+  # shellcheck disable=SC2016
+  path=$(fixture notes.txt 'rm $target')
+  run_write_hook shellcheck-on-write Write "$path"
+  assert_status 'shellcheck: non-shell file skipped' 0
+}
+
+test_style_flags_em_dash() {
+  local path
+  path=$(fixture dash.md 'A sentence — with an em-dash.')
+  run_write_hook style-lint Write "$path"
+  assert_status 'style: em-dash blocks' "$BLOCK_STATUS"
+  assert_output_contains 'style: em-dash named' "$last_stderr" em-dash
+}
+
+test_style_flags_email() {
+  local path
+  path=$(fixture mail.md 'Send an email when the build fails.')
+  run_write_hook style-lint Write "$path"
+  assert_status 'style: email blocks' "$BLOCK_STATUS"
+  assert_output_contains 'style: e-mail suggested' "$last_stderr" e-mail
+}
+
+test_style_flags_american_spelling() {
+  local path
+  path=$(fixture spelling.md 'The color of the center is gray.')
+  run_write_hook style-lint Edit "$path"
+  assert_status 'style: US spelling blocks' "$BLOCK_STATUS"
+  assert_output_contains 'style: British form given' \
+    "$last_stderr" colour
+}
+
+test_style_flags_long_line() {
+  local -r opening='This sentence runs well past the seventy-two '
+  local -r closing='column limit and so it must be reported here.'
+  local path
+  path=$(fixture long.md "$opening$closing")
+  run_write_hook style-lint Write "$path"
+  assert_status 'style: long line blocks' "$BLOCK_STATUS"
+  assert_output_contains 'style: wrap advised' \
+    "$last_stderr" 'wrap at 72'
+}
+
+test_style_allows_fenced_code() {
+  local -r opening='An email — with a line that runs well past the '
+  local -r closing='seventy-two column limit inside a fenced block.'
+  local path
+  path=$(fixture fenced.md "\`\`\`
+$opening$closing
+\`\`\`")
+  run_write_hook style-lint Write "$path"
+  assert_status 'style: fenced code exempt' 0
+}
+
+test_style_allows_inline_code() {
+  local path
+  # shellcheck disable=SC2016
+  path=$(fixture inline.md 'Use `--email` or `a — b` in the command.')
+  run_write_hook style-lint Write "$path"
+  assert_status 'style: inline code exempt' 0
+}
+
+test_style_allows_tables_and_urls() {
+  local -r row='| a table row that is deliberately much wider than '
+  local -r cells='the seventy-two column limit | and then some more |'
+  local -r link='See https://example.com/a/path/that/is/very/long/'
+  local -r tail='indeed/and/then/some/more/besides/that/one/as/well'
+  local path
+  path=$(fixture table.md "$row$cells
+$link$tail")
+  run_write_hook style-lint Write "$path"
+  assert_status 'style: tables and URLs exempt' 0
+}
+
+test_style_allows_long_lines_in_go() {
+  local -r opening='func handler(writer http.ResponseWriter, '
+  local -r closing='request *http.Request) error { return nil }'
+  local path
+  path=$(fixture wide.go "$opening$closing")
+  run_write_hook style-lint Write "$path"
+  assert_status 'style: Go wrapping is tool governed' 0
+}
+
+test_style_allows_aligned_comment_table() {
+  local -r heading='# name      binding        action taken when '
+  local -r row='# reload    Super+R        reload the compositor '
+  local path
+  path=$(fixture aligned.sh "#!/usr/bin/env bash
+${heading}the binding fires here, wrapped or otherwise
+${row}configuration file from disk once more")
+  run_write_hook style-lint Write "$path"
+  assert_status 'style: aligned comment table exempt' 0
+}
+
+test_style_skips_unknown_extension() {
+  local path
+  path=$(fixture code.rs 'let dash = "—";')
+  run_write_hook style-lint Write "$path"
+  assert_status 'style: unknown extension skipped' 0
+}
+
+test_style_check_runs_standalone() {
+  local path
+  path=$(fixture standalone.md 'An email — in prose.')
+  run_command "$STYLE_CHECK" "$path"
+  assert_status 'style-check: standalone run' "$FINDINGS_STATUS"
+  assert_output_contains 'style-check: file:line prefix' \
+    "$last_stderr" "$path:1:"
+}
+
+test_commit_accepts_conventional_subject() {
+  run_bash_hook 'git commit -m "feat(hooks): add the commit gate"'
+  assert_status 'commit: conventional subject allowed' 0
+}
+
+test_commit_accepts_combined_short_flags() {
+  run_bash_hook 'git commit -am "fix: tidy the parser"'
+  assert_status 'commit: -am parsed' 0
+}
+
+test_commit_rejects_capitalised_subject() {
+  run_bash_hook 'git commit -m "Fix: capitalised subject"'
+  assert_status 'commit: capitalised subject blocked' "$BLOCK_STATUS"
+  assert_output_contains 'commit: convention named' \
+    "$last_stderr" 'Conventional Commits'
+}
+
+test_commit_rejects_missing_type() {
+  run_bash_hook "git commit -m 'added a thing'"
+  assert_status 'commit: missing type blocked' "$BLOCK_STATUS"
+}
+
+test_commit_rejects_long_subject() {
+  local -r opening='feat: a subject that is deliberately far too '
+  local -r closing='long to fit inside seventy-two characters'
+  run_bash_hook "git commit -m '$opening$closing'"
+  assert_status 'commit: long subject blocked' "$BLOCK_STATUS"
+  assert_output_contains 'commit: length named' \
+    "$last_stderr" 'wrap at 72'
+}
+
+test_commit_rejects_unsigned_flag() {
+  run_bash_hook 'git commit --no-gpg-sign -m "fix: unsigned commit"'
+  assert_status 'commit: unsigned flag blocked' "$BLOCK_STATUS"
+  assert_output_contains 'commit: signing named' \
+    "$last_stderr" --no-gpg-sign
+}
+
+test_commit_rejects_attribution_trailer() {
+  run_bash_hook 'git commit -F - <<EOF
+feat(hooks): add a gate
+
+Co-Authored-By: Someone <someone@example.com>
+EOF'
+  assert_status 'commit: trailer blocked' "$BLOCK_STATUS"
+  assert_output_contains 'commit: trailer named' "$last_stderr" trailer
+}
+
+test_commit_rejects_message_file_trailer() {
+  local path
+  path=$(fixture message.txt 'docs: describe the hooks
+
+Assisted-by: a robot')
+  run_bash_hook "git commit -F $path"
+  assert_status 'commit: -F file read' "$BLOCK_STATUS"
+}
+
+test_commit_allows_editor_flow() {
+  run_bash_hook 'git commit --amend --no-edit'
+  assert_status 'commit: editor flow allowed' 0
+}
+
+test_commit_ignores_other_commands() {
+  run_bash_hook 'ls -la'
+  assert_status 'commit: unrelated command ignored' 0
+}
+
+test_notify_sends_notification_message() {
+  local stubs
+  stubs=$(stub_dir notify-stubs notify-send)
+  run_notify_hook "$stubs" \
+    "$(jq -n '{hook_event_name: "Notification",
+      message: "Claude needs permission"}')" DISPLAY=:0
+  assert_status 'notify: notification exits zero' 0
+  assert_output_contains 'notify: falls back to notify-send' \
+    "$last_log" 'notify-send Claude Code Claude needs permission'
+}
+
+test_notify_reports_project_on_stop() {
+  local stubs
+  stubs=$(stub_dir notify-stubs notify-send)
+  run_notify_hook "$stubs" \
+    "$(jq -n '{hook_event_name: "Stop",
+      cwd: "/tmp/projects/donbox"}')" \
+    WAYLAND_DISPLAY=wayland-1
+  assert_status 'notify: stop exits zero' 0
+  assert_output_contains 'notify: names the project' \
+    "$last_log" 'notify-send Claude finished donbox'
+}
+
+test_notify_prefers_donbox() {
+  local stubs
+  stubs=$(stub_dir donbox-stubs notify-send donbox)
+  run_notify_hook "$stubs" \
+    "$(jq -n '{hook_event_name: "Notification", message: "hello"}')" \
+    DISPLAY=:0
+  assert_output_contains 'notify: donbox preferred' \
+    "$last_log" 'donbox notify Claude Code hello'
+}
+
+test_notify_stays_silent_without_display() {
+  local stubs
+  stubs=$(stub_dir notify-stubs notify-send)
+  run_notify_hook "$stubs" \
+    "$(jq -n '{hook_event_name: "Stop",
+      cwd: "/tmp/projects/donbox"}')" \
+    -u DISPLAY -u WAYLAND_DISPLAY
+  assert_status 'notify: headless exits zero' 0
+  assert_output_empty 'notify: headless sends nothing' "$last_log"
+}
+
+test_scripts_pass_shellcheck() {
+  run_command shellcheck -x "$HOOKS_DIR"/* "$STYLE_CHECK" \
+    "$root/lib/hook-input.sh" "$root/hooks-test/run"
+  assert_status 'shellcheck -x over every script' 0
+}
+
+readonly TESTS=(
+  test_shellcheck_flags_faulty_script
+  test_shellcheck_passes_clean_script
+  test_shellcheck_reads_shebang_without_extension
+  test_shellcheck_skips_other_files
+  test_style_flags_em_dash
+  test_style_flags_email
+  test_style_flags_american_spelling
+  test_style_flags_long_line
+  test_style_allows_fenced_code
+  test_style_allows_inline_code
+  test_style_allows_tables_and_urls
+  test_style_allows_long_lines_in_go
+  test_style_allows_aligned_comment_table
+  test_style_skips_unknown_extension
+  test_style_check_runs_standalone
+  test_commit_accepts_conventional_subject
+  test_commit_accepts_combined_short_flags
+  test_commit_rejects_capitalised_subject
+  test_commit_rejects_missing_type
+  test_commit_rejects_long_subject
+  test_commit_rejects_unsigned_flag
+  test_commit_rejects_attribution_trailer
+  test_commit_rejects_message_file_trailer
+  test_commit_allows_editor_flow
+  test_commit_ignores_other_commands
+  test_notify_sends_notification_message
+  test_notify_reports_project_on_stop
+  test_notify_prefers_donbox
+  test_notify_stays_silent_without_display
+  test_scripts_pass_shellcheck
+)
+
+main() {
+  local name
+  for name in "${TESTS[@]}"; do
+    "$name"
+  done
+  printf '\n%s passed, %s failed\n' "$passed" "$failed"
+  if (( failed > 0 )); then
+    exit 1
+  fi
+}
+
+main

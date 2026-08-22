@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+readonly FINDINGS_STATUS=1
+readonly BLOCK_STATUS=2
+
+root=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)
+readonly root
+# shellcheck source-path=SCRIPTDIR
+# shellcheck source=../lib/hook-input.sh
+source "$root/lib/hook-input.sh"
+
+readonly STYLE_CHECK="$root/lib/style-check.sh"
+
+main() {
+  local payload path status=0
+  payload=$(cat)
+  path=$(hook_field "$payload" '.tool_input.file_path')
+  if [[ -z $path || ! -f $path ]]; then
+    exit 0
+  fi
+  "$STYLE_CHECK" "$path" || status=$?
+  case $status in
+    "$FINDINGS_STATUS") exit "$BLOCK_STATUS" ;;
+    *) exit 0 ;;
+  esac
+}
+
+main

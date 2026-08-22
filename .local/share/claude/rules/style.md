@@ -57,3 +57,8 @@
   deleted.
 - Code wraps at 72 columns like everything else; see
   `rules/writing.md` for the rule and its exceptions.
+- Write the least code that does the job. Before adding anything,
+  walk the ladder: does it already exist in the codebase; does
+  the standard library or an existing dependency do it; can it be
+  one line; only then write it. Minimalism never trims
+  validation, error handling, security or accessibility.

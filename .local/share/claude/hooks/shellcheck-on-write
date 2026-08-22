@@ -1,0 +1,56 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+readonly SHELL_EXTENSIONS=(sh bash)
+readonly SHEBANG_PATTERN='^#!.*[ /](bash|sh)([[:space:]]|$)'
+readonly BLOCK_STATUS=2
+
+root=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)
+readonly root
+# shellcheck source-path=SCRIPTDIR
+# shellcheck source=../lib/hook-input.sh
+source "$root/lib/hook-input.sh"
+
+has_shell_extension() {
+  local -r path=$1
+  local extension
+  for extension in "${SHELL_EXTENSIONS[@]}"; do
+    if [[ $path == *."$extension" ]]; then
+      return 0
+    fi
+  done
+  return 1
+}
+
+has_shell_shebang() {
+  local -r path=$1
+  head -n 1 -- "$path" | grep -Eq "$SHEBANG_PATTERN"
+}
+
+is_shell_script() {
+  local -r path=$1
+  has_shell_extension "$path" || has_shell_shebang "$path"
+}
+
+main() {
+  local payload path findings
+  payload=$(cat)
+  path=$(hook_field "$payload" '.tool_input.file_path')
+  if [[ -z $path || ! -f $path ]]; then
+    exit 0
+  fi
+  if ! is_shell_script "$path"; then
+    exit 0
+  fi
+  if ! has_command shellcheck; then
+    exit 0
+  fi
+  if findings=$(shellcheck -x -- "$path" 2>&1); then
+    exit 0
+  fi
+  printf '%s\n' "$findings" >&2
+  exit "$BLOCK_STATUS"
+}
+
+main

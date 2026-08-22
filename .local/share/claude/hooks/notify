@@ -1,0 +1,56 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+readonly NOTIFICATION_TITLE='Claude Code'
+readonly STOP_TITLE='Claude finished'
+readonly PREFERRED_NOTIFIER=(donbox notify)
+readonly FALLBACK_NOTIFIER=(notify-send)
+
+root=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)
+readonly root
+# shellcheck source-path=SCRIPTDIR
+# shellcheck source=../lib/hook-input.sh
+source "$root/lib/hook-input.sh"
+
+has_display() {
+  [[ -n ${DISPLAY:-} || -n ${WAYLAND_DISPLAY:-} ]]
+}
+
+send_notification() {
+  local -r title=$1 body=$2
+  if has_command "${PREFERRED_NOTIFIER[0]}"; then
+    "${PREFERRED_NOTIFIER[@]}" "$title" "$body"
+    return 0
+  fi
+  if has_command "${FALLBACK_NOTIFIER[0]}"; then
+    "${FALLBACK_NOTIFIER[@]}" "$title" "$body"
+  fi
+}
+
+project_name() {
+  local -r directory=$1
+  basename -- "${directory:-$PWD}"
+}
+
+main() {
+  if ! has_display || ! has_command jq; then
+    return 0
+  fi
+  local payload event
+  payload=$(cat)
+  event=$(hook_field "$payload" '.hook_event_name')
+  case $event in
+    Notification)
+      send_notification "$NOTIFICATION_TITLE" \
+        "$(hook_field "$payload" '.message')"
+      ;;
+    Stop)
+      send_notification "$STOP_TITLE" \
+        "$(project_name "$(hook_field "$payload" '.cwd')")"
+      ;;
+  esac
+}
+
+main || true
+exit 0
