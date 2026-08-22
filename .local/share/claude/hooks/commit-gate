@@ -8,6 +8,8 @@ readonly STDIN_TARGET=-
 readonly UNSIGNED_FLAG=--no-gpg-sign
 readonly COMMIT_PATTERN='git[[:space:]]+commit'
 readonly FORBIDDEN_TRAILERS='co-authored-by:|generated-by|assisted-by'
+readonly STDIN_MESSAGE_PATTERN=\
+'commit[^|;&]*(-F|--file[= ])[[:space:]]*-([[:space:]]|$)'
 readonly HEREDOC_START_PATTERN=$'<<-?[[:space:]]*[\'"]?([[:alnum:]_]+)'
 
 readonly COMMIT_TYPES=(
@@ -115,7 +117,9 @@ extract_message() {
     printf '%s' "$message"
     return 0
   fi
-  extract_heredoc_body "$command"
+  if [[ $command =~ $STDIN_MESSAGE_PATTERN ]]; then
+    extract_heredoc_body "$command"
+  fi
 }
 
 check_subject_convention() {
