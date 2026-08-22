@@ -11,8 +11,7 @@
   and any other line where wrapping would cost more clarity than
   it buys.
 - READMEs and user-facing docs are written to the standard of a
-  well-run open-source project, not generic boilerplate: lead
-  with what it is and why, then concrete usage, where any images
-  or artefacts are hosted, a configuration reference, and how to
-  build and contribute. Reflect the actual project (real names,
-  URLs, commands), never placeholder-generic text.
+  well-run open-source project, not generic boilerplate: they
+  reflect the actual project (real names, URLs, commands), never
+  placeholder-generic text. The good-readme skill carries the
+  structure.
