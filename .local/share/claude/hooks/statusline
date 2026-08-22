@@ -1,0 +1,57 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+hex_rgb() {
+    local hex=${1#\#}
+    printf '%d;%d;%d' \
+        "0x${hex:0:2}" "0x${hex:2:2}" "0x${hex:4:2}"
+}
+
+ansi_fg() {
+    printf '\033[38;2;%sm' "$(hex_rgb "$1")"
+}
+
+theme_file=$HOME/.local/state/donbox/current/theme.json
+accent=
+dim=
+reset=
+if [ -r "$theme_file" ]; then
+    accent_hex=$(jq -r '.palette.accent' "$theme_file")
+    dim_hex=$(jq -r '.palette.fgDim' "$theme_file")
+    accent=$(ansi_fg "$accent_hex")
+    dim=$(ansi_fg "$dim_hex")
+    reset=$'\033[0m'
+fi
+
+input=$(cat)
+model=$(jq -r '.model.display_name' <<<"$input")
+dir=$(jq -r '.workspace.current_dir' <<<"$input")
+base=$(basename "$dir")
+
+branch=
+if git -C "$dir" --no-optional-locks rev-parse \
+    --is-inside-work-tree >/dev/null 2>&1; then
+    branch=$(git -C "$dir" --no-optional-locks branch \
+        --show-current)
+    if [ -n "$(git -C "$dir" --no-optional-locks status \
+        --porcelain)" ]; then
+        branch="$branch*"
+    fi
+fi
+
+used=$(jq -r '.context_window.used_percentage // empty' \
+    <<<"$input")
+cost=$(jq -r '.cost.total_cost_usd // empty' <<<"$input")
+
+segments=("${accent}${model}${reset}" "${dim}${base}${reset}")
+[ -n "$branch" ] && segments+=("${dim}${branch}${reset}")
+if [ -n "$used" ]; then
+    ctx=$(printf '%.0f%% ctx' "$used")
+    segments+=("${dim}${ctx}${reset}")
+fi
+if [ -n "$cost" ]; then
+    usd=$(printf '$%.4f' "$cost")
+    segments+=("${dim}${usd}${reset}")
+fi
+
+printf '%s\n' "${segments[*]}"
