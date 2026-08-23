@@ -347,16 +347,50 @@ test_notify_sends_notification_message() {
     "$last_log" 'notify-send Claude Code Claude needs permission'
 }
 
+turn_stamp() {
+  local -r runtime=$1 session=$2 age=$3
+  mkdir -p "$runtime/claude-turns"
+  printf '%s\n' "$(( EPOCHSECONDS - age ))" \
+    >"$runtime/claude-turns/$session"
+}
+
 test_notify_reports_project_on_stop() {
-  local stubs
+  local stubs runtime
   stubs=$(stub_dir notify-stubs notify-send)
+  runtime=$(mktemp -d "$workspace/runtime.XXXXXX")
+  turn_stamp "$runtime" long 120
   run_notify_hook "$stubs" \
-    "$(jq -n '{hook_event_name: "Stop",
+    "$(jq -n '{hook_event_name: "Stop", session_id: "long",
       cwd: "/tmp/projects/donbox"}')" \
-    WAYLAND_DISPLAY=wayland-1
+    WAYLAND_DISPLAY=wayland-1 XDG_RUNTIME_DIR="$runtime"
   assert_status 'notify: stop exits zero' 0
   assert_output_contains 'notify: names the project' \
     "$last_log" 'notify-send Claude finished donbox'
+}
+
+test_notify_keeps_quiet_after_a_short_turn() {
+  local stubs runtime
+  stubs=$(stub_dir notify-stubs notify-send)
+  runtime=$(mktemp -d "$workspace/runtime.XXXXXX")
+  turn_stamp "$runtime" short 5
+  run_notify_hook "$stubs" \
+    "$(jq -n '{hook_event_name: "Stop", session_id: "short",
+      cwd: "/tmp/projects/donbox"}')" \
+    WAYLAND_DISPLAY=wayland-1 XDG_RUNTIME_DIR="$runtime"
+  assert_output_empty 'notify: a short turn sends nothing' "$last_log"
+}
+
+test_notify_stamps_the_prompt() {
+  local stubs runtime
+  stubs=$(stub_dir notify-stubs notify-send)
+  runtime=$(mktemp -d "$workspace/runtime.XXXXXX")
+  run_notify_hook "$stubs" \
+    "$(jq -n '{hook_event_name: "UserPromptSubmit",
+      session_id: "fresh"}')" \
+    WAYLAND_DISPLAY=wayland-1 XDG_RUNTIME_DIR="$runtime"
+  assert_status 'notify: the prompt stamp exits zero' 0
+  assert_output_contains 'notify: the prompt leaves a stamp' \
+    "$(ls "$runtime/claude-turns")" fresh
 }
 
 test_notify_prefers_donbox() {
@@ -414,6 +448,8 @@ readonly TESTS=(
   test_commit_ignores_other_commands
   test_notify_sends_notification_message
   test_notify_reports_project_on_stop
+  test_notify_keeps_quiet_after_a_short_turn
+  test_notify_stamps_the_prompt
   test_notify_prefers_donbox
   test_notify_stays_silent_without_display
   test_scripts_pass_shellcheck

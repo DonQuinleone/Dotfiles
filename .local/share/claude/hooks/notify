@@ -4,6 +4,8 @@ set -euo pipefail
 
 readonly NOTIFICATION_TITLE='Claude Code'
 readonly STOP_TITLE='Claude finished'
+readonly QUIET_TURN_SECONDS=60
+readonly STAMP_DIR="${XDG_RUNTIME_DIR:-/tmp}/claude-turns"
 readonly PREFERRED_NOTIFIER=(donbox notify)
 readonly FALLBACK_NOTIFIER=(notify-send)
 
@@ -28,6 +30,21 @@ send_notification() {
   fi
 }
 
+stamp_turn() {
+  local -r session=$1
+  [[ -n $session ]] || return 0
+  mkdir -p "$STAMP_DIR"
+  printf '%s\n' "$EPOCHSECONDS" >"$STAMP_DIR/$session"
+}
+
+long_turn() {
+  local -r session=$1
+  local started
+  [[ -r $STAMP_DIR/$session ]] || return 1
+  started=$(<"$STAMP_DIR/$session")
+  (( EPOCHSECONDS - started >= QUIET_TURN_SECONDS ))
+}
+
 project_name() {
   local -r directory=$1
   basename -- "${directory:-$PWD}"
@@ -45,7 +62,11 @@ main() {
       send_notification "$NOTIFICATION_TITLE" \
         "$(hook_field "$payload" '.message')"
       ;;
+    UserPromptSubmit)
+      stamp_turn "$(hook_field "$payload" '.session_id')"
+      ;;
     Stop)
+      long_turn "$(hook_field "$payload" '.session_id')" || return 0
       send_notification "$STOP_TITLE" \
         "$(project_name "$(hook_field "$payload" '.cwd')")"
       ;;
