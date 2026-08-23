@@ -73,7 +73,6 @@
     "gnupg2",
     "gnupg2-scdaemon",
     "gnupg2-smime",
-    "golang",
     "greetd",
     "grim",
     "htop",
