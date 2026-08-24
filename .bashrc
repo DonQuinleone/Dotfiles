@@ -56,7 +56,8 @@ prompt_colour() {
 }
 
 prompt_build_ps1() {
-    local theme_file="${XDG_STATE_HOME}/donbox/current/shell-colours.sh"
+    local theme_file="${XDG_STATE_HOME}/donbox/current/theme"
+    theme_file+="/shell-colours.sh"
     local accent=DC6F00 muted=C0C0C0 on_background=E7E7E7
 
     if [[ -r "${theme_file}" ]]; then
