@@ -1,399 +1,473 @@
-#!/usr/bin/env bash
-set -euo pipefail
+#!/usr/bin/env luajit
 
-DIG_TIMEOUT_SECONDS=2
-DIG_TRIES=1
-RDAP_TIMEOUT_SECONDS=8
-CYMRU_ORIGIN_V4_ZONE=origin.asn.cymru.com
-CYMRU_ORIGIN_V6_ZONE=origin6.asn.cymru.com
-CYMRU_ASN_ZONE=asn.cymru.com
-ABUSIX_CONTACT_ZONE=abuse-contacts.abusix.zone
-RDAP_BOOTSTRAP_URL=https://rdap.org
-IPV6_GROUP_COUNT=8
+local ffi = require("ffi")
+ffi.cdef("int isatty(int fd);")
 
-RBL_ZONES=(
-    zen.spamhaus.org
-    bl.spamcop.net
-    b.barracudacentral.org
-    psbl.surriel.com
-    dnsbl.dronebl.org
-    dnsbl-1.uceprotect.net
-    spam.spamrats.com
-)
+local source = arg[0] or "hostinfo"
+local resolver = io.popen(("readlink -f -- '%s'")
+    :format(source:gsub("'", [['\'']])))
+local resolved = resolver and resolver:read("*l") or nil
+if resolver then resolver:close() end
+local base = (resolved or source):match("^(.*)/[^/]+$") or "."
+package.path = base .. "/../lib/?.lua;" .. package.path
+local net = require("hostinfo.net")
 
-if [[ -t 1 ]]; then
-    BOLD=$(tput bold)
-    RESET=$(tput sgr0)
-else
-    BOLD=
-    RESET=
-fi
+local EXPIRY_WARNING_DAYS = 30
+local USAGE_EXIT_CODE = 64
+local LABEL_WIDTH = 11
+local CELL_PADDING = 1
 
-usage() {
-    cat <<'EOF'
+local VERIFY_LABELS = {
+    [0] = "ok",
+    [10] = "expired",
+    [18] = "self-signed",
+    [19] = "self-signed chain",
+    [20] = "unknown issuer",
+    [62] = "hostname mismatch",
+}
+
+local SNI_LABELS = {
+    ["no host"] = "-",
+    ["same"] = "same cert",
+    ["required"] = "required (no cert)",
+    ["different"] = "default cert differs",
+}
+
+local USAGE = [[
 Usage: hostinfo <hostname|url|address>
 
-Reports the target's IP addresses, reverse DNS, ASN and prefix,
-abuse contact, DNS blacklist listings, the authoritative DNS
-zone (NS, SOA, MX, SPF, DMARC, CAA) and domain registration.
-EOF
-}
+Reports the target's resolution chain, IP addresses, reverse
+DNS, ASN and prefix, abuse contact, DNS blacklist listings, TLS
+protocol support with certificate and SNI checks, DNSSEC state,
+the authoritative DNS zone and domain registration.]]
 
-die() {
-    printf 'hostinfo: %s\n' "$*" >&2
-    exit 1
-}
+local function die(message)
+    io.stderr:write("hostinfo: " .. message .. "\n")
+    os.exit(1)
+end
 
-heading() {
-    printf '%s%s%s\n' "$BOLD" "$1" "$RESET"
-}
+local is_tty = ffi.C.isatty(1) == 1
+local BOLD = is_tty and net.run("tput bold") or ""
+local ACCENT = is_tty and net.run("tput setaf 3") or ""
+local RESET = is_tty and net.run("tput sgr0") or ""
 
-field() {
-    printf '  %-10s %s\n' "$1" "$2"
-}
+local function accent(text)
+    return ACCENT .. text .. RESET
+end
 
-join_lines() {
-    local lines=$1 separator=$2
-    printf '%s' "${lines//$'\n'/$separator}"
-}
+local function heading(text)
+    print(BOLD .. text .. RESET)
+end
 
-dns_records() {
-    local name=$1 type=$2
-    dig +noall +answer +time="$DIG_TIMEOUT_SECONDS" \
-        +tries="$DIG_TRIES" "$name" "$type" 2>/dev/null |
-        awk -v type="$type" '$4 == type {
-            out = $5
-            for (i = 6; i <= NF; i++) out = out " " $i
-            print out
-        }' || true
-}
+local function keyed(label, value)
+    print(("  %-" .. LABEL_WIDTH .. "s %s"):format(label, value))
+end
 
-ptr_records() {
-    dig +noall +answer +time="$DIG_TIMEOUT_SECONDS" \
-        +tries="$DIG_TRIES" -x "$1" 2>/dev/null |
-        awk '$4 == "PTR" {print $5}' || true
-}
+-- tput output is not only CSI colours: sgr0 can carry a charset
+-- designation (ESC ( B) or a shift-in byte, which must not count
+-- towards a cell's width either.
+local function visible_width(text)
+    local stripped = text:gsub("\27%[[%d;]*m", "")
+        :gsub("\27[%(%)]%w", ""):gsub("[\14\15]", "")
+    return #(stripped:gsub("[\128-\191]", ""))
+end
 
-host_addresses() {
-    dns_records "$1" A
-    dns_records "$1" AAAA
-}
+local function render_table(headers, rows)
+    local widths = {}
+    for column, header in ipairs(headers) do
+        widths[column] = visible_width(header)
+    end
+    for _, row in ipairs(rows) do
+        for column = 1, #headers do
+            local width = visible_width(row[column] or "")
+            if width > widths[column] then widths[column] = width end
+        end
+    end
+    local margin = string.rep(" ", CELL_PADDING)
+    local function border(left, middle, right)
+        local parts = {}
+        for column = 1, #headers do
+            parts[column] = string.rep("─",
+                widths[column] + 2 * CELL_PADDING)
+        end
+        print(left .. table.concat(parts, middle) .. right)
+    end
+    local function body_line(cells)
+        local parts = {}
+        for column = 1, #headers do
+            local cell = cells[column] or ""
+            local pad = widths[column] - visible_width(cell)
+            parts[column] = margin .. cell ..
+                string.rep(" ", pad) .. margin
+        end
+        print("│" .. table.concat(parts, "│") .. "│")
+    end
+    border("┌", "┬", "┐")
+    body_line(headers)
+    border("├", "┼", "┤")
+    for _, row in ipairs(rows) do body_line(row) end
+    border("└", "┴", "┘")
+end
 
-normalise_target() {
-    local target=${1,,}
-    target=${target#*://}
-    target=${target%%[/?#]*}
-    target=${target##*@}
-    if [[ $target == \[*\]* ]]; then
-        target=${target#\[}
-        target=${target%%\]*}
-    elif [[ $target == *:* && $target != *:*:* ]]; then
-        target=${target%:*}
-    fi
-    target=${target%%\%*}
-    printf '%s' "${target%.}"
-}
+local HIGHLIGHTS = {}
 
-is_ipv4() {
-    [[ $1 =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}$ ]]
-}
+local function load_highlights()
+    local config_home = os.getenv("XDG_CONFIG_HOME")
+        or ((os.getenv("HOME") or "") .. "/.config")
+    local loader =
+        loadfile(config_home .. "/hostinfo/highlights.lua")
+    if not loader then return end
+    local ok, rules = pcall(loader)
+    if ok and type(rules) == "table" then HIGHLIGHTS = rules end
+end
 
-is_ipv6() {
-    [[ $1 =~ ^[0-9a-f:]+$ && $1 == *:* ]]
-}
+local function highlight_for(asn, names)
+    for _, rule in ipairs(HIGHLIGHTS) do
+        for _, rule_asn in ipairs(rule.asns or {}) do
+            if tostring(rule_asn) == tostring(asn) then
+                return rule.label
+            end
+        end
+        for _, pattern in ipairs(rule.patterns or {}) do
+            for _, name in ipairs(names) do
+                if name and name:match(pattern) then
+                    return rule.label
+                end
+            end
+        end
+    end
+end
 
-reverse_ipv4() {
-    local -a octets
-    IFS=. read -ra octets <<<"$1"
-    printf '%s.%s.%s.%s' \
-        "${octets[3]}" "${octets[2]}" "${octets[1]}" "${octets[0]}"
-}
+local function resolution_report(target, zone)
+    local rows, seen, chain = {}, {}, { target }
+    local answers = net.answers(target, "A")
+    for _, row in ipairs(net.answers(target, "AAAA")) do
+        answers[#answers + 1] = row
+    end
+    local current = target
+    while true do
+        local next_name
+        for _, row in ipairs(answers) do
+            if row.owner:lower() == current:lower()
+                and row.type == "CNAME" then
+                next_name = net.strip_dot(row.rdata)
+                break
+            end
+        end
+        if not next_name or seen[next_name] then break end
+        rows[#rows + 1] = { current, "CNAME", next_name }
+        seen[next_name] = true
+        chain[#chain + 1] = next_name
+        current = next_name
+    end
+    local addresses = {}
+    for _, type_ in ipairs({ "A", "AAAA" }) do
+        local count = 0
+        for _, row in ipairs(answers) do
+            if row.owner:lower() == current:lower()
+                and row.type == type_ then
+                count = count + 1
+                addresses[#addresses + 1] = row.rdata
+            end
+        end
+        if count > 0 then
+            rows[#rows + 1] = { current, type_, count ..
+                (count == 1 and " record" or " records") }
+        end
+    end
+    if #rows > 0 then
+        heading("Resolution")
+        render_table({ "Name", "Type", "Answer" }, rows)
+        if rows[1][2] ~= "CNAME" and target == zone then
+            print("  records sit at the zone apex; any ALIAS/ANAME")
+            print("  flattening is provider-side and invisible " ..
+                "in DNS")
+        end
+    end
+    return addresses, chain
+end
 
-ipv6_nibbles() {
-    local address=$1 left right=
-    left=$address
-    if [[ $address == *::* ]]; then
-        left=${address%%::*}
-        right=${address#*::}
-    fi
-    local -a groups=() left_groups=() right_groups=()
-    IFS=: read -ra left_groups <<<"$left"
-    IFS=: read -ra right_groups <<<"$right"
-    local pad
-    pad=$((IPV6_GROUP_COUNT - ${#left_groups[@]} - ${#right_groups[@]}))
-    groups=("${left_groups[@]}")
-    while ((pad > 0)); do
-        groups+=(0)
-        pad=$((pad - 1))
-    done
-    groups+=("${right_groups[@]}")
-    local hex='' group
-    for group in "${groups[@]}"; do
-        hex+=$(printf '%04x' "$((16#${group:-0}))")
-    done
-    local nibbles='' position
-    for ((position = ${#hex} - 1; position >= 0; position--)); do
-        nibbles+="${hex:position:1}."
-    done
-    printf '%s' "${nibbles%.}"
-}
+local function rbl_cell(hits, listings, address)
+    if not hits then return "n/a" end
+    if #hits == 0 then return "clean" end
+    for _, hit in ipairs(hits) do
+        listings[#listings + 1] =
+            { address, hit.zone, hit.code, hit.reason }
+    end
+    return accent(#hits .. " listed")
+end
 
-reversed_for() {
-    if is_ipv4 "$1"; then
-        reverse_ipv4 "$1"
-    else
-        ipv6_nibbles "$1"
-    fi
-}
+local function report_listings(listings)
+    if #listings == 0 then return end
+    print("")
+    heading("Blacklist listings (" .. net.RBL_COUNT .. " checked)")
+    render_table(
+        { "Address", "Blacklist", "Code", "Reason" }, listings)
+end
 
-cymru_origin() {
-    local address=$1
-    if is_ipv4 "$address"; then
-        dns_records \
-            "$(reverse_ipv4 "$address").$CYMRU_ORIGIN_V4_ZONE" TXT
-    else
-        dns_records \
-            "$(ipv6_nibbles "$address").$CYMRU_ORIGIN_V6_ZONE" TXT
-    fi
-}
+local function report_networks(networks, prefix_order)
+    if #prefix_order == 0 then return end
+    print("")
+    heading("Networks")
+    local rows = {}
+    for _, prefix in ipairs(prefix_order) do
+        local network = networks[prefix]
+        rows[#rows + 1] = {
+            prefix, "AS" .. network.asn, network.name,
+            network.country, network.registry, network.allocated,
+        }
+    end
+    render_table({ "Prefix", "ASN", "Name", "CC", "Registry",
+        "Allocated" }, rows)
+end
 
-asn_name() {
-    dns_records "AS$1.$CYMRU_ASN_ZONE" TXT |
-        head -1 | tr -d '"' | awk -F' \\| ' '{print $5}'
-}
+local function report_addresses(addresses, chain)
+    local rows, listings, refused_zones, tagged = {}, {}, {}, {}
+    local networks, prefix_order = {}, {}
+    heading("Addresses")
+    for _, address in ipairs(addresses) do
+        local pointers = net.ptr_names(address)
+        local rdns = "none"
+        if #pointers > 0 then
+            local confirmed = false
+            local held = net.host_addresses(pointers[1])
+            for _, candidate in ipairs(held) do
+                if candidate:lower() == address:lower() then
+                    confirmed = true
+                end
+            end
+            rdns = pointers[1] .. (confirmed and " ✓" or " ✗")
+        end
+        local network = net.network_for(address) or {}
+        local asn = network.asn
+            and "AS" .. network.asn or "unknown"
+        if network.prefix and not networks[network.prefix] then
+            networks[network.prefix] = network
+            prefix_order[#prefix_order + 1] = network.prefix
+        end
+        local names = { pointers[1] }
+        for _, name in ipairs(chain) do
+            names[#names + 1] = name
+        end
+        local label = highlight_for(network.asn, names)
+        if label then
+            asn = asn .. " " .. accent("◆ " .. label)
+            tagged[label] = true
+        end
+        local hits, refused = net.rbl_results(address)
+        for _, zone in ipairs(refused or {}) do
+            refused_zones[zone] = true
+        end
+        rows[#rows + 1] = { address, rdns, asn,
+            net.abuse_contact(address),
+            rbl_cell(hits, listings, address) }
+    end
+    render_table(
+        { "Address", "rDNS", "ASN", "Abuse", "RBLs" }, rows)
+    for label in pairs(tagged) do
+        print("  " .. accent("◆ " .. label) ..
+            " network (from local highlights)")
+    end
+    local refused_names = {}
+    for zone in pairs(refused_zones) do
+        refused_names[#refused_names + 1] = zone
+    end
+    if #refused_names > 0 then
+        print("  (" .. table.concat(refused_names, ", ") ..
+            ": refused, needs a direct resolver)")
+    end
+    report_listings(listings)
+    report_networks(networks, prefix_order)
+end
 
-report_rdns() {
-    local address=$1
-    local -a pointers=()
-    mapfile -t pointers < <(ptr_records "$address")
-    if ((${#pointers[@]} == 0)); then
-        field rDNS none
-        return
-    fi
-    local pointer name
-    for pointer in "${pointers[@]}"; do
-        name=${pointer%.}
-        if host_addresses "$name" | grep -qixF "$address"; then
-            field rDNS "$name (forward-confirmed)"
-        else
-            field rDNS "$name (no forward confirmation)"
-        fi
-    done
-}
+local function verify_cell(probe)
+    if not probe.verify_code then return "unknown" end
+    local label = VERIFY_LABELS[probe.verify_code]
+        or probe.verify_message
+    if label == "ok" then return "ok" end
+    return accent(label)
+end
 
-report_asn() {
-    local address=$1 origin
-    origin=$(cymru_origin "$address" | head -1 | tr -d '"')
-    if [[ -z $origin ]]; then
-        field ASN unknown
-        return
-    fi
-    local asn prefix country registry allocated
-    IFS='|' read -r asn prefix country registry allocated \
-        <<<"${origin// | /|}"
-    asn=${asn%% *}
-    local name
-    name=$(asn_name "$asn")
-    field ASN "AS$asn${name:+  $name}"
-    field Prefix "$prefix ($country, $registry, allocated $allocated)"
-}
+local function certificate_report(certificate)
+    print("")
+    heading("Certificate (" ..
+        table.concat(certificate.addresses, ", ") .. ")")
+    keyed("Subject", certificate.subject or "unknown")
+    keyed("SANs", #certificate.sans > 0
+        and table.concat(certificate.sans, ", ") or "none")
+    keyed("Issuer", certificate.issuer or "unknown")
+    local expiry = certificate.not_after or "unknown"
+    if certificate.days_left then
+        local marker =
+            certificate.days_left < EXPIRY_WARNING_DAYS
+            and accent(" (!)") or ""
+        expiry = ("%s (%d days%s)"):format(expiry,
+            certificate.days_left, marker)
+    end
+    keyed("Expires", expiry)
+end
 
-report_abuse() {
-    local address=$1 contact
-    contact=$(dns_records \
-        "$(reversed_for "$address").$ABUSIX_CONTACT_ZONE" TXT |
-        head -1 | tr -d '"')
-    field Abuse "${contact:-unknown}"
-}
+local function report_tls(addresses, servername)
+    local rows, certificates, order = {}, {}, {}
+    heading("TLS (port " .. net.HTTPS_PORT .. ")")
+    for _, address in ipairs(addresses) do
+        local probe = net.tls_probe(address, servername)
+        local row = { address }
+        for _ in ipairs(net.TLS_PROTOCOL_LABELS) do
+            row[#row + 1] = "-"
+        end
+        row[#row + 1] = "no TLS"
+        row[#row + 1] = "-"
+        if probe then
+            local certificate = probe.certificate
+            local key = certificate.fingerprint or "?"
+            if not certificates[key] then
+                certificates[key] = certificate
+                certificate.addresses = {}
+                order[#order + 1] = key
+            end
+            local held = certificates[key].addresses
+            held[#held + 1] = address
+            local protocols =
+                net.tls_protocols(address, servername)
+            local sni = net.sni_check(address, servername,
+                certificate.fingerprint)
+            local sni_cell = SNI_LABELS[sni] or sni
+            if sni ~= "same" and sni ~= "no host" then
+                sni_cell = accent(sni_cell)
+            end
+            row = { address }
+            for _, protocol in ipairs(protocols) do
+                row[#row + 1] =
+                    protocol.supported and "yes" or "no"
+            end
+            row[#row + 1] = verify_cell(probe)
+            row[#row + 1] = sni_cell
+        end
+        rows[#rows + 1] = row
+    end
+    local headers = { "Address" }
+    for _, label in ipairs(net.TLS_PROTOCOL_LABELS) do
+        headers[#headers + 1] = label
+    end
+    headers[#headers + 1] = "Verify"
+    headers[#headers + 1] = "SNI"
+    render_table(headers, rows)
+    for _, key in ipairs(order) do
+        certificate_report(certificates[key])
+    end
+end
 
-report_rbls() {
-    local address=$1 reversed zone answer reason
-    reversed=$(reverse_ipv4 "$address")
-    local -a listed=() refused=()
-    for zone in "${RBL_ZONES[@]}"; do
-        answer=$(dns_records "$reversed.$zone" A | head -1)
-        if [[ -z $answer ]]; then
-            continue
-        fi
-        # Spamhaus answers 127.255.255.x when the query arrived
-        # via a public resolver; it is not a listing.
-        if [[ $answer == 127.255.255.* ]]; then
-            refused+=("$zone")
-            continue
-        fi
-        if [[ $answer != 127.* ]]; then
-            continue
-        fi
-        reason=$(dns_records "$reversed.$zone" TXT | head -1 |
-            tr -d '"')
-        listed+=("$zone $answer${reason:+  $reason}")
-    done
-    if ((${#listed[@]} == 0)); then
-        field RBLs "clean (${#RBL_ZONES[@]} checked)"
-    else
-        field RBLs "listed on ${#listed[@]} of ${#RBL_ZONES[@]} checked"
-        local entry
-        for entry in "${listed[@]}"; do
-            printf '    %s\n' "$entry"
-        done
-    fi
-    if ((${#refused[@]} > 0)); then
-        field '' "(${refused[*]}: refused, needs a direct resolver)"
-    fi
-}
+local function dnssec_cell(zone)
+    local facts = net.dnssec_facts(zone)
+    if facts.ds and facts.servfail then
+        return accent("broken (DS present, SOA SERVFAILs)")
+    end
+    if not facts.ds and not facts.signed then return "unsigned" end
+    if not facts.ds then
+        return "signed but no DS at the parent (chain incomplete)"
+    end
+    if not facts.signed then
+        return accent("DS at parent but no RRSIG at the zone")
+    end
+    if facts.validated then
+        return "signed (DS + RRSIG), resolver validates"
+    end
+    return "signed (DS + RRSIG); local resolver does not validate"
+end
 
-report_address() {
-    local address=$1
-    heading "Address $address"
-    report_rdns "$address"
-    report_asn "$address"
-    report_abuse "$address"
-    if is_ipv4 "$address"; then
-        report_rbls "$address"
-    fi
-}
+local function report_zone(zone)
+    heading("Zone " .. zone)
+    local servers = net.records(zone, "NS")
+    table.sort(servers)
+    for _, server in ipairs(servers) do
+        server = net.strip_dot(server)
+        local glue =
+            table.concat(net.host_addresses(server), " ")
+        keyed("NS", glue ~= ""
+            and server .. " (" .. glue .. ")" or server)
+    end
+    local soa = net.records(zone, "SOA")[1]
+    if soa then
+        local primary, contact, serial =
+            soa:match("^(%S+)%s+(%S+)%s+(%S+)")
+        keyed("SOA", ("%s, contact %s, serial %s"):format(
+            net.strip_dot(primary or ""),
+            net.strip_dot(contact or ""), serial or ""))
+    end
+    local mail = net.records(zone, "MX")
+    table.sort(mail, function(a, b)
+        return (tonumber(a:match("^%d+")) or 0)
+            < (tonumber(b:match("^%d+")) or 0)
+    end)
+    keyed("MX", #mail > 0
+        and table.concat(mail, ", ") or "none")
+    local function first_txt(name, marker)
+        for _, txt in ipairs(net.records(name, "TXT")) do
+            local cleaned = net.unquote_txt(txt)
+            if cleaned:lower():match(marker) then return cleaned end
+        end
+        return "none"
+    end
+    keyed("SPF", first_txt(zone, "^v=spf1"))
+    keyed("DMARC", first_txt("_dmarc." .. zone, "^v=dmarc1"))
+    local caa = net.records(zone, "CAA")
+    keyed("CAA", #caa > 0
+        and table.concat(caa, ", ") or "none")
+    keyed("DNSSEC", dnssec_cell(zone))
+end
 
-find_zone() {
-    local name=$1
-    while [[ $name == *.* ]]; do
-        if [[ -n $(dns_records "$name" NS) ]]; then
-            printf '%s' "$name"
-            return
-        fi
-        name=${name#*.}
-    done
-}
+local function report_registration(zone)
+    local registration = net.registration(zone)
+    if not registration then return end
+    print("")
+    heading("Registration " .. registration.domain)
+    keyed("Registrar", registration.registrar)
+    keyed("Expires", registration.expires)
+    keyed("Status", registration.status)
+end
 
-report_zone() {
-    local zone=$1
-    heading "Zone $zone"
-    local -a servers=()
-    mapfile -t servers < <(dns_records "$zone" NS | sort)
-    local server addresses
-    for server in "${servers[@]}"; do
-        server=${server%.}
-        addresses=$(join_lines "$(host_addresses "$server")" ' ')
-        field NS "$server${addresses:+ ($addresses)}"
-    done
-    local soa
-    soa=$(dns_records "$zone" SOA | head -1)
-    if [[ -n $soa ]]; then
-        local primary hostmaster serial
-        read -r primary hostmaster serial _ <<<"$soa"
-        field SOA \
-            "${primary%.}, contact ${hostmaster%.}, serial $serial"
-    fi
-    local mx
-    mx=$(join_lines "$(dns_records "$zone" MX | sort -n)" ', ')
-    field MX "${mx:-none}"
-    local spf
-    spf=$(dns_records "$zone" TXT | tr -d '"' |
-        grep -i '^v=spf1' | head -1 || true)
-    field SPF "${spf:-none}"
-    local dmarc
-    dmarc=$(dns_records "_dmarc.$zone" TXT | tr -d '"' |
-        grep -i '^v=dmarc1' | head -1 || true)
-    field DMARC "${dmarc:-none}"
-    local caa
-    caa=$(join_lines "$(dns_records "$zone" CAA)" ', ')
-    field CAA "${caa:-none}"
-}
-
-report_registration() {
-    local candidate=$1 json=
-    while [[ $candidate == *.* ]]; do
-        if json=$(curl -fsSL --max-time "$RDAP_TIMEOUT_SECONDS" \
-            "$RDAP_BOOTSTRAP_URL/domain/$candidate" 2>/dev/null); then
-            break
-        fi
-        json=
-        candidate=${candidate#*.}
-    done
-    if [[ -z $json ]]; then
+local function main()
+    io.stdout:setvbuf("line")
+    if arg[1] == "-h" or arg[1] == "--help" then
+        print(USAGE)
         return 0
-    fi
-    heading "Registration $candidate"
-    local registrar
-    registrar=$(jq -r '[.entities[]?
-        | select(.roles[]? == "registrar")
-        | .vcardArray[1][]? | select(.[0] == "fn") | .[3]][0]
-        // empty' <<<"$json")
-    field Registrar "${registrar:-unknown}"
-    local expiry
-    expiry=$(jq -r '[.events[]?
-        | select(.eventAction == "expiration")
-        | .eventDate][0] // empty' <<<"$json")
-    field Expires "${expiry:-unknown}"
-    local status
-    status=$(jq -r '.status // [] | join(", ")' <<<"$json")
-    field Status "${status:-unknown}"
-}
+    end
+    if not arg[1] or arg[2] then
+        io.stderr:write(USAGE .. "\n")
+        return USAGE_EXIT_CODE
+    end
+    for _, tool in ipairs(net.REQUIRED_TOOLS) do
+        if net.run("command -v " .. tool) == "" then
+            die(tool .. " not found")
+        end
+    end
+    load_highlights()
+    local target = net.normalise_target(arg[1])
+    local literal = net.is_ipv4(target) or net.is_ipv6(target)
+    if target == ""
+        or (not literal and not net.plausible_host(target)) then
+        die("could not parse a host from '" .. arg[1] .. "'")
+    end
+    heading("Target " .. target)
+    print("")
+    local addresses, chain, zone = { target }, { target }, nil
+    if not literal then
+        zone = net.find_zone(target)
+        addresses, chain = resolution_report(target, zone)
+        if #addresses == 0 then
+            die(target .. " does not resolve")
+        end
+        print("")
+    end
+    report_addresses(addresses, chain)
+    print("")
+    report_tls(addresses, not literal and target or nil)
+    if literal or not zone then return 0 end
+    print("")
+    report_zone(zone)
+    report_registration(zone)
+    return 0
+end
 
-resolve_addresses() {
-    local target=$1
-    local -a answers=()
-    mapfile -t answers < <(host_addresses "$target")
-    local answer
-    for answer in "${answers[@]}"; do
-        if is_ipv4 "$answer" || is_ipv6 "$answer"; then
-            printf '%s\n' "$answer"
-        fi
-    done
-}
-
-main() {
-    if [[ ${1:-} == -h || ${1:-} == --help ]]; then
-        usage
-        exit 0
-    fi
-    if (($# != 1)); then
-        usage >&2
-        exit 64
-    fi
-    local tool
-    for tool in dig curl jq; do
-        command -v "$tool" >/dev/null || die "$tool not found"
-    done
-
-    local target
-    target=$(normalise_target "$1")
-    if [[ -z $target ]]; then
-        die "could not parse a host from '$1'"
-    fi
-
-    local -a addresses=()
-    heading "Target $target"
-    if is_ipv4 "$target" || is_ipv6 "$target"; then
-        addresses=("$target")
-    else
-        mapfile -t addresses < <(resolve_addresses "$target")
-        if ((${#addresses[@]} == 0)); then
-            die "$target does not resolve"
-        fi
-        local canonical
-        canonical=$(dns_records "$target" CNAME | head -1)
-        if [[ -n $canonical ]]; then
-            field CNAME "${canonical%.}"
-        fi
-    fi
-
-    local address
-    for address in "${addresses[@]}"; do
-        echo
-        report_address "$address"
-    done
-
-    if is_ipv4 "$target" || is_ipv6 "$target"; then
-        return
-    fi
-    local zone
-    zone=$(find_zone "$target")
-    if [[ -n $zone ]]; then
-        echo
-        report_zone "$zone"
-        echo
-        report_registration "$zone"
-    fi
-}
-
-main "$@"
+os.exit(main())
