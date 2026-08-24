@@ -33,11 +33,14 @@ function render.text(report)
         headers[#headers + 1] = "Answers"
     end
     ui.render_table(headers, rows)
-    if report.serials_agree then
+    if report.serials_agree == true then
         print("  authoritative serials agree")
-    else
+    elseif report.serials_agree == false then
         print("  " ..
             accent("authoritative serials differ (stale NS?)"))
+    else
+        print("  " .. accent(
+            "too few nameservers answered to compare serials"))
     end
     if report.answers_agree == true then
         print("  answers agree everywhere")

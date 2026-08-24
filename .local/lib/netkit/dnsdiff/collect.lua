@@ -27,6 +27,8 @@ local function answers_from(rows, types)
     return table.concat(values, " ")
 end
 
+local MIN_ROWS_TO_COMPARE = 2
+
 local function probe(server, zone, name, types)
     local entry = {}
     if server then
@@ -35,6 +37,10 @@ local function probe(server, zone, name, types)
     else
         entry.serial = serial_from(net.answers(zone, "SOA"))
     end
+    -- The SOA query doubles as a liveness probe: a server that
+    -- returns no serial did not respond, and is left out of both
+    -- comparisons rather than counted as agreeing.
+    entry.responded = entry.serial ~= nil
     if not name then return entry end
     local rows = {}
     for type_ in pairs(types) do
@@ -49,15 +55,23 @@ local function probe(server, zone, name, types)
     return entry
 end
 
+-- An empty answer from a responding server is a real value and
+-- must be able to disagree; only a non-responding server (nil)
+-- is skipped. Fewer than two contributors means no verdict.
 local function agreement(rows, field, role)
-    local seen
+    local seen, count = nil, 0
     for _, row in ipairs(rows) do
-        if (not role or row.role == role)
-            and row[field] and row[field] ~= "" then
-            seen = seen or row[field]
-            if row[field] ~= seen then return false end
+        if (not role or row.role == role) and row.responded
+            and row[field] ~= nil then
+            count = count + 1
+            if seen == nil then
+                seen = row[field]
+            elseif row[field] ~= seen then
+                return false
+            end
         end
     end
+    if count < MIN_ROWS_TO_COMPARE then return nil end
     return true
 end
 
@@ -97,6 +111,7 @@ function collect.report(target, types, notify)
             server = entry.server,
             label = entry.label,
             role = entry.role,
+            responded = result.responded,
             serial = result.serial,
             answers = result.answers,
         }
