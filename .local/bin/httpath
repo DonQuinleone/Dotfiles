@@ -1,0 +1,74 @@
+#!/usr/bin/env luajit
+
+local source = arg[0] or "httpath"
+local resolver = io.popen(("readlink -f -- '%s'")
+    :format(source:gsub("'", [['\'']])))
+local resolved = resolver and resolver:read("*l") or nil
+if resolver then resolver:close() end
+local base = (resolved or source):match("^(.*)/[^/]+$") or "."
+package.path = base .. "/../lib/?.lua;" .. package.path
+
+local net = require("netkit.net")
+local ui = require("netkit.ui")
+local collect = require("netkit.httpath.collect")
+local render = require("netkit.httpath.render")
+
+local USAGE_EXIT_CODE = 64
+
+local USAGE = [[
+Usage: httpath [--json] <url>
+
+Follows the HTTP redirect chain hop by hop and reports each
+hop's status code, effective URL, address, ASN and timing, then
+the final hop's server header, TLS version and any CDN or WAF
+fronting the origin. A bare hostname is treated as https://host.
+
+--json emits the report as JSON instead of tables.]]
+
+local function die(message)
+    io.stderr:write("httpath: " .. message .. "\n")
+    os.exit(1)
+end
+
+local function usage_error()
+    io.stderr:write(USAGE .. "\n")
+    os.exit(USAGE_EXIT_CODE)
+end
+
+local function parse_arguments()
+    local options = {}
+    for _, argument in ipairs(arg) do
+        if argument == "-h" or argument == "--help" then
+            print(USAGE)
+            os.exit(0)
+        elseif argument == "--json" then
+            options.json = true
+        elseif argument:match("^%-") or options.target then
+            usage_error()
+        else
+            options.target = argument
+        end
+    end
+    if not options.target then usage_error() end
+    return options
+end
+
+local function main()
+    io.stdout:setvbuf("line")
+    local options = parse_arguments()
+    if net.run("command -v curl") == "" then
+        die("curl not found")
+    end
+    local report, problem =
+        collect.report(options.target, ui.progress)
+    ui.progress_done()
+    if not report then die(problem) end
+    if options.json then
+        render.json(report)
+    else
+        render.text(report)
+    end
+    return 0
+end
+
+os.exit(main())
