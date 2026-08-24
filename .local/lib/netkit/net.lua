@@ -284,6 +284,7 @@ local function answers_at(server, name, type_, extras)
     return dig_rows((extras or "") .. quote("@" .. server) ..
         " " .. quote(name) .. " " .. type_)
 end
+net.answers_at = answers_at
 
 local function parent_server(zone)
     local parent = zone:match("^[^.]+%.(.*)$")

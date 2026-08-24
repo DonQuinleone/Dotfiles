@@ -1,0 +1,90 @@
+#!/usr/bin/env luajit
+
+local source = arg[0] or "dnsdiff"
+local resolver = io.popen(("readlink -f -- '%s'")
+    :format(source:gsub("'", [['\'']])))
+local resolved = resolver and resolver:read("*l") or nil
+if resolver then resolver:close() end
+local base = (resolved or source):match("^(.*)/[^/]+$") or "."
+package.path = base .. "/../lib/?.lua;" .. package.path
+
+local net = require("netkit.net")
+local ui = require("netkit.ui")
+local collect = require("netkit.dnsdiff.collect")
+local render = require("netkit.dnsdiff.render")
+
+local USAGE_EXIT_CODE = 64
+local DEFAULT_TYPES = { A = true, AAAA = true }
+
+local USAGE = [[
+Usage: dnsdiff [--json] [--type TYPE] <hostname|zone>
+
+Queries every authoritative nameserver, three public resolvers
+and the local resolver, then compares SOA serials and (for a
+hostname below the zone apex) the record answers, so stale
+nameservers and unpropagated changes stand out.
+
+--type TYPE compares that record type instead of A and AAAA.
+--json emits the report as JSON instead of a table.]]
+
+local function die(message)
+    io.stderr:write("dnsdiff: " .. message .. "\n")
+    os.exit(1)
+end
+
+local function usage_error()
+    io.stderr:write(USAGE .. "\n")
+    os.exit(USAGE_EXIT_CODE)
+end
+
+local function parse_arguments()
+    local options = { types = DEFAULT_TYPES }
+    local pending_type = false
+    for _, argument in ipairs(arg) do
+        if pending_type then
+            if not argument:match("^%u+$") then usage_error() end
+            options.types = { [argument] = true }
+            pending_type = false
+        elseif argument == "-h" or argument == "--help" then
+            print(USAGE)
+            os.exit(0)
+        elseif argument == "--json" then
+            options.json = true
+        elseif argument == "--type" then
+            pending_type = true
+        elseif argument:match("^%-") or options.target then
+            usage_error()
+        else
+            options.target = argument
+        end
+    end
+    if not options.target or pending_type then usage_error() end
+    return options
+end
+
+local function main()
+    io.stdout:setvbuf("line")
+    local options = parse_arguments()
+    for _, tool in ipairs(net.REQUIRED_TOOLS) do
+        if net.run("command -v " .. tool) == "" then
+            die(tool .. " not found")
+        end
+    end
+    local target = net.normalise_target(options.target)
+    if target == "" or not net.plausible_host(target) then
+        die("could not parse a host from '" ..
+            options.target .. "'")
+    end
+    local report, problem =
+        collect.report(target, options.types, ui.progress)
+    ui.progress_done()
+    if not report then die(problem) end
+    if options.json then
+        render.json(report)
+    else
+        render.text(report)
+    end
+    return 0
+end
+
+os.exit(main())
