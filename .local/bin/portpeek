@@ -32,7 +32,9 @@ end
 
 local SPEC = {
     name = "portpeek",
-    required = { "dig", "timeout" },
+    -- dig is needed only to resolve a hostname; an address target
+    -- probes without it, so it is not a hard requirement.
+    required = { "timeout" },
     values = { ["--ports"] = parse_ports },
     usage = [[
 Usage: portpeek [--json] [--ports LIST] <hostname|address>

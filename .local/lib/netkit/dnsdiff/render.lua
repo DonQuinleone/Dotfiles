@@ -29,7 +29,7 @@ function render.text(report)
         }
     end
     local headers = { "Server", "Role", "Serial" }
-    if report.answers_agree ~= nil then
+    if report.compared_answers then
         headers[#headers + 1] = "Answers"
     end
     ui.render_table(headers, rows)
@@ -47,6 +47,9 @@ function render.text(report)
     elseif report.answers_agree == false then
         print("  " .. accent(
             "answers differ (propagation or split view)"))
+    elseif report.compared_answers then
+        print("  " .. accent(
+            "too few servers answered to compare records"))
     end
 end
 

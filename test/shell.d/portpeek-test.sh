@@ -70,6 +70,26 @@ assert_equal "json marks the closed port" \
 assert_status "an ip target needs no resolver" 0 \
     "${PORTPEEK}" --ports 80 "${STUB_V4}"
 
+# An address target must probe even where dig is absent, since it
+# never needs to resolve anything.
+rm -f "${WORKSPACE}/dig"
+assert "an ip target probes without dig present" \
+    grep -Eq "80 .* open" \
+    < <("${PORTPEEK}" --ports 80 "${STUB_V4}")
+stub dig "printf 'x.\t300\tIN\tA\t${STUB_V4}\n'"
+
+# When mktemp fails the batch falls back to serial probing and
+# must still return the right verdicts in order.
+stub mktemp "exit 1"
+serial=$("${PORTPEEK}" --ports 80,22,2083 "${STUB_V4}")
+assert "serial fallback keeps the open http port" \
+    grep -Eq "80 .* open" <<<"${serial}"
+assert "serial fallback keeps the silent cpanel port" \
+    grep -Eq "2083 .* open" <<<"${serial}"
+assert "serial fallback drops the refused port" \
+    bash -c "! grep -Eq '22 .* open' <<<'${serial}'"
+rm -f "${WORKSPACE}/mktemp"
+
 # A hostile hostname must reach bash as data, never spliced into
 # the script it runs. This stub captures the timeout arguments
 # and executes nothing, so the check is hermetic: no bash, no

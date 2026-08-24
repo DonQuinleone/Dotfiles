@@ -82,7 +82,8 @@ function collect.report(target, types, notify)
         return nil, "no zone with NS records above " .. target
     end
     local name = target ~= zone and target or nil
-    local report = { target = target, zone = zone, rows = {} }
+    local report = { target = target, zone = zone,
+        compared_answers = name ~= nil, rows = {} }
     local servers = {}
     for _, entry in ipairs(net.typed_answers(zone, "NS")) do
         servers[#servers + 1] = {
