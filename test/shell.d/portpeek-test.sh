@@ -70,13 +70,23 @@ assert_equal "json marks the closed port" \
 assert_status "an ip target needs no resolver" 0 \
     "${PORTPEEK}" --ports 80 "${STUB_V4}"
 
-# A hostile hostname must reach bash as data, never as code. The
-# real timeout and bash run here (the payload only touches a
-# local file, no socket), and the stub dig hands back an address
-# carrying a substitution; the marker must not appear.
-rm -f "${WORKSPACE}/timeout"
-marker="${WORKSPACE}/pwned"
-stub dig "printf 'x.\t300\tIN\tA\t\$(touch ${marker})x\n'"
+# A hostile hostname must reach bash as data, never spliced into
+# the script it runs. This stub captures the timeout arguments
+# and executes nothing, so the check is hermetic: no bash, no
+# resolver, no socket. The payload must appear as its own
+# trailing argument, and the script must reference "$1", not the
+# payload text.
+arglog="${WORKSPACE}/timeout.args"
+stub timeout "printf '%s\n' \"\$*\" >>'${arglog}'; exit 1"
+stub dig "printf 'x.\t300\tIN\tA\t\$(touch /pwned)x\n'"
+: >"${arglog}"
 "${PORTPEEK}" --ports 80 evil.example >/dev/null 2>&1 || true
-assert "a substitution in a resolved address does not run" \
-    bash -c "[[ ! -e '${marker}' ]]"
+# shellcheck disable=SC2016  # literal $(...) and $1 are the point
+assert "the hostile host is passed as a bash argument" \
+    grep -qF 'netkit-tcp $(touch /pwned)x 80' "${arglog}"
+# shellcheck disable=SC2016
+assert "the script interpolates positional args, not the host" \
+    grep -qF '/dev/tcp/"$1"/"$2"' "${arglog}"
+# shellcheck disable=SC2016
+assert "the payload is never spliced into the script text" \
+    bash -c "! grep -qF '/dev/tcp/\$(touch' '${arglog}'"
