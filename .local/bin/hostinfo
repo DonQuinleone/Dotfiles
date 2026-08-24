@@ -1,8 +1,5 @@
 #!/usr/bin/env luajit
 
-local ffi = require("ffi")
-ffi.cdef("int isatty(int fd);")
-
 local source = arg[0] or "hostinfo"
 local resolver = io.popen(("readlink -f -- '%s'")
     :format(source:gsub("'", [['\'']])))
@@ -10,12 +7,16 @@ local resolved = resolver and resolver:read("*l") or nil
 if resolver then resolver:close() end
 local base = (resolved or source):match("^(.*)/[^/]+$") or "."
 package.path = base .. "/../lib/?.lua;" .. package.path
-local net = require("hostinfo.net")
+local net = require("netkit.net")
+local ui = require("netkit.ui")
+
+local accent = ui.accent
+local heading = ui.heading
+local keyed = ui.keyed
+local render_table = ui.render_table
 
 local EXPIRY_WARNING_DAYS = 30
 local USAGE_EXIT_CODE = 64
-local LABEL_WIDTH = 11
-local CELL_PADDING = 1
 
 local VERIFY_LABELS = {
     [0] = "ok",
@@ -44,69 +45,6 @@ the authoritative DNS zone and domain registration.]]
 local function die(message)
     io.stderr:write("hostinfo: " .. message .. "\n")
     os.exit(1)
-end
-
-local is_tty = ffi.C.isatty(1) == 1
-local BOLD = is_tty and net.run("tput bold") or ""
-local ACCENT = is_tty and net.run("tput setaf 3") or ""
-local RESET = is_tty and net.run("tput sgr0") or ""
-
-local function accent(text)
-    return ACCENT .. text .. RESET
-end
-
-local function heading(text)
-    print(BOLD .. text .. RESET)
-end
-
-local function keyed(label, value)
-    print(("  %-" .. LABEL_WIDTH .. "s %s"):format(label, value))
-end
-
--- tput output is not only CSI colours: sgr0 can carry a charset
--- designation (ESC ( B) or a shift-in byte, which must not count
--- towards a cell's width either.
-local function visible_width(text)
-    local stripped = text:gsub("\27%[[%d;]*m", "")
-        :gsub("\27[%(%)]%w", ""):gsub("[\14\15]", "")
-    return #(stripped:gsub("[\128-\191]", ""))
-end
-
-local function render_table(headers, rows)
-    local widths = {}
-    for column, header in ipairs(headers) do
-        widths[column] = visible_width(header)
-    end
-    for _, row in ipairs(rows) do
-        for column = 1, #headers do
-            local width = visible_width(row[column] or "")
-            if width > widths[column] then widths[column] = width end
-        end
-    end
-    local margin = string.rep(" ", CELL_PADDING)
-    local function border(left, middle, right)
-        local parts = {}
-        for column = 1, #headers do
-            parts[column] = string.rep("─",
-                widths[column] + 2 * CELL_PADDING)
-        end
-        print(left .. table.concat(parts, middle) .. right)
-    end
-    local function body_line(cells)
-        local parts = {}
-        for column = 1, #headers do
-            local cell = cells[column] or ""
-            local pad = widths[column] - visible_width(cell)
-            parts[column] = margin .. cell ..
-                string.rep(" ", pad) .. margin
-        end
-        print("│" .. table.concat(parts, "│") .. "│")
-    end
-    border("┌", "┬", "┐")
-    body_line(headers)
-    border("├", "┼", "┤")
-    for _, row in ipairs(rows) do body_line(row) end
-    border("└", "┴", "┘")
 end
 
 local HIGHLIGHTS = {}

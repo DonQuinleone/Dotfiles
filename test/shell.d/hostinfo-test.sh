@@ -13,7 +13,7 @@ require_command luajit
 
 lua_eval() {
     luajit -e "package.path='${ROOT}/.local/lib/?.lua;'..package.path
-        local net = require('hostinfo.net')
+        local net = require('netkit.net')
         io.write($1)"
 }
 
