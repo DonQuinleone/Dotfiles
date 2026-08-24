@@ -47,7 +47,8 @@ exactly where it appears.
 | `.config/fish` | the shell |
 | `.config/kitty` | the terminal |
 | `.config/donbox` | the applications the desktop reaches for |
-| `.local/bin` | `donbox` and its subcommands |
+| `.local/bin` | `donbox` and its subcommands, the netkit tools |
+| `.local/lib/netkit` | the netkit network-diagnosis library |
 | `.local/share/donbox` | theme modules and templates |
 | `Pictures/walls` | the wallpapers |
 | `packages.json` | the manifest for the machine |
@@ -69,6 +70,27 @@ Anything that can be told to live under `$XDG_*` does, so `$HOME`
 holds this repository, the links stow makes and very little else.
 Two directories cannot move: NSS compiles `~/.pki` into
 `libnsssysinit.so`, and flatpak hardcodes `~/.var`.
+
+## The netkit tools
+
+Five network-diagnosis commands for a hosting engineer, sharing
+one LuaJIT library under `.local/lib/netkit`. Each takes a single
+target, prints boxed tables to a terminal and plain text to a
+pipe, and grows a `--json` form for scripting. They shell out to
+`dig`, `curl`, `openssl` and `timeout`; nothing else is needed.
+
+| Tool | Answers |
+| --- | --- |
+| `hostinfo` | resolution chain, rDNS, ASN and prefix, abuse contact, IP and domain blacklists, TLS with SNI and a protocol matrix, DNSSEC, delegation, zone and registration |
+| `maildiag` | SPF, DMARC, MTA-STS, TLS-RPT, DKIM selectors, and each MX host's rDNS, banner, STARTTLS certificate, DANE and blacklists |
+| `dnsdiff` | SOA serials and answers across every authoritative nameserver, three public resolvers and the local one, so stale NS and unpropagated changes show |
+| `portpeek` | which hosting-relevant TCP ports accept a connection, with banners, including the cPanel and WHM set |
+| `httpath` | the redirect chain hop by hop with status, timing, address and ASN, then the final server, transport and any CDN or WAF fronting the origin |
+
+`hostinfo` reads optional highlight rules from
+`~/.config/hostinfo/highlights.lua`, a Lua file returning a list
+of `{ label, asns, patterns }` rules that tag matching networks
+in its output.
 
 ## Maintaining it
 
