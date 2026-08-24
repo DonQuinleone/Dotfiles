@@ -88,6 +88,21 @@ assert "stubbed lookup reports clean blacklists" \
     grep -q "clean" <<<"${report}"
 assert "no tls stub degrades to a no tls row" \
     grep -q "no TLS" <<<"${report}"
+assert "resolution shows the record ttl" \
+    grep -q "300" <<<"${report}"
+
+tls_only=$("${HOSTINFO}" --tls example.com)
+assert "tls flag keeps the tls section" \
+    grep -q "TLS (port 443)" <<<"${tls_only}"
+assert "tls flag drops the addresses section" \
+    bash -c "! grep -q '^Addresses' <<<'${tls_only}'"
+
+encoded=$("${HOSTINFO}" --json --net example.com)
+assert_equal "json reports the address" \
+    "$(jq -r '.addresses[0].address' <<<"${encoded}")" \
+    "${STUB_V4}"
+assert_equal "json omits unselected sections" \
+    "$(jq -r '.tls' <<<"${encoded}")" "null"
 
 stub dig "exit 0"
 assert_status "hostname without answers does not resolve" 1 \

@@ -167,6 +167,7 @@ local function dig_rows(arguments)
         if #fields >= 5 then
             rows[#rows + 1] = {
                 owner = strip_dot(fields[1]),
+                ttl = tonumber(fields[2]),
                 type = fields[4],
                 rdata = table.concat(fields, " ", 5),
             }
@@ -179,10 +180,18 @@ function net.answers(name, type_)
     return dig_rows(quote(name) .. " " .. type_)
 end
 
+function net.typed_answers(name, type_)
+    local rows = {}
+    for _, row in ipairs(net.answers(name, type_)) do
+        if row.type == type_ then rows[#rows + 1] = row end
+    end
+    return rows
+end
+
 function net.records(name, type_)
     local values = {}
-    for _, row in ipairs(net.answers(name, type_)) do
-        if row.type == type_ then values[#values + 1] = row.rdata end
+    for _, row in ipairs(net.typed_answers(name, type_)) do
+        values[#values + 1] = row.rdata
     end
     return values
 end

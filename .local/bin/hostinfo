@@ -7,404 +7,94 @@ local resolved = resolver and resolver:read("*l") or nil
 if resolver then resolver:close() end
 local base = (resolved or source):match("^(.*)/[^/]+$") or "."
 package.path = base .. "/../lib/?.lua;" .. package.path
+
 local net = require("netkit.net")
-local ui = require("netkit.ui")
+local collect = require("netkit.hostinfo.collect")
+local render = require("netkit.hostinfo.render")
 
-local accent = ui.accent
-local heading = ui.heading
-local keyed = ui.keyed
-local render_table = ui.render_table
-
-local EXPIRY_WARNING_DAYS = 30
 local USAGE_EXIT_CODE = 64
 
-local VERIFY_LABELS = {
-    [0] = "ok",
-    [10] = "expired",
-    [18] = "self-signed",
-    [19] = "self-signed chain",
-    [20] = "unknown issuer",
-    [62] = "hostname mismatch",
-}
-
-local SNI_LABELS = {
-    ["no host"] = "-",
-    ["same"] = "same cert",
-    ["required"] = "required (no cert)",
-    ["different"] = "default cert differs",
+local SECTION_FLAGS = {
+    ["--dns"] = "dns",
+    ["--net"] = "net",
+    ["--tls"] = "tls",
+    ["--reg"] = "reg",
 }
 
 local USAGE = [[
-Usage: hostinfo <hostname|url|address>
+Usage: hostinfo [--json] [--dns] [--net] [--tls] [--reg]
+                <hostname|url|address>
 
 Reports the target's resolution chain, IP addresses, reverse
 DNS, ASN and prefix, abuse contact, DNS blacklist listings, TLS
 protocol support with certificate and SNI checks, DNSSEC state,
-the authoritative DNS zone and domain registration.]]
+the authoritative DNS zone and domain registration.
+
+Section flags limit the report: --dns (resolution and zone),
+--net (addresses, networks, blacklists), --tls, --reg
+(registration). No section flag means all of them. --json emits
+the report as JSON instead of tables.]]
 
 local function die(message)
     io.stderr:write("hostinfo: " .. message .. "\n")
     os.exit(1)
 end
 
-local HIGHLIGHTS = {}
-
-local function load_highlights()
-    local config_home = os.getenv("XDG_CONFIG_HOME")
-        or ((os.getenv("HOME") or "") .. "/.config")
-    local loader =
-        loadfile(config_home .. "/hostinfo/highlights.lua")
-    if not loader then return end
-    local ok, rules = pcall(loader)
-    if ok and type(rules) == "table" then HIGHLIGHTS = rules end
+local function usage_error()
+    io.stderr:write(USAGE .. "\n")
+    os.exit(USAGE_EXIT_CODE)
 end
 
-local function highlight_for(asn, names)
-    for _, rule in ipairs(HIGHLIGHTS) do
-        for _, rule_asn in ipairs(rule.asns or {}) do
-            if tostring(rule_asn) == tostring(asn) then
-                return rule.label
-            end
-        end
-        for _, pattern in ipairs(rule.patterns or {}) do
-            for _, name in ipairs(names) do
-                if name and name:match(pattern) then
-                    return rule.label
-                end
-            end
-        end
-    end
-end
-
-local function resolution_report(target, zone)
-    local rows, seen, chain = {}, {}, { target }
-    local answers = net.answers(target, "A")
-    for _, row in ipairs(net.answers(target, "AAAA")) do
-        answers[#answers + 1] = row
-    end
-    local current = target
-    while true do
-        local next_name
-        for _, row in ipairs(answers) do
-            if row.owner:lower() == current:lower()
-                and row.type == "CNAME" then
-                next_name = net.strip_dot(row.rdata)
-                break
-            end
-        end
-        if not next_name or seen[next_name] then break end
-        rows[#rows + 1] = { current, "CNAME", next_name }
-        seen[next_name] = true
-        chain[#chain + 1] = next_name
-        current = next_name
-    end
-    local addresses = {}
-    for _, type_ in ipairs({ "A", "AAAA" }) do
-        local count = 0
-        for _, row in ipairs(answers) do
-            if row.owner:lower() == current:lower()
-                and row.type == type_ then
-                count = count + 1
-                addresses[#addresses + 1] = row.rdata
-            end
-        end
-        if count > 0 then
-            rows[#rows + 1] = { current, type_, count ..
-                (count == 1 and " record" or " records") }
+local function parse_arguments()
+    local options = { sections = {} }
+    local chosen = false
+    for _, argument in ipairs(arg) do
+        if argument == "-h" or argument == "--help" then
+            print(USAGE)
+            os.exit(0)
+        elseif argument == "--json" then
+            options.json = true
+        elseif SECTION_FLAGS[argument] then
+            options.sections[SECTION_FLAGS[argument]] = true
+            chosen = true
+        elseif argument:match("^%-") or options.target then
+            usage_error()
+        else
+            options.target = argument
         end
     end
-    if #rows > 0 then
-        heading("Resolution")
-        render_table({ "Name", "Type", "Answer" }, rows)
-        if rows[1][2] ~= "CNAME" and target == zone then
-            print("  records sit at the zone apex; any ALIAS/ANAME")
-            print("  flattening is provider-side and invisible " ..
-                "in DNS")
+    if not options.target then usage_error() end
+    if not chosen then
+        for _, section in pairs(SECTION_FLAGS) do
+            options.sections[section] = true
         end
     end
-    return addresses, chain
-end
-
-local function rbl_cell(hits, listings, address)
-    if not hits then return "n/a" end
-    if #hits == 0 then return "clean" end
-    for _, hit in ipairs(hits) do
-        listings[#listings + 1] =
-            { address, hit.zone, hit.code, hit.reason }
-    end
-    return accent(#hits .. " listed")
-end
-
-local function report_listings(listings)
-    if #listings == 0 then return end
-    print("")
-    heading("Blacklist listings (" .. net.RBL_COUNT .. " checked)")
-    render_table(
-        { "Address", "Blacklist", "Code", "Reason" }, listings)
-end
-
-local function report_networks(networks, prefix_order)
-    if #prefix_order == 0 then return end
-    print("")
-    heading("Networks")
-    local rows = {}
-    for _, prefix in ipairs(prefix_order) do
-        local network = networks[prefix]
-        rows[#rows + 1] = {
-            prefix, "AS" .. network.asn, network.name,
-            network.country, network.registry, network.allocated,
-        }
-    end
-    render_table({ "Prefix", "ASN", "Name", "CC", "Registry",
-        "Allocated" }, rows)
-end
-
-local function report_addresses(addresses, chain)
-    local rows, listings, refused_zones, tagged = {}, {}, {}, {}
-    local networks, prefix_order = {}, {}
-    heading("Addresses")
-    for _, address in ipairs(addresses) do
-        local pointers = net.ptr_names(address)
-        local rdns = "none"
-        if #pointers > 0 then
-            local confirmed = false
-            local held = net.host_addresses(pointers[1])
-            for _, candidate in ipairs(held) do
-                if candidate:lower() == address:lower() then
-                    confirmed = true
-                end
-            end
-            rdns = pointers[1] .. (confirmed and " ✓" or " ✗")
-        end
-        local network = net.network_for(address) or {}
-        local asn = network.asn
-            and "AS" .. network.asn or "unknown"
-        if network.prefix and not networks[network.prefix] then
-            networks[network.prefix] = network
-            prefix_order[#prefix_order + 1] = network.prefix
-        end
-        local names = { pointers[1] }
-        for _, name in ipairs(chain) do
-            names[#names + 1] = name
-        end
-        local label = highlight_for(network.asn, names)
-        if label then
-            asn = asn .. " " .. accent("◆ " .. label)
-            tagged[label] = true
-        end
-        local hits, refused = net.rbl_results(address)
-        for _, zone in ipairs(refused or {}) do
-            refused_zones[zone] = true
-        end
-        rows[#rows + 1] = { address, rdns, asn,
-            net.abuse_contact(address),
-            rbl_cell(hits, listings, address) }
-    end
-    render_table(
-        { "Address", "rDNS", "ASN", "Abuse", "RBLs" }, rows)
-    for label in pairs(tagged) do
-        print("  " .. accent("◆ " .. label) ..
-            " network (from local highlights)")
-    end
-    local refused_names = {}
-    for zone in pairs(refused_zones) do
-        refused_names[#refused_names + 1] = zone
-    end
-    if #refused_names > 0 then
-        print("  (" .. table.concat(refused_names, ", ") ..
-            ": refused, needs a direct resolver)")
-    end
-    report_listings(listings)
-    report_networks(networks, prefix_order)
-end
-
-local function verify_cell(probe)
-    if not probe.verify_code then return "unknown" end
-    local label = VERIFY_LABELS[probe.verify_code]
-        or probe.verify_message
-    if label == "ok" then return "ok" end
-    return accent(label)
-end
-
-local function certificate_report(certificate)
-    print("")
-    heading("Certificate (" ..
-        table.concat(certificate.addresses, ", ") .. ")")
-    keyed("Subject", certificate.subject or "unknown")
-    keyed("SANs", #certificate.sans > 0
-        and table.concat(certificate.sans, ", ") or "none")
-    keyed("Issuer", certificate.issuer or "unknown")
-    local expiry = certificate.not_after or "unknown"
-    if certificate.days_left then
-        local marker =
-            certificate.days_left < EXPIRY_WARNING_DAYS
-            and accent(" (!)") or ""
-        expiry = ("%s (%d days%s)"):format(expiry,
-            certificate.days_left, marker)
-    end
-    keyed("Expires", expiry)
-end
-
-local function report_tls(addresses, servername)
-    local rows, certificates, order = {}, {}, {}
-    heading("TLS (port " .. net.HTTPS_PORT .. ")")
-    for _, address in ipairs(addresses) do
-        local probe = net.tls_probe(address, servername)
-        local row = { address }
-        for _ in ipairs(net.TLS_PROTOCOL_LABELS) do
-            row[#row + 1] = "-"
-        end
-        row[#row + 1] = "no TLS"
-        row[#row + 1] = "-"
-        if probe then
-            local certificate = probe.certificate
-            local key = certificate.fingerprint or "?"
-            if not certificates[key] then
-                certificates[key] = certificate
-                certificate.addresses = {}
-                order[#order + 1] = key
-            end
-            local held = certificates[key].addresses
-            held[#held + 1] = address
-            local protocols =
-                net.tls_protocols(address, servername)
-            local sni = net.sni_check(address, servername,
-                certificate.fingerprint)
-            local sni_cell = SNI_LABELS[sni] or sni
-            if sni ~= "same" and sni ~= "no host" then
-                sni_cell = accent(sni_cell)
-            end
-            row = { address }
-            for _, protocol in ipairs(protocols) do
-                row[#row + 1] =
-                    protocol.supported and "yes" or "no"
-            end
-            row[#row + 1] = verify_cell(probe)
-            row[#row + 1] = sni_cell
-        end
-        rows[#rows + 1] = row
-    end
-    local headers = { "Address" }
-    for _, label in ipairs(net.TLS_PROTOCOL_LABELS) do
-        headers[#headers + 1] = label
-    end
-    headers[#headers + 1] = "Verify"
-    headers[#headers + 1] = "SNI"
-    render_table(headers, rows)
-    for _, key in ipairs(order) do
-        certificate_report(certificates[key])
-    end
-end
-
-local function dnssec_cell(zone)
-    local facts = net.dnssec_facts(zone)
-    if facts.ds and facts.servfail then
-        return accent("broken (DS present, SOA SERVFAILs)")
-    end
-    if not facts.ds and not facts.signed then return "unsigned" end
-    if not facts.ds then
-        return "signed but no DS at the parent (chain incomplete)"
-    end
-    if not facts.signed then
-        return accent("DS at parent but no RRSIG at the zone")
-    end
-    if facts.validated then
-        return "signed (DS + RRSIG), resolver validates"
-    end
-    return "signed (DS + RRSIG); local resolver does not validate"
-end
-
-local function report_zone(zone)
-    heading("Zone " .. zone)
-    local servers = net.records(zone, "NS")
-    table.sort(servers)
-    for _, server in ipairs(servers) do
-        server = net.strip_dot(server)
-        local glue =
-            table.concat(net.host_addresses(server), " ")
-        keyed("NS", glue ~= ""
-            and server .. " (" .. glue .. ")" or server)
-    end
-    local soa = net.records(zone, "SOA")[1]
-    if soa then
-        local primary, contact, serial =
-            soa:match("^(%S+)%s+(%S+)%s+(%S+)")
-        keyed("SOA", ("%s, contact %s, serial %s"):format(
-            net.strip_dot(primary or ""),
-            net.strip_dot(contact or ""), serial or ""))
-    end
-    local mail = net.records(zone, "MX")
-    table.sort(mail, function(a, b)
-        return (tonumber(a:match("^%d+")) or 0)
-            < (tonumber(b:match("^%d+")) or 0)
-    end)
-    keyed("MX", #mail > 0
-        and table.concat(mail, ", ") or "none")
-    local function first_txt(name, marker)
-        for _, txt in ipairs(net.records(name, "TXT")) do
-            local cleaned = net.unquote_txt(txt)
-            if cleaned:lower():match(marker) then return cleaned end
-        end
-        return "none"
-    end
-    keyed("SPF", first_txt(zone, "^v=spf1"))
-    keyed("DMARC", first_txt("_dmarc." .. zone, "^v=dmarc1"))
-    local caa = net.records(zone, "CAA")
-    keyed("CAA", #caa > 0
-        and table.concat(caa, ", ") or "none")
-    keyed("DNSSEC", dnssec_cell(zone))
-end
-
-local function report_registration(zone)
-    local registration = net.registration(zone)
-    if not registration then return end
-    print("")
-    heading("Registration " .. registration.domain)
-    keyed("Registrar", registration.registrar)
-    keyed("Expires", registration.expires)
-    keyed("Status", registration.status)
+    return options
 end
 
 local function main()
     io.stdout:setvbuf("line")
-    if arg[1] == "-h" or arg[1] == "--help" then
-        print(USAGE)
-        return 0
-    end
-    if not arg[1] or arg[2] then
-        io.stderr:write(USAGE .. "\n")
-        return USAGE_EXIT_CODE
-    end
+    local options = parse_arguments()
     for _, tool in ipairs(net.REQUIRED_TOOLS) do
         if net.run("command -v " .. tool) == "" then
             die(tool .. " not found")
         end
     end
-    load_highlights()
-    local target = net.normalise_target(arg[1])
+    local target = net.normalise_target(options.target)
     local literal = net.is_ipv4(target) or net.is_ipv6(target)
     if target == ""
         or (not literal and not net.plausible_host(target)) then
-        die("could not parse a host from '" .. arg[1] .. "'")
+        die("could not parse a host from '" ..
+            options.target .. "'")
     end
-    heading("Target " .. target)
-    print("")
-    local addresses, chain, zone = { target }, { target }, nil
-    if not literal then
-        zone = net.find_zone(target)
-        addresses, chain = resolution_report(target, zone)
-        if #addresses == 0 then
-            die(target .. " does not resolve")
-        end
-        print("")
+    local report, problem =
+        collect.report(target, literal, options.sections)
+    if not report then die(problem) end
+    if options.json then
+        render.json(report)
+    else
+        render.text(report)
     end
-    report_addresses(addresses, chain)
-    print("")
-    report_tls(addresses, not literal and target or nil)
-    if literal or not zone then return 0 end
-    print("")
-    report_zone(zone)
-    report_registration(zone)
     return 0
 end
 
