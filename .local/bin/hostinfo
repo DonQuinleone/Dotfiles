@@ -10,19 +10,18 @@ package.path = base .. "/../lib/?.lua;" .. package.path
 
 local net = require("netkit.net")
 local ui = require("netkit.ui")
+local cli = require("netkit.cli")
 local collect = require("netkit.hostinfo.collect")
 local render = require("netkit.hostinfo.render")
 
-local USAGE_EXIT_CODE = 64
-
-local SECTION_FLAGS = {
-    ["--dns"] = "dns",
-    ["--net"] = "net",
-    ["--tls"] = "tls",
-    ["--reg"] = "reg",
-}
-
-local USAGE = [[
+local SPEC = {
+    name = "hostinfo",
+    required = { "dig", "curl", "jq", "openssl", "timeout" },
+    sections = {
+        ["--dns"] = "dns", ["--net"] = "net",
+        ["--tls"] = "tls", ["--reg"] = "reg",
+    },
+    usage = [[
 Usage: hostinfo [--json] [--dns] [--net] [--tls] [--reg]
                 <hostname|url|address>
 
@@ -34,64 +33,24 @@ the authoritative DNS zone and domain registration.
 Section flags limit the report: --dns (resolution and zone),
 --net (addresses, networks, blacklists), --tls, --reg
 (registration). No section flag means all of them. --json emits
-the report as JSON instead of tables.]]
-
-local function die(message)
-    io.stderr:write("hostinfo: " .. message .. "\n")
-    os.exit(1)
-end
-
-local function usage_error()
-    io.stderr:write(USAGE .. "\n")
-    os.exit(USAGE_EXIT_CODE)
-end
-
-local function parse_arguments()
-    local options = { sections = {} }
-    local chosen = false
-    for _, argument in ipairs(arg) do
-        if argument == "-h" or argument == "--help" then
-            print(USAGE)
-            os.exit(0)
-        elseif argument == "--json" then
-            options.json = true
-        elseif SECTION_FLAGS[argument] then
-            options.sections[SECTION_FLAGS[argument]] = true
-            chosen = true
-        elseif argument:match("^%-") or options.target then
-            usage_error()
-        else
-            options.target = argument
-        end
-    end
-    if not options.target then usage_error() end
-    if not chosen then
-        for _, section in pairs(SECTION_FLAGS) do
-            options.sections[section] = true
-        end
-    end
-    return options
-end
+the report as JSON instead of tables.]],
+}
 
 local function main()
     io.stdout:setvbuf("line")
-    local options = parse_arguments()
-    for _, tool in ipairs(net.REQUIRED_TOOLS) do
-        if net.run("command -v " .. tool) == "" then
-            die(tool .. " not found")
-        end
-    end
+    local options = cli.parse(SPEC)
+    cli.require_tools(SPEC)
     local target = net.normalise_target(options.target)
     local literal = net.is_ipv4(target) or net.is_ipv6(target)
     if target == ""
         or (not literal and not net.plausible_host(target)) then
-        die("could not parse a host from '" ..
+        cli.die("hostinfo", "could not parse a host from '" ..
             options.target .. "'")
     end
     local report, problem = collect.report(target, literal,
         options.sections, ui.progress)
     ui.progress_done()
-    if not report then die(problem) end
+    if not report then cli.die("hostinfo", problem) end
     if options.json then
         render.json(report)
     else

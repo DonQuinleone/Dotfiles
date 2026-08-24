@@ -10,13 +10,23 @@ package.path = base .. "/../lib/?.lua;" .. package.path
 
 local net = require("netkit.net")
 local ui = require("netkit.ui")
+local cli = require("netkit.cli")
 local collect = require("netkit.dnsdiff.collect")
 local render = require("netkit.dnsdiff.render")
 
-local USAGE_EXIT_CODE = 64
 local DEFAULT_TYPES = { A = true, AAAA = true }
 
-local USAGE = [[
+local SPEC = {
+    name = "dnsdiff",
+    required = { "dig" },
+    values = {
+        ["--type"] = function(options, value)
+            if not value:match("^%u+$") then return false end
+            options.types = { [value] = true }
+            return true
+        end,
+    },
+    usage = [[
 Usage: dnsdiff [--json] [--type TYPE] <hostname|zone>
 
 Queries every authoritative nameserver, three public resolvers
@@ -25,60 +35,22 @@ hostname below the zone apex) the record answers, so stale
 nameservers and unpropagated changes stand out.
 
 --type TYPE compares that record type instead of A and AAAA.
---json emits the report as JSON instead of a table.]]
-
-local function die(message)
-    io.stderr:write("dnsdiff: " .. message .. "\n")
-    os.exit(1)
-end
-
-local function usage_error()
-    io.stderr:write(USAGE .. "\n")
-    os.exit(USAGE_EXIT_CODE)
-end
-
-local function parse_arguments()
-    local options = { types = DEFAULT_TYPES }
-    local pending_type = false
-    for _, argument in ipairs(arg) do
-        if pending_type then
-            if not argument:match("^%u+$") then usage_error() end
-            options.types = { [argument] = true }
-            pending_type = false
-        elseif argument == "-h" or argument == "--help" then
-            print(USAGE)
-            os.exit(0)
-        elseif argument == "--json" then
-            options.json = true
-        elseif argument == "--type" then
-            pending_type = true
-        elseif argument:match("^%-") or options.target then
-            usage_error()
-        else
-            options.target = argument
-        end
-    end
-    if not options.target or pending_type then usage_error() end
-    return options
-end
+--json emits the report as JSON instead of a table.]],
+}
 
 local function main()
     io.stdout:setvbuf("line")
-    local options = parse_arguments()
-    for _, tool in ipairs(net.REQUIRED_TOOLS) do
-        if net.run("command -v " .. tool) == "" then
-            die(tool .. " not found")
-        end
-    end
+    local options = cli.parse(SPEC)
+    cli.require_tools(SPEC)
     local target = net.normalise_target(options.target)
     if target == "" or not net.plausible_host(target) then
-        die("could not parse a host from '" ..
+        cli.die("dnsdiff", "could not parse a host from '" ..
             options.target .. "'")
     end
-    local report, problem =
-        collect.report(target, options.types, ui.progress)
+    local report, problem = collect.report(target,
+        options.types or DEFAULT_TYPES, ui.progress)
     ui.progress_done()
-    if not report then die(problem) end
+    if not report then cli.die("dnsdiff", problem) end
     if options.json then
         render.json(report)
     else
