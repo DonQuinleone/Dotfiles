@@ -13,3 +13,9 @@
 [init]
 	defaultBranch = master
 
+
+[includeIf "hasconfig:remote.*.url:git@git.sr.ht:*/**"]
+	path = personal.inc
+
+[includeIf "hasconfig:remote.*.url:ssh://git@forge.example.com:*/**"]
+	path = personal.inc
