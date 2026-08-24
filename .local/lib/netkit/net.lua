@@ -229,19 +229,53 @@ local TCP_SCRIPT = ('exec 3<>/dev/tcp/"$1"/"$2" && ' ..
 local TCP_TOTAL_TIMEOUT_SECONDS =
     TCP_CONNECT_TIMEOUT_SECONDS + TCP_BANNER_WAIT_SECONDS
 
-function net.tcp_probe(host, port)
-    local script =
-        TCP_SCRIPT:format(TCP_BANNER_WAIT_SECONDS)
-    local command = ("timeout %d bash -c %s netkit-tcp %s %d " ..
-        "2>/dev/null; printf '\\n%%s' \"$?\""):format(
+local function tcp_command(host, port)
+    local script = TCP_SCRIPT:format(TCP_BANNER_WAIT_SECONDS)
+    return ("timeout %d bash -c %s netkit-tcp %s %d 2>/dev/null" ..
+        "; printf '\\n%%s' \"$?\""):format(
         TCP_TOTAL_TIMEOUT_SECONDS, quote(script),
         quote(host), port)
-    local output = run(command)
+end
+
+local function tcp_verdict(output)
     local banner, status = output:match("^(.-)\n(%d+)$")
     return {
         open = status == "0",
         banner = sanitise_banner(banner or ""),
     }
+end
+
+function net.tcp_probe(host, port)
+    return tcp_verdict(run(tcp_command(host, port)))
+end
+
+-- Every port opens at once into its own file, so a sweep costs
+-- one round trip rather than the sum of nineteen. A mktemp
+-- failure degrades to probing serially.
+function net.tcp_probe_batch(host, ports)
+    local dir = run("mktemp -d"):match("%S+")
+    if not dir then
+        local results = {}
+        for index, port in ipairs(ports) do
+            results[index] = net.tcp_probe(host, port)
+        end
+        return results
+    end
+    local parts = {}
+    for index, port in ipairs(ports) do
+        parts[#parts + 1] = "{ " .. tcp_command(host, port) ..
+            "; } > " .. quote(dir .. "/" .. index) .. " &"
+    end
+    run("{ " .. table.concat(parts, " ") .. " wait; }")
+    local results = {}
+    for index = 1, #ports do
+        local file = io.open(dir .. "/" .. index)
+        local output = file and file:read("*a") or ""
+        if file then file:close() end
+        results[index] = tcp_verdict(output)
+    end
+    run("rm -rf " .. quote(dir))
+    return results
 end
 
 function net.mx_records(name)

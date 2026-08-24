@@ -40,15 +40,18 @@ function collect.report(target, ports, notify)
     end
     local report = { target = target, address = address,
         rows = {} }
+    local numbers = {}
+    for _, entry in ipairs(ports) do
+        numbers[#numbers + 1] = entry.port
+    end
+    notify(("probing %d ports"):format(#ports))
+    local probes = net.tcp_probe_batch(address, numbers)
     for index, entry in ipairs(ports) do
-        notify(("port %d/%d (%d)"):format(index, #ports,
-            entry.port))
-        local probe = net.tcp_probe(address, entry.port)
         report.rows[#report.rows + 1] = {
             port = entry.port,
             service = entry.service,
-            open = probe.open,
-            banner = probe.banner,
+            open = probes[index].open,
+            banner = probes[index].banner,
         }
     end
     return report

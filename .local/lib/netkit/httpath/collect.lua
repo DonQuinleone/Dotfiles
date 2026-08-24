@@ -4,6 +4,9 @@ local collect = {}
 
 local CURL_TIMEOUT_SECONDS = 10
 local MAX_HOPS = 10
+-- Confine curl to web schemes so a file:// or scp:// argument
+-- cannot make it read a local file or reach another service.
+local CURL_PROTO = "--proto =http,https"
 
 local CDN_SIGNATURES = {
     { pattern = "cloudflare", label = "Cloudflare" },
@@ -28,8 +31,8 @@ local CURL_FORMAT = table.concat({
 }, "\\n")
 
 local function header_lines(url)
-    local command = ("curl -sSI --max-time %d %s 2>/dev/null")
-        :format(CURL_TIMEOUT_SECONDS, net.quote(url))
+    local command = ("curl -sSI %s --max-time %d %s 2>/dev/null")
+        :format(CURL_PROTO, CURL_TIMEOUT_SECONDS, net.quote(url))
     local lines = {}
     for line in net.run(command):gmatch("[^\r\n]+") do
         lines[#lines + 1] = line
@@ -54,9 +57,10 @@ local function server_from(lines)
 end
 
 local function status_of(url)
-    local command = ("curl -sS -o /dev/null --max-time %d " ..
-        "-w %s %s 2>/dev/null"):format(CURL_TIMEOUT_SECONDS,
-        net.quote(CURL_FORMAT), net.quote(url))
+    local command = ("curl -sS -o /dev/null %s --max-time %d " ..
+        "-w %s %s 2>/dev/null"):format(CURL_PROTO,
+        CURL_TIMEOUT_SECONDS, net.quote(CURL_FORMAT),
+        net.quote(url))
     local fields = {}
     for key, value in net.run(command):gmatch("(%w+)=([^\n]*)") do
         fields[key] = value
