@@ -230,7 +230,34 @@ local function render_zone(zone)
     ui.keyed("DMARC", zone.dmarc or "none")
     ui.keyed("CAA", #zone.caa > 0
         and table.concat(zone.caa, ", ") or "none")
+    if zone.delegation then
+        local delegation = zone.delegation
+        if delegation.consistent then
+            ui.keyed("Delegation", "consistent (" ..
+                #delegation.zone .. " NS)")
+        else
+            ui.keyed("Delegation", accent("parent: " ..
+                table.concat(delegation.parent, ", ") ..
+                "; zone: " ..
+                table.concat(delegation.zone, ", ")))
+        end
+    end
     ui.keyed("DNSSEC", dnssec_label(zone.dnssec))
+    local blacklists = zone.blacklists
+    if #blacklists.hits == 0 then
+        ui.keyed("Blacklists", "clean (" ..
+            net.DOMAIN_RBL_COUNT .. " checked)")
+    end
+    for _, hit in ipairs(blacklists.hits) do
+        ui.keyed("Blacklists", accent(hit.zone .. " " ..
+            hit.code .. (hit.reason ~= ""
+                and "  " .. hit.reason or "")))
+    end
+    if #blacklists.refused > 0 then
+        ui.keyed("", "(" ..
+            table.concat(blacklists.refused, ", ") ..
+            ": refused, needs a direct resolver)")
+    end
 end
 
 local function render_registration(registration)

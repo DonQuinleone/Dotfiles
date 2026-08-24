@@ -202,16 +202,36 @@ local function first_txt(name, marker)
     end
 end
 
+local function delegation_of(zone, ns)
+    local delegated = net.delegated_ns(zone)
+    if #delegated == 0 then return nil end
+    local zone_servers = {}
+    for _, entry in ipairs(ns) do
+        zone_servers[#zone_servers + 1] = entry.server:lower()
+    end
+    table.sort(zone_servers)
+    return {
+        parent = delegated,
+        zone = zone_servers,
+        consistent = table.concat(delegated, ",")
+            == table.concat(zone_servers, ","),
+    }
+end
+
 local function zone_details(zone)
+    local ns = sorted_ns(zone)
+    local hits, refused = net.domain_rbl_results(zone)
     return {
         name = zone,
-        ns = sorted_ns(zone),
+        ns = ns,
         soa = soa_of(zone),
         mx = mail_of(zone),
         spf = first_txt(zone, "^v=spf1"),
         dmarc = first_txt("_dmarc." .. zone, "^v=dmarc1"),
         caa = net.records(zone, "CAA"),
+        delegation = delegation_of(zone, ns),
         dnssec = net.dnssec_facts(zone),
+        blacklists = { hits = hits, refused = refused },
     }
 end
 

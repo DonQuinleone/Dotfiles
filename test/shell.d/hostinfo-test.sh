@@ -104,6 +104,24 @@ assert_equal "json reports the address" \
 assert_equal "json omits unselected sections" \
     "$(jq -r '.tls' <<<"${encoded}")" "null"
 
+stub dig "case \" \$* \" in
+    *' -x '*) exit 0 ;;
+    *dbl.spamhaus.org*)
+        printf 'x.\t60\tIN\tA\t127.0.1.2\n' ;;
+    *multi.surbl.org*) exit 0 ;;
+    *' NS '*)
+        printf 'example.com.\t300\tIN\tNS\tns1.example.com.\n' ;;
+    *' SOA '*|*' DNSKEY '*|*' DS '*|*' MX '*) exit 0 ;;
+    *' TXT '*|*' CAA '*) exit 0 ;;
+    *) printf 'example.com.\t300\tIN\tA\t${STUB_V4}\n' ;;
+esac"
+
+zone_report=$("${HOSTINFO}" --dns example.com)
+assert "delegation is reported consistent" \
+    grep -q "consistent (1 NS)" <<<"${zone_report}"
+assert "domain blacklist listing is reported" \
+    grep -q "dbl.spamhaus.org 127.0.1.2" <<<"${zone_report}"
+
 stub dig "exit 0"
 assert_status "hostname without answers does not resolve" 1 \
     "${HOSTINFO}" nothing.example

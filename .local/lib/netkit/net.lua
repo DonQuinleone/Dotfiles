@@ -23,6 +23,12 @@ local RBL_ZONES = {
 }
 net.RBL_COUNT = #RBL_ZONES
 
+local DOMAIN_RBL_ZONES = {
+    "dbl.spamhaus.org",
+    "multi.surbl.org",
+}
+net.DOMAIN_RBL_COUNT = #DOMAIN_RBL_ZONES
+
 function net.quote(word)
     return "'" .. tostring(word):gsub("'", "'\\''") .. "'"
 end
@@ -228,19 +234,17 @@ function net.abuse_contact(address)
     return unquote_txt(records(zone, "TXT")[1] or "")
 end
 
-function net.rbl_results(address)
-    if not net.is_ipv4(address) then return nil end
-    local reversed = reverse_ipv4(address)
+local function rbl_sweep(query, zones)
     local hits, refused = {}, {}
-    for _, zone in ipairs(RBL_ZONES) do
-        local answer = records(reversed .. "." .. zone, "A")[1]
+    for _, zone in ipairs(zones) do
+        local answer = records(query .. "." .. zone, "A")[1]
         if answer and answer:match("^127%.255%.255%.") then
             refused[#refused + 1] = zone
         elseif answer and answer:match("^127%.") then
             hits[#hits + 1] = {
                 zone = zone,
                 code = answer,
-                reason = unquote_txt(records(reversed .. "." ..
+                reason = unquote_txt(records(query .. "." ..
                     zone, "TXT")[1] or ""),
             }
         end
@@ -248,21 +252,54 @@ function net.rbl_results(address)
     return hits, refused
 end
 
+function net.rbl_results(address)
+    if not net.is_ipv4(address) then return nil end
+    return rbl_sweep(reverse_ipv4(address), RBL_ZONES)
+end
+
+function net.domain_rbl_results(name)
+    return rbl_sweep(name, DOMAIN_RBL_ZONES)
+end
+
 local function answers_at(server, name, type_, extras)
     return dig_rows((extras or "") .. quote("@" .. server) ..
         " " .. quote(name) .. " " .. type_)
 end
 
-local function parent_has_ds(zone)
+local function parent_server(zone)
     local parent = zone:match("^[^.]+%.(.*)$")
-    if not parent then return false end
+    if not parent then return nil end
     local cut = net.find_zone(parent) or parent
-    local parent_ns = strip_dot(records(cut, "NS")[1] or "")
-    if parent_ns == "" then return false end
-    for _, row in ipairs(answers_at(parent_ns, zone, "DS")) do
+    local server = strip_dot(records(cut, "NS")[1] or "")
+    if server == "" then return nil end
+    return server
+end
+
+local function parent_has_ds(zone)
+    local server = parent_server(zone)
+    if not server then return false end
+    for _, row in ipairs(answers_at(server, zone, "DS")) do
         if row.type == "DS" then return true end
     end
     return false
+end
+
+-- A parent's referral carries the delegated NS set in the
+-- authority section, so that section is requested as well.
+function net.delegated_ns(zone)
+    local server = parent_server(zone)
+    if not server then return {} end
+    local rows =
+        answers_at(server, zone, "NS", "+authority ")
+    local servers = {}
+    for _, row in ipairs(rows) do
+        if row.type == "NS"
+            and row.owner:lower() == zone:lower() then
+            servers[#servers + 1] = strip_dot(row.rdata):lower()
+        end
+    end
+    table.sort(servers)
+    return servers
 end
 
 local function zone_has_rrsig(zone)
