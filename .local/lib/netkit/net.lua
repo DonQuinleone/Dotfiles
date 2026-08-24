@@ -205,6 +205,13 @@ end
 local TCP_CONNECT_TIMEOUT_SECONDS = 3
 local TCP_BANNER_WAIT_SECONDS = 2
 
+-- Banner bytes come from a stranger: keep only printable ASCII
+-- so a hostile greeting cannot repaint the terminal or corrupt
+-- the table's width arithmetic.
+local function sanitise_banner(text)
+    return (text:gsub("[^\32-\126]", ""))
+end
+
 -- bash's /dev/tcp opens the connection; a failed open exits the
 -- inner shell non-zero (refused fast, filtered via timeout), so
 -- the exit status is the open/closed verdict. An optional short
@@ -215,18 +222,25 @@ local TCP_SCRIPT = ('exec 3<>/dev/tcp/"$1"/"$2" && ' ..
     '{ IFS= read -r -t %d line <&3 2>/dev/null; ' ..
     'printf "%%s" "$line"; }')
 
+-- The read can burn the whole banner wait before returning, so
+-- the outer budget must cover the connect and the wait, or a
+-- silent-but-open port on a distant host trips the timeout and
+-- is misreported as closed.
+local TCP_TOTAL_TIMEOUT_SECONDS =
+    TCP_CONNECT_TIMEOUT_SECONDS + TCP_BANNER_WAIT_SECONDS
+
 function net.tcp_probe(host, port)
     local script =
         TCP_SCRIPT:format(TCP_BANNER_WAIT_SECONDS)
     local command = ("timeout %d bash -c %s netkit-tcp %s %d " ..
         "2>/dev/null; printf '\\n%%s' \"$?\""):format(
-        TCP_CONNECT_TIMEOUT_SECONDS, quote(script),
+        TCP_TOTAL_TIMEOUT_SECONDS, quote(script),
         quote(host), port)
     local output = run(command)
     local banner, status = output:match("^(.-)\n(%d+)$")
     return {
         open = status == "0",
-        banner = (banner or ""):gsub("[\r\n]", ""),
+        banner = sanitise_banner(banner or ""),
     }
 end
 

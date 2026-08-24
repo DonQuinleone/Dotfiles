@@ -29,6 +29,8 @@ stub dig "printf 'x.\t300\tIN\tA\t${STUB_V4}\n'"
 stub timeout "case \" \$* \" in
     *\" ${STUB_V4} 80 \"*)
         printf 'HTTP/1.1 200 OK'; exit 0 ;;
+    *\" ${STUB_V4} 25 \"*)
+        printf '220 \033[31mgreet\033[0m'; exit 0 ;;
     *\" ${STUB_V4} 2083 \"*) exit 0 ;;
     *) exit 1 ;;
 esac"
@@ -49,6 +51,13 @@ assert "silent cpanel port is listed open" \
     grep -Eq "2083 .* cpanel-ssl .* open" <<<"${report}"
 assert "refused port is not listed" \
     bash -c "! grep -Eq '22 .* ssh .* open' <<<'${report}'"
+assert "the smtp banner keeps its printable text" \
+    grep -q "220 .*greet" <<<"${report}"
+escape=$(printf '\033')
+if grep -q "${escape}" <<<"${report}"; then
+    fail "an escape sequence is stripped from a banner"
+fi
+pass "an escape sequence is stripped from a banner"
 
 encoded=$("${PORTPEEK}" --json --ports 80,443 example.com)
 assert_equal "json marks the open port" \
