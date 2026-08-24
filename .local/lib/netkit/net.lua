@@ -202,6 +202,28 @@ function net.host_addresses(name)
     return addresses
 end
 
+local TCP_CONNECT_TIMEOUT_SECONDS = 3
+local TCP_BANNER_WAIT_SECONDS = 2
+
+-- bash's /dev/tcp opens the connection; a failed open exits the
+-- inner shell non-zero (refused fast, filtered via timeout), so
+-- the exit status is the open/closed verdict. An optional short
+-- read grabs whatever the server greets with.
+function net.tcp_probe(host, port)
+    local script = ("exec 3<>/dev/tcp/%s/%d && { IFS= read -r " ..
+        "-t %d line <&3 2>/dev/null; printf '%%s' \"$line\"; }")
+        :format(host, port, TCP_BANNER_WAIT_SECONDS)
+    local command = ("timeout %d bash -c %s 2>/dev/null; " ..
+        "printf '\\n%%s' \"$?\""):format(
+        TCP_CONNECT_TIMEOUT_SECONDS, quote(script))
+    local output = run(command)
+    local banner, status = output:match("^(.-)\n(%d+)$")
+    return {
+        open = status == "0",
+        banner = (banner or ""):gsub("[\r\n]", ""),
+    }
+end
+
 function net.mx_records(name)
     local mail = {}
     for _, row in ipairs(net.typed_answers(name, "MX")) do

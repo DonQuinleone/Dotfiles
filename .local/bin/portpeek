@@ -1,0 +1,102 @@
+#!/usr/bin/env luajit
+
+local source = arg[0] or "portpeek"
+local resolver = io.popen(("readlink -f -- '%s'")
+    :format(source:gsub("'", [['\'']])))
+local resolved = resolver and resolver:read("*l") or nil
+if resolver then resolver:close() end
+local base = (resolved or source):match("^(.*)/[^/]+$") or "."
+package.path = base .. "/../lib/?.lua;" .. package.path
+
+local net = require("netkit.net")
+local ui = require("netkit.ui")
+local collect = require("netkit.portpeek.collect")
+local render = require("netkit.portpeek.render")
+
+local USAGE_EXIT_CODE = 64
+
+local USAGE = [[
+Usage: portpeek [--json] [--ports LIST] <hostname|address>
+
+Connects to a set of hosting-relevant TCP ports and reports
+which accept a connection, with any greeting banner. The default
+set covers mail, web, FTP, SSH, MySQL and the cPanel and WHM
+ports.
+
+--ports LIST probes a comma-separated port list instead.
+--json emits the report as JSON instead of a table.]]
+
+local function die(message)
+    io.stderr:write("portpeek: " .. message .. "\n")
+    os.exit(1)
+end
+
+local function usage_error()
+    io.stderr:write(USAGE .. "\n")
+    os.exit(USAGE_EXIT_CODE)
+end
+
+local function parse_ports(list)
+    local ports = {}
+    for value in list:gmatch("[^,]+") do
+        local port = tonumber(value:match("^%s*(%d+)%s*$"))
+        if not port or port < 1 or port > 65535 then
+            usage_error()
+        end
+        ports[#ports + 1] =
+            { port = port, service = "custom" }
+    end
+    if #ports == 0 then usage_error() end
+    return ports
+end
+
+local function parse_arguments()
+    local options = { ports = collect.DEFAULT_PORTS }
+    local pending_ports = false
+    for _, argument in ipairs(arg) do
+        if pending_ports then
+            options.ports = parse_ports(argument)
+            pending_ports = false
+        elseif argument == "-h" or argument == "--help" then
+            print(USAGE)
+            os.exit(0)
+        elseif argument == "--json" then
+            options.json = true
+        elseif argument == "--ports" then
+            pending_ports = true
+        elseif argument:match("^%-") or options.target then
+            usage_error()
+        else
+            options.target = argument
+        end
+    end
+    if not options.target or pending_ports then usage_error() end
+    return options
+end
+
+local function main()
+    io.stdout:setvbuf("line")
+    local options = parse_arguments()
+    if net.run("command -v timeout") == "" then
+        die("timeout not found")
+    end
+    local target = net.normalise_target(options.target)
+    local literal = net.is_ipv4(target) or net.is_ipv6(target)
+    if target == ""
+        or (not literal and not net.plausible_host(target)) then
+        die("could not parse a host from '" ..
+            options.target .. "'")
+    end
+    local report, problem =
+        collect.report(target, options.ports, ui.progress)
+    ui.progress_done()
+    if not report then die(problem) end
+    if options.json then
+        render.json(report)
+    else
+        render.text(report)
+    end
+    return 0
+end
+
+os.exit(main())
