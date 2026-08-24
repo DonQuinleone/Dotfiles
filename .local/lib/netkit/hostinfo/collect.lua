@@ -117,10 +117,11 @@ local function networks_of(entries)
     return networks
 end
 
-local function tls(addresses, servername)
+local function tls(addresses, servername, notify)
     local probes, certificates, order = {}, {}, {}
-    for _, address in ipairs(addresses) do
-        local probe = tls_lib.probe(address, servername)
+    for index, address in ipairs(addresses) do
+        notify(("tls %d/%d"):format(index, #addresses))
+        local probe = tls_lib.survey(address, servername)
         local entry = { address = address }
         if probe then
             local certificate = probe.certificate
@@ -132,12 +133,10 @@ local function tls(addresses, servername)
             end
             local held = certificates[key].addresses
             held[#held + 1] = address
-            entry.protocols =
-                tls_lib.protocols(address, servername)
+            entry.protocols = probe.protocols
             entry.verify = { code = probe.verify_code,
                 message = probe.verify_message }
-            entry.sni = tls_lib.sni_check(address, servername,
-                certificate.fingerprint)
+            entry.sni = probe.sni
             entry.fingerprint = certificate.fingerprint
         end
         probes[#probes + 1] = entry
@@ -235,11 +234,15 @@ local function zone_details(zone)
     }
 end
 
-function collect.report(target, literal, sections)
+function collect.report(target, literal, sections, notify)
+    notify = notify or function() end
     local rules = load_highlights()
     local report = { target = target }
     local zone
-    if not literal then zone = net.find_zone(target) end
+    if not literal then
+        notify("resolving " .. target)
+        zone = net.find_zone(target)
+    end
     local addresses, chain = { target }, { target }
     if not literal then
         local resolved
@@ -253,7 +256,9 @@ function collect.report(target, literal, sections)
     end
     if sections.net then
         report.addresses = {}
-        for _, address in ipairs(addresses) do
+        for index, address in ipairs(addresses) do
+            notify(("addresses %d/%d"):format(index,
+                #addresses))
             report.addresses[#report.addresses + 1] =
                 address_entry(address, chain, rules)
         end
@@ -261,12 +266,14 @@ function collect.report(target, literal, sections)
     end
     if sections.tls then
         report.tls = tls(addresses,
-            not literal and target or nil)
+            not literal and target or nil, notify)
     end
     if sections.dns and zone then
+        notify("zone " .. zone)
         report.zone = zone_details(zone)
     end
     if sections.reg and zone then
+        notify("registration")
         report.registration = net.registration(zone)
     end
     return report

@@ -26,14 +26,33 @@ end
 local quote = net.quote
 local run = net.run
 
-local function tls_client(address, options)
+local function tls_command(address, options)
     local endpoint = address .. ":" .. tls.HTTPS_PORT
     if net.is_ipv6(address) then
         endpoint = "[" .. address .. "]:" .. tls.HTTPS_PORT
     end
-    return run(("timeout %d openssl s_client -connect %s %s " ..
+    return ("timeout %d openssl s_client -connect %s %s " ..
         "</dev/null 2>/dev/null"):format(TLS_TIMEOUT_SECONDS,
-        quote(endpoint), options))
+        quote(endpoint), options)
+end
+
+local function batch_outputs(commands)
+    local dir = run("mktemp -d"):match("%S+")
+    if not dir then return {} end
+    local parts = {}
+    for index, command in ipairs(commands) do
+        parts[#parts + 1] = command .. " > " ..
+            quote(dir .. "/" .. index) .. " &"
+    end
+    run("{ " .. table.concat(parts, " ") .. " wait; }")
+    local outputs = {}
+    for index = 1, #commands do
+        local file = io.open(dir .. "/" .. index)
+        outputs[index] = file and file:read("*a") or ""
+        if file then file:close() end
+    end
+    run("rm -rf " .. quote(dir))
+    return outputs
 end
 
 local function pem_of(output)
@@ -75,21 +94,22 @@ local function sni_options_for(servername)
         " -verify_hostname " .. quote(servername)
 end
 
-function tls.probe(address, servername)
-    local output = tls_client(address, sni_options_for(servername))
-    local pem = pem_of(output)
-    if not pem then return nil end
-    local code, message =
-        output:match("Verify return code: (%d+) %((.-)%)")
-    return {
-        certificate = certificate_details(pem),
-        verify_code = tonumber(code),
-        verify_message = message,
-    }
+local function sni_verdict(servername, bare_pem, fingerprint)
+    if not servername then return "no host" end
+    if not bare_pem then return "required" end
+    local bare = certificate_details(bare_pem)
+    if bare.fingerprint == fingerprint then return "same" end
+    return "different"
 end
 
-function tls.protocols(address, servername)
-    local results = {}
+-- One parallel batch per address: the SNI probe, the bare probe
+-- and every protocol probe run concurrently, so an address costs
+-- one round trip instead of six.
+function tls.survey(address, servername)
+    local commands = {
+        tls_command(address, sni_options_for(servername)),
+        tls_command(address, "-noservername"),
+    }
     for _, protocol in ipairs(TLS_PROTOCOLS) do
         local options =
             sni_options_for(servername) .. " " .. protocol.flag
@@ -97,22 +117,28 @@ function tls.protocols(address, servername)
             options = options ..
                 " -cipher " .. quote(protocol.ciphers)
         end
-        local output = tls_client(address, options)
-        results[#results + 1] = {
+        commands[#commands + 1] = tls_command(address, options)
+    end
+    local outputs = batch_outputs(commands)
+    local pem = pem_of(outputs[1] or "")
+    if not pem then return nil end
+    local code, message =
+        (outputs[1]):match("Verify return code: (%d+) %((.-)%)")
+    local result = {
+        certificate = certificate_details(pem),
+        verify_code = tonumber(code),
+        verify_message = message,
+        protocols = {},
+    }
+    for index, protocol in ipairs(TLS_PROTOCOLS) do
+        result.protocols[index] = {
             label = protocol.label,
-            supported = pem_of(output) ~= nil,
+            supported = pem_of(outputs[2 + index] or "") ~= nil,
         }
     end
-    return results
-end
-
-function tls.sni_check(address, servername, fingerprint)
-    if not servername then return "no host" end
-    local bare = pem_of(tls_client(address, "-noservername"))
-    if not bare then return "required" end
-    local details = certificate_details(bare)
-    if details.fingerprint == fingerprint then return "same" end
-    return "different"
+    result.sni = sni_verdict(servername, pem_of(outputs[2] or ""),
+        result.certificate.fingerprint)
+    return result
 end
 
 return tls

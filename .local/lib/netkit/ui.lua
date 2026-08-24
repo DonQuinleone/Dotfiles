@@ -13,6 +13,18 @@ local BOLD = ui.is_tty and net.run("tput bold") or ""
 local ACCENT = ui.is_tty and net.run("tput setaf 3") or ""
 local RESET = ui.is_tty and net.run("tput sgr0") or ""
 
+local progress_tty = ffi.C.isatty(2) == 1
+
+function ui.progress(message)
+    if not progress_tty then return end
+    io.stderr:write("\r\27[K" .. message)
+end
+
+function ui.progress_done()
+    if not progress_tty then return end
+    io.stderr:write("\r\27[K")
+end
+
 function ui.accent(text)
     return ACCENT .. text .. RESET
 end
