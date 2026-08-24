@@ -1,4 +1,5 @@
 local net = require("netkit.net")
+local tls_lib = require("netkit.tls")
 local ui = require("netkit.ui")
 local json = require("netkit.json")
 
@@ -153,7 +154,7 @@ local function render_certificate(certificate)
 end
 
 local function render_tls(tls)
-    ui.heading("TLS (port " .. net.HTTPS_PORT .. ")")
+    ui.heading("TLS (port " .. tls_lib.HTTPS_PORT .. ")")
     local rows = {}
     for _, probe in ipairs(tls.probes) do
         local row = { probe.address }
@@ -165,7 +166,7 @@ local function render_tls(tls)
             row[#row + 1] = verify_cell(probe.verify)
             row[#row + 1] = sni_cell(probe.sni)
         else
-            for _ in ipairs(net.TLS_PROTOCOL_LABELS) do
+            for _ in ipairs(tls_lib.PROTOCOL_LABELS) do
                 row[#row + 1] = "-"
             end
             row[#row + 1] = "no TLS"
@@ -174,7 +175,7 @@ local function render_tls(tls)
         rows[#rows + 1] = row
     end
     local headers = { "Address" }
-    for _, label in ipairs(net.TLS_PROTOCOL_LABELS) do
+    for _, label in ipairs(tls_lib.PROTOCOL_LABELS) do
         headers[#headers + 1] = label
     end
     headers[#headers + 1] = "Verify"

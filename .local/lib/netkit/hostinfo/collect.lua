@@ -1,4 +1,5 @@
 local net = require("netkit.net")
+local tls_lib = require("netkit.tls")
 
 local collect = {}
 
@@ -119,7 +120,7 @@ end
 local function tls(addresses, servername)
     local probes, certificates, order = {}, {}, {}
     for _, address in ipairs(addresses) do
-        local probe = net.tls_probe(address, servername)
+        local probe = tls_lib.probe(address, servername)
         local entry = { address = address }
         if probe then
             local certificate = probe.certificate
@@ -132,10 +133,10 @@ local function tls(addresses, servername)
             local held = certificates[key].addresses
             held[#held + 1] = address
             entry.protocols =
-                net.tls_protocols(address, servername)
+                tls_lib.protocols(address, servername)
             entry.verify = { code = probe.verify_code,
                 message = probe.verify_message }
-            entry.sni = net.sni_check(address, servername,
+            entry.sni = tls_lib.sni_check(address, servername,
                 certificate.fingerprint)
             entry.fingerprint = certificate.fingerprint
         end
