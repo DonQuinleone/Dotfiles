@@ -10,10 +10,11 @@ set -gx PAGER most
 set -gx GNUPGHOME $XDG_DATA_HOME/gnupg
 set -gx NPM_CONFIG_CACHE $XDG_CACHE_HOME/npm
 
-# gpg-agent serves SSH too, and a terminal started by the
-# compositor never sees ~/.config/environment.d. The socket
-# path derives from GNUPGHOME, so that has to be set first.
-if command -q gpgconf
+# The session names the keyring's agent in SSH_AUTH_SOCK, and
+# its keys answer without a passphrase. A bare tty has no
+# session to inherit it from, so gpg-agent's ssh support stands
+# in there; its socket path derives from GNUPGHOME, set above.
+if not set -q SSH_AUTH_SOCK; and command -q gpgconf
     set -gx SSH_AUTH_SOCK (gpgconf --list-dirs agent-ssh-socket)
 end
 
