@@ -6,6 +6,7 @@ local TLS_TIMEOUT_SECONDS = 4
 local SECONDS_PER_DAY = 86400
 
 tls.HTTPS_PORT = 443
+tls.SMTP_PORT = 25
 
 -- Fedora's default OpenSSL security level refuses TLS 1.0/1.1
 -- handshakes client-side, which would report every server as
@@ -23,13 +24,27 @@ for _, protocol in ipairs(TLS_PROTOCOLS) do
         protocol.label
 end
 
+local VERIFY_LABELS = {
+    [0] = "ok",
+    [10] = "expired",
+    [18] = "self-signed",
+    [19] = "self-signed chain",
+    [20] = "unknown issuer",
+    [62] = "hostname mismatch",
+}
+
+function tls.verify_label(code, message)
+    if not code then return "unknown" end
+    return VERIFY_LABELS[code] or message or "unknown"
+end
+
 local quote = net.quote
 local run = net.run
 
-local function tls_command(address, options)
-    local endpoint = address .. ":" .. tls.HTTPS_PORT
+local function tls_command(address, port, options)
+    local endpoint = address .. ":" .. port
     if net.is_ipv6(address) then
-        endpoint = "[" .. address .. "]:" .. tls.HTTPS_PORT
+        endpoint = "[" .. address .. "]:" .. port
     end
     return ("timeout %d openssl s_client -connect %s %s " ..
         "</dev/null 2>/dev/null"):format(TLS_TIMEOUT_SECONDS,
@@ -94,6 +109,24 @@ local function sni_options_for(servername)
         " -verify_hostname " .. quote(servername)
 end
 
+local function parse_probe(output)
+    local pem = pem_of(output)
+    if not pem then return nil end
+    local code, message =
+        output:match("Verify return code: (%d+) %((.-)%)")
+    return {
+        certificate = certificate_details(pem),
+        verify_code = tonumber(code),
+        verify_message = message,
+    }
+end
+
+function tls.smtp_probe(host)
+    local output = run(tls_command(host, tls.SMTP_PORT,
+        "-starttls smtp " .. sni_options_for(host)))
+    return parse_probe(output)
+end
+
 local function sni_verdict(servername, bare_pem, fingerprint)
     if not servername then return "no host" end
     if not bare_pem then return "required" end
@@ -106,9 +139,10 @@ end
 -- and every protocol probe run concurrently, so an address costs
 -- one round trip instead of six.
 function tls.survey(address, servername)
+    local port = tls.HTTPS_PORT
     local commands = {
-        tls_command(address, sni_options_for(servername)),
-        tls_command(address, "-noservername"),
+        tls_command(address, port, sni_options_for(servername)),
+        tls_command(address, port, "-noservername"),
     }
     for _, protocol in ipairs(TLS_PROTOCOLS) do
         local options =
@@ -117,19 +151,13 @@ function tls.survey(address, servername)
             options = options ..
                 " -cipher " .. quote(protocol.ciphers)
         end
-        commands[#commands + 1] = tls_command(address, options)
+        commands[#commands + 1] =
+            tls_command(address, port, options)
     end
     local outputs = batch_outputs(commands)
-    local pem = pem_of(outputs[1] or "")
-    if not pem then return nil end
-    local code, message =
-        (outputs[1]):match("Verify return code: (%d+) %((.-)%)")
-    local result = {
-        certificate = certificate_details(pem),
-        verify_code = tonumber(code),
-        verify_message = message,
-        protocols = {},
-    }
+    local result = parse_probe(outputs[1] or "")
+    if not result then return nil end
+    result.protocols = {}
     for index, protocol in ipairs(TLS_PROTOCOLS) do
         result.protocols[index] = {
             label = protocol.label,

@@ -202,6 +202,25 @@ function net.host_addresses(name)
     return addresses
 end
 
+function net.mx_records(name)
+    local mail = {}
+    for _, row in ipairs(net.typed_answers(name, "MX")) do
+        local preference, exchange =
+            row.rdata:match("^(%d+)%s+(%S+)")
+        if exchange then
+            mail[#mail + 1] = {
+                preference = tonumber(preference),
+                exchange = strip_dot(exchange),
+                ttl = row.ttl,
+            }
+        end
+    end
+    table.sort(mail, function(a, b)
+        return a.preference < b.preference
+    end)
+    return mail
+end
+
 function net.find_zone(name)
     while name:find("%.") do
         if #records(name, "NS") > 0 then return name end

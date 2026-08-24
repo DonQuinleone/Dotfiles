@@ -174,26 +174,6 @@ local function soa_of(zone)
     }
 end
 
-local function mail_of(zone)
-    local rows = net.typed_answers(zone, "MX")
-    local mail = {}
-    for _, row in ipairs(rows) do
-        local preference, exchange =
-            row.rdata:match("^(%d+)%s+(%S+)")
-        if exchange then
-            mail[#mail + 1] = {
-                preference = tonumber(preference),
-                exchange = net.strip_dot(exchange),
-                ttl = row.ttl,
-            }
-        end
-    end
-    table.sort(mail, function(a, b)
-        return a.preference < b.preference
-    end)
-    return mail
-end
-
 local function first_txt(name, marker)
     for _, txt in ipairs(net.records(name, "TXT")) do
         local cleaned = net.unquote_txt(txt)
@@ -224,7 +204,7 @@ local function zone_details(zone)
         name = zone,
         ns = ns,
         soa = soa_of(zone),
-        mx = mail_of(zone),
+        mx = net.mx_records(zone),
         spf = first_txt(zone, "^v=spf1"),
         dmarc = first_txt("_dmarc." .. zone, "^v=dmarc1"),
         caa = net.records(zone, "CAA"),

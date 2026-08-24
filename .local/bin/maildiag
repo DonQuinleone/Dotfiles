@@ -1,0 +1,101 @@
+#!/usr/bin/env luajit
+
+local source = arg[0] or "maildiag"
+local resolver = io.popen(("readlink -f -- '%s'")
+    :format(source:gsub("'", [['\'']])))
+local resolved = resolver and resolver:read("*l") or nil
+if resolver then resolver:close() end
+local base = (resolved or source):match("^(.*)/[^/]+$") or "."
+package.path = base .. "/../lib/?.lua;" .. package.path
+
+local net = require("netkit.net")
+local ui = require("netkit.ui")
+local collect = require("netkit.maildiag.collect")
+local render = require("netkit.maildiag.render")
+
+local USAGE_EXIT_CODE = 64
+
+local SECTION_FLAGS = {
+    ["--policy"] = "policy",
+    ["--dkim"] = "dkim",
+    ["--mx"] = "mx",
+}
+
+local USAGE = [[
+Usage: maildiag [--json] [--policy] [--dkim] [--mx]
+                <domain|address>
+
+Reports a domain's mail deliverability posture: SPF, DMARC,
+MTA-STS and TLS-RPT policy records, DKIM selectors, and each MX
+host's addresses, reverse DNS, SMTP banner, STARTTLS certificate,
+DANE TLSA presence and DNS blacklist listings.
+
+Section flags limit the report: --policy, --dkim, --mx. No
+section flag means all of them. --json emits the report as JSON
+instead of tables.]]
+
+local function die(message)
+    io.stderr:write("maildiag: " .. message .. "\n")
+    os.exit(1)
+end
+
+local function usage_error()
+    io.stderr:write(USAGE .. "\n")
+    os.exit(USAGE_EXIT_CODE)
+end
+
+local function parse_arguments()
+    local options = { sections = {} }
+    local chosen = false
+    for _, argument in ipairs(arg) do
+        if argument == "-h" or argument == "--help" then
+            print(USAGE)
+            os.exit(0)
+        elseif argument == "--json" then
+            options.json = true
+        elseif SECTION_FLAGS[argument] then
+            options.sections[SECTION_FLAGS[argument]] = true
+            chosen = true
+        elseif argument:match("^%-") or options.target then
+            usage_error()
+        else
+            options.target = argument
+        end
+    end
+    if not options.target then usage_error() end
+    if not chosen then
+        for _, section in pairs(SECTION_FLAGS) do
+            options.sections[section] = true
+        end
+    end
+    return options
+end
+
+local function main()
+    io.stdout:setvbuf("line")
+    local options = parse_arguments()
+    for _, tool in ipairs(net.REQUIRED_TOOLS) do
+        if net.run("command -v " .. tool) == "" then
+            die(tool .. " not found")
+        end
+    end
+    local domain = net.normalise_target(options.target)
+    if net.is_ipv4(domain) or net.is_ipv6(domain) then
+        die("expects a domain, not an address")
+    end
+    if domain == "" or not net.plausible_host(domain) then
+        die("could not parse a domain from '" ..
+            options.target .. "'")
+    end
+    local report =
+        collect.report(domain, options.sections, ui.progress)
+    ui.progress_done()
+    if options.json then
+        render.json(report)
+    else
+        render.text(report)
+    end
+    return 0
+end
+
+os.exit(main())

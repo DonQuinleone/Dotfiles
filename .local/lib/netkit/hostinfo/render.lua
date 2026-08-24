@@ -7,15 +7,6 @@ local render = {}
 
 local EXPIRY_WARNING_DAYS = 30
 
-local VERIFY_LABELS = {
-    [0] = "ok",
-    [10] = "expired",
-    [18] = "self-signed",
-    [19] = "self-signed chain",
-    [20] = "unknown issuer",
-    [62] = "hostname mismatch",
-}
-
 local SNI_LABELS = {
     ["no host"] = "-",
     ["same"] = "same cert",
@@ -120,8 +111,9 @@ local function render_networks(networks)
 end
 
 local function verify_cell(verify)
-    if not verify or not verify.code then return "unknown" end
-    local label = VERIFY_LABELS[verify.code] or verify.message
+    if not verify then return "unknown" end
+    local label =
+        tls_lib.verify_label(verify.code, verify.message)
     if label == "ok" then return "ok" end
     return accent(label)
 end
