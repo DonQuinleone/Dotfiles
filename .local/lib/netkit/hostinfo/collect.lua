@@ -14,6 +14,13 @@ local function load_highlights()
     return {}
 end
 
+-- Patterns come from the user's highlights.lua, so a malformed
+-- one is pcall'd rather than allowed to abort the whole tool.
+local function name_matches(name, pattern)
+    local ok, hit = pcall(string.match, name, pattern)
+    return ok and hit ~= nil
+end
+
 local function highlight_for(rules, asn, names)
     for _, rule in ipairs(rules) do
         for _, rule_asn in ipairs(rule.asns or {}) do
@@ -23,7 +30,7 @@ local function highlight_for(rules, asn, names)
         end
         for _, pattern in ipairs(rule.patterns or {}) do
             for _, name in ipairs(names) do
-                if name and name:match(pattern) then
+                if name and name_matches(name, pattern) then
                     return rule.label
                 end
             end
@@ -31,23 +38,20 @@ local function highlight_for(rules, asn, names)
     end
 end
 
-local function resolution(target, zone)
-    local answers = net.answers(target, "A")
-    for _, row in ipairs(net.answers(target, "AAAA")) do
-        answers[#answers + 1] = row
+local function cname_after(answers, current)
+    for _, row in ipairs(answers) do
+        if row.owner:lower() == current:lower()
+            and row.type == "CNAME" then
+            return net.strip_dot(row.rdata), row.ttl
+        end
     end
+end
+
+local function chain_of(answers, target)
     local rows, seen, chain = {}, {}, { target }
     local current = target
     while true do
-        local next_name, ttl
-        for _, row in ipairs(answers) do
-            if row.owner:lower() == current:lower()
-                and row.type == "CNAME" then
-                next_name = net.strip_dot(row.rdata)
-                ttl = row.ttl
-                break
-            end
-        end
+        local next_name, ttl = cname_after(answers, current)
         if not next_name or seen[next_name] then break end
         rows[#rows + 1] = { name = current, type = "CNAME",
             value = next_name, ttl = ttl }
@@ -55,11 +59,15 @@ local function resolution(target, zone)
         chain[#chain + 1] = next_name
         current = next_name
     end
-    local addresses = {}
+    return rows, chain, current
+end
+
+local function addresses_of(answers, terminal)
+    local rows, addresses = {}, {}
     for _, type_ in ipairs({ "A", "AAAA" }) do
         local count, ttl = 0, nil
         for _, row in ipairs(answers) do
-            if row.owner:lower() == current:lower()
+            if row.owner:lower() == terminal:lower()
                 and row.type == type_ then
                 count = count + 1
                 ttl = ttl or row.ttl
@@ -67,13 +75,27 @@ local function resolution(target, zone)
             end
         end
         if count > 0 then
-            rows[#rows + 1] = { name = current, type = type_,
+            rows[#rows + 1] = { name = terminal, type = type_,
                 value = count, ttl = ttl }
         end
     end
-    local apex = #rows > 0 and rows[1].type ~= "CNAME"
-        and target == zone
-    return { rows = rows, apex = apex or false },
+    return rows, addresses
+end
+
+local function resolution(target, zone)
+    local answers = net.answers(target, "A")
+    for _, row in ipairs(net.answers(target, "AAAA")) do
+        answers[#answers + 1] = row
+    end
+    local chain_rows, chain, terminal = chain_of(answers, target)
+    local address_rows, addresses =
+        addresses_of(answers, terminal)
+    for _, row in ipairs(address_rows) do
+        chain_rows[#chain_rows + 1] = row
+    end
+    local apex = #chain_rows > 0
+        and chain_rows[1].type ~= "CNAME" and target == zone
+    return { rows = chain_rows, apex = apex or false },
         addresses, chain
 end
 

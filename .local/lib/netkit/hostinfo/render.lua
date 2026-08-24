@@ -5,7 +5,7 @@ local json = require("netkit.json")
 
 local render = {}
 
-local EXPIRY_WARNING_DAYS = 30
+local EXPIRY_WARNING_DAYS = tls_lib.EXPIRY_WARNING_DAYS
 
 local SNI_LABELS = {
     ["no host"] = "-",

@@ -5,7 +5,7 @@ local maildiag_collect = require("netkit.maildiag.collect")
 
 local render = {}
 
-local EXPIRY_WARNING_DAYS = 30
+local EXPIRY_WARNING_DAYS = tls_lib.EXPIRY_WARNING_DAYS
 local ADDRESS_CELL_LIMIT = 2
 
 local accent = ui.accent

@@ -7,6 +7,7 @@ local SECONDS_PER_DAY = 86400
 
 tls.HTTPS_PORT = 443
 tls.SMTP_PORT = 25
+tls.EXPIRY_WARNING_DAYS = 30
 
 -- Fedora's default OpenSSL security level refuses TLS 1.0/1.1
 -- handshakes client-side, which would report every server as
