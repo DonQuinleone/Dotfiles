@@ -3,7 +3,7 @@ local tls_lib = require("netkit.tls")
 
 local collect = {}
 
-local BANNER_TIMEOUT_SECONDS = 5
+local SMTP_PORT = 25
 
 local DKIM_SELECTORS = {
     "default", "google", "selector1", "selector2",
@@ -85,12 +85,7 @@ local function dkim_of(domain)
 end
 
 local function banner_of(host)
-    local script = ("exec 3<>/dev/tcp/%s/25 && IFS= read -r " ..
-        "-t %d line <&3 && printf '%%s' \"$line\""):format(
-        host, BANNER_TIMEOUT_SECONDS)
-    local output = net.run(("timeout %d bash -c %s 2>/dev/null")
-        :format(BANNER_TIMEOUT_SECONDS + 1, net.quote(script)))
-    return (output:gsub("[\r\n]", ""))
+    return net.tcp_probe(host, SMTP_PORT).banner
 end
 
 local function mx_entry(record)

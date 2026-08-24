@@ -22,11 +22,14 @@ stub() {
 
 stub dig "printf 'x.\t300\tIN\tA\t${STUB_V4}\n'"
 
-# Stands in for the real connect: port 80 answers with a banner,
-# 2083 opens silently, everything else is refused.
+# Stands in for the real connect: net.tcp_probe invokes
+# 'timeout N bash -c SCRIPT netkit-tcp HOST PORT', so the host
+# and port arrive as trailing arguments. Port 80 answers with a
+# banner, 2083 opens silently, everything else is refused.
 stub timeout "case \" \$* \" in
-    */${STUB_V4}/80*) printf 'HTTP/1.1 200 OK'; exit 0 ;;
-    */${STUB_V4}/2083*) exit 0 ;;
+    *\" ${STUB_V4} 80 \"*)
+        printf 'HTTP/1.1 200 OK'; exit 0 ;;
+    *\" ${STUB_V4} 2083 \"*) exit 0 ;;
     *) exit 1 ;;
 esac"
 
@@ -57,3 +60,14 @@ assert_equal "json marks the closed port" \
 
 assert_status "an ip target needs no resolver" 0 \
     "${PORTPEEK}" --ports 80 "${STUB_V4}"
+
+# A hostile hostname must reach bash as data, never as code. The
+# real timeout and bash run here (the payload only touches a
+# local file, no socket), and the stub dig hands back an address
+# carrying a substitution; the marker must not appear.
+rm -f "${WORKSPACE}/timeout"
+marker="${WORKSPACE}/pwned"
+stub dig "printf 'x.\t300\tIN\tA\t\$(touch ${marker})x\n'"
+"${PORTPEEK}" --ports 80 evil.example >/dev/null 2>&1 || true
+assert "a substitution in a resolved address does not run" \
+    bash -c "[[ ! -e '${marker}' ]]"
