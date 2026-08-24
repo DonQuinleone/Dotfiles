@@ -104,9 +104,12 @@ local function starttls_cell(starttls)
 end
 
 local function rbl_mx_cell(entry)
-    if not entry.rbl_hits then return "n/a" end
-    if #entry.rbl_hits == 0 then return "clean" end
-    return accent(#entry.rbl_hits .. " listed")
+    if not entry.rbl then return "n/a" end
+    if #entry.rbl.hits > 0 then
+        return accent(#entry.rbl.hits .. " listed")
+    end
+    if #entry.rbl.refused > 0 then return accent("refused") end
+    return "clean"
 end
 
 local function render_mx(report)
@@ -136,9 +139,16 @@ local function render_mx(report)
         end
     end
     for _, entry in ipairs(report.mx) do
-        for _, hit in ipairs(entry.rbl_hits or {}) do
+        for _, hit in ipairs(entry.rbl and entry.rbl.hits
+            or {}) do
             ui.keyed(entry.exchange, accent(hit.zone .. " " ..
                 hit.code))
+        end
+        local refused = entry.rbl and entry.rbl.refused or {}
+        if #refused > 0 then
+            ui.keyed(entry.exchange, "(" ..
+                table.concat(refused, ", ") ..
+                ": refused, needs a direct resolver)")
         end
     end
 end

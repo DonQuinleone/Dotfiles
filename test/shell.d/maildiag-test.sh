@@ -31,7 +31,11 @@ stub dig "case \" \$* \" in
         printf 'rua=mailto:d@example.com\"\n' ;;
     *default._domainkey.*)
         printf 'x.\t300\tIN\tTXT\t\"v=DKIM1; k=rsa; p=abc\"\n' ;;
+    *google._domainkey.*)
+        printf 'x.\t300\tIN\tTXT\t\"v=spf1 a exp=explain\"\n' ;;
     *_domainkey.*|*_mta-sts.*|*_smtp._tls.*) exit 0 ;;
+    *zen.spamhaus.org*)
+        printf 'x.\t60\tIN\tA\t127.255.255.254\n' ;;
     *' TXT '*)
         printf 'x.\t300\tIN\tTXT\t\"v=spf1 ~all\"\n' ;;
     *' TLSA '*) exit 0 ;;
@@ -57,6 +61,10 @@ assert "dmarc policy is shown" \
     grep -q "quarantine" <<<"${report}"
 assert "dkim selector is found" \
     grep -Eq "Selectors +default" <<<"${report}"
+assert "an spf-like exp= record is not counted as dkim" \
+    bash -c "! grep -q 'google' <<<'${report}'"
+assert "a spamhaus refusal is surfaced, not called clean" \
+    grep -q "refused" <<<"${report}"
 
 encoded=$("${MAILDIAG}" --json --mx example.com)
 assert_equal "json lists the primary exchange" \

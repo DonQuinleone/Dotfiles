@@ -3,7 +3,8 @@ local tls_lib = require("netkit.tls")
 
 local collect = {}
 
-local SMTP_PORT = 25
+local SMTP_PORT = tls_lib.SMTP_PORT
+local MTA_STS_TIMEOUT_SECONDS = 8
 
 local DKIM_SELECTORS = {
     "default", "google", "selector1", "selector2",
@@ -46,9 +47,9 @@ local function mta_sts_of(domain)
         "TXT")) do
         local cleaned = net.unquote_txt(txt)
         if cleaned:lower():match("^v=stsv1") then
-            local policy = net.run(("curl -fsSL --max-time 8 " ..
-                "%s 2>/dev/null"):format(net.quote(
-                "https://mta-sts." .. domain ..
+            local policy = net.run(("curl -fsSL --max-time %d " ..
+                "%s 2>/dev/null"):format(MTA_STS_TIMEOUT_SECONDS,
+                net.quote("https://mta-sts." .. domain ..
                 "/.well-known/mta-sts.txt")))
             return {
                 record = cleaned,
@@ -68,14 +69,25 @@ local function tlsrpt_of(domain)
     end
 end
 
+-- A DKIM record is v=DKIM1 or, when the version tag is omitted,
+-- carries a public key (p=) beside a key type (k=). A leading
+-- separator makes each tag match as a field, so an unrelated
+-- SPF exp= modifier on a wildcard TXT no longer counts.
+local function has_tag(record, tag)
+    return ("; " .. record):match(";%s*" .. tag .. "=") ~= nil
+end
+
+local function is_dkim(record)
+    if record:match("v=DKIM1") then return true end
+    return has_tag(record, "p") and has_tag(record, "k")
+end
+
 local function dkim_of(domain)
     local found = {}
     for _, selector in ipairs(DKIM_SELECTORS) do
         local name = selector .. "._domainkey." .. domain
         for _, txt in ipairs(net.records(name, "TXT")) do
-            local cleaned = net.unquote_txt(txt)
-            if cleaned:match("v=DKIM1") or cleaned:match("k=")
-                or cleaned:match("p=") then
+            if is_dkim(net.unquote_txt(txt)) then
                 found[#found + 1] = selector
                 break
             end
@@ -98,8 +110,10 @@ local function mx_entry(record)
     local first = entry.addresses[1]
     if first then
         entry.rdns = net.ptr_names(first)[1]
-        local hits = net.rbl_results(first)
-        if hits then entry.rbl_hits = hits end
+        local hits, refused = net.rbl_results(first)
+        if hits then
+            entry.rbl = { hits = hits, refused = refused }
+        end
     end
     entry.banner = banner_of(entry.exchange)
     local probe = tls_lib.smtp_probe(entry.exchange)
