@@ -1,5 +1,0 @@
-[options]
-background = @imvBackground@
-overlay_font = @imvFont@
-overlay_text_color = @imvText@
-overlay_background_color = @imvOverlay@

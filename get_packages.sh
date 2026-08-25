@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# shellcheck source-path=SCRIPTDIR/.local/share/donbox/lib
+# shellcheck source-path=SCRIPTDIR
 set -euo pipefail
 
 REPO=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
 readonly REPO
 readonly MANIFEST="${REPO}/packages.json"
-readonly LIBRARY="${REPO}/.local/share/donbox/lib/packages.sh"
+readonly LIBRARY="${REPO}/packages.sh"
 
 die() {
     printf 'get_packages: %s\n' "$1" >&2
@@ -28,7 +28,7 @@ command -v jq >/dev/null 2>&1 || {
     sudo dnf -y -q install jq
 }
 
-# shellcheck source=.local/share/donbox/lib/packages.sh
+# shellcheck source=packages.sh
 source "${LIBRARY}"
 manifest_require
 

@@ -115,3 +115,19 @@ export PYTHON_HISTORY="$XDG_STATE_HOME/python/history"
 export W3M_DIR="$XDG_STATE_HOME/w3m"
 
 eval "$(thefuck --alias)"
+# >>> donbox theme >>>
+__donbox_theme_file="/home/user/.local/state/donbox/current/theme/shell-colours.sh"
+__donbox_theme_refresh() {
+    local stamp
+    stamp=$(stat -c %Y "${__donbox_theme_file}" 2>/dev/null)
+    [ "${stamp}" = "${__donbox_theme_stamp:-}" ] && return 0
+    __donbox_theme_stamp="${stamp}"
+    [ -r "${__donbox_theme_file}" ] &&
+        . "${__donbox_theme_file}"
+}
+__donbox_theme_refresh
+case "${PROMPT_COMMAND:-}" in
+*__donbox_theme_refresh*) ;;
+*) PROMPT_COMMAND="__donbox_theme_refresh${PROMPT_COMMAND:+; ${PROMPT_COMMAND}}" ;;
+esac
+# <<< donbox theme <<<

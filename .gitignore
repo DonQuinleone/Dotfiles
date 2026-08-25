@@ -1,2 +1,22 @@
 .claude/
 HANDOFF.md
+
+# Employer-internal Work helper, must never enter this repo
+.local/share/claude/skills/work/
+
+# Personal identity include, never committed
+.config/git/personal.inc
+
+# Written by donbox through the stowed links
+.config/fish/conf.d/donbox.fish
+.config/fish/completions/
+.config/nvim/lua/donbox/
+.local/share/claude/skills/add-migration/
+.local/share/claude/skills/diagnose-crash/
+.local/share/claude/skills/new-command/
+.local/share/claude/skills/new-plugin/
+.local/share/claude/skills/new-theme/
+.local/share/claude/skills/port-omarchy/
+.local/share/claude/skills/restart-shell/
+.local/share/claude/skills/theme-template/
+.local/share/claude/skills/visual-verification/

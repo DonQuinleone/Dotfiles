@@ -3,8 +3,7 @@
 \.gitmodules
 \.stow-local-ignore
 README\.md
-migrations
 bootstrap\.sh
 get_packages\.sh
 packages\.json
-test
+packages\.sh
