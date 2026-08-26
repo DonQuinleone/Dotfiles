@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+readonly LOG="${XDG_STATE_HOME:-$HOME/.local/state}/desktop-keys.log"
+printf '%s %s %s\n' "$(date +%H:%M:%S)" "${0##*/}" "${1:-}" >> "$LOG"
+
 readonly STEP=5
 readonly APP=brightness
 readonly STATE="${XDG_RUNTIME_DIR:-/tmp}/brightness-osd"

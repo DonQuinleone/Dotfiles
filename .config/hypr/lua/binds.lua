@@ -6,7 +6,7 @@ local layouts = require("layouts")
 local RESIZE_STEP = 60
 local WORKSPACES_PER_MONITOR = 9
 
-local held = { locked = true, repeating = true }
+local held = { repeating = true }
 local locked = { locked = true }
 local mouse = { mouse = true }
 
@@ -159,6 +159,8 @@ local rows = {
       "Save the screen" },
     { "SUPER + CTRL + SHIFT", "p", run(SAVE_REGION),
       "Save a region" },
+    { "SUPER + ALT", "p", run("screenshot annotate"),
+      "Annotate a region" },
 
     { "", "Print", run(COPY_REGION), "Copy a region" },
     { "SHIFT", "Print", run(COPY_SCREEN), "Copy the screen" },
