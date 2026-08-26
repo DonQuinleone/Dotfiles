@@ -4,16 +4,20 @@ set -euo pipefail
 readonly STATE="${XDG_STATE_HOME:-$HOME/.local/state}/theme"
 readonly WALLS="${XDG_PICTURES_DIR:-$HOME/Pictures}/walls"
 readonly CHOSEN="${STATE}/wallpaper"
+readonly PER_THEME="${STATE}/wallpapers"
 
 theme_slug() {
     [ -r "${STATE}/current" ] && cat "${STATE}/current" || echo ember
 }
 
-available() {
+theme_dir() {
     local dir
     dir="${WALLS}/$(theme_slug)"
-    [ -d "$dir" ] || dir="$WALLS"
-    find "$dir" -type f \
+    [ -d "$dir" ] && printf '%s\n' "$dir" || printf '%s\n' "$WALLS"
+}
+
+available() {
+    find "$(theme_dir)" -type f \
         \( -iname '*.png' -o -iname '*.jpg' -o -iname '*.jpeg' \) \
         | sort
 }
@@ -24,9 +28,20 @@ apply() {
         printf 'wallpaper: cannot read %s\n' "$image" >&2
         exit 1
     }
-    mkdir -p "$STATE"
+    mkdir -p "$STATE" "$PER_THEME"
     printf '%s\n' "$image" > "$CHOSEN"
+    printf '%s\n' "$image" > "${PER_THEME}/$(theme_slug)"
     systemctl --user restart wallpaper.service
+}
+
+remembered() {
+    local saved
+    saved="${PER_THEME}/$(theme_slug)"
+    [ -r "$saved" ] || return 1
+    local image
+    image=$(cat "$saved")
+    [ -r "$image" ] || return 1
+    printf '%s\n' "$image"
 }
 
 case "${1:-current}" in
@@ -44,6 +59,10 @@ case "${1:-current}" in
     random)
         apply "$(available | shuf -n 1)"
         ;;
+    theme)
+        image=$(remembered || available | head -1)
+        [ -n "$image" ] && apply "$image"
+        ;;
     current)
         [ -r "$CHOSEN" ] && cat "$CHOSEN" || echo none
         ;;
@@ -51,7 +70,8 @@ case "${1:-current}" in
         available
         ;;
     *)
-        printf 'usage: %s set|pick|random|current|list\n' "${0##*/}" >&2
+        printf 'usage: %s set|pick|random|theme|current|list\n' \
+            "${0##*/}" >&2
         exit 2
         ;;
 esac

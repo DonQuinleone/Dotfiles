@@ -3,8 +3,13 @@
   "position": "top",
   "height": 48,
   "spacing": 6,
-  "modules-left": ["hyprland/workspaces", "hyprland/submap"],
-  "modules-center": ["clock"],
+  "modules-left": [
+    "hyprland/workspaces",
+    "hyprland/submap"
+  ],
+  "modules-center": [
+    "clock"
+  ],
   "modules-right": [
     "tray",
     "custom/notifications",
@@ -17,23 +22,55 @@
     "pulseaudio",
     "battery"
   ],
-
   "hyprland/workspaces": {
     "format": "{icon}",
     "format-icons": {
-      "default": "",
-      "active": "",
-      "urgent": ""
+      "1": "1",
+      "2": "2",
+      "3": "3",
+      "4": "4",
+      "5": "5",
+      "6": "6",
+      "7": "7",
+      "8": "8",
+      "9": "9",
+      "11": "1",
+      "12": "2",
+      "13": "3",
+      "14": "4",
+      "15": "5",
+      "16": "6",
+      "17": "7",
+      "18": "8",
+      "19": "9",
+      "21": "1",
+      "22": "2",
+      "23": "3",
+      "24": "4",
+      "25": "5",
+      "26": "6",
+      "27": "7",
+      "28": "8",
+      "29": "9",
+      "31": "1",
+      "32": "2",
+      "33": "3",
+      "34": "4",
+      "35": "5",
+      "36": "6",
+      "37": "7",
+      "38": "8",
+      "39": "9",
+      "urgent": "!",
+      "default": "●"
     },
     "on-click": "activate",
     "sort-by-number": true
   },
-
   "hyprland/submap": {
     "format": "{}",
     "tooltip": false
   },
-
   "clock": {
     "format": "{:%a %d %b  %H:%M}",
     "tooltip-format": "<tt>{calendar}</tt>",
@@ -43,15 +80,12 @@
       "format": {
         "today": "<b>{}</b>"
       }
-    },
-    "on-click": "rofi -show calc -modi calc -no-show-match -no-sort"
+    }
   },
-
   "tray": {
     "icon-size": 20,
     "spacing": 8
   },
-
   "custom/notifications": {
     "exec": "notification-state",
     "return-type": "json",
@@ -59,63 +93,58 @@
     "on-click": "makoctl mode -t do-not-disturb",
     "on-click-right": "makoctl dismiss --all"
   },
-
   "custom/updates": {
     "exec": "pending-updates",
     "return-type": "json",
     "interval": 3600,
     "on-click": "kitty --class activity sudo dnf upgrade"
   },
-
   "cpu": {
     "format": "󰍛 {usage}%",
     "interval": 5,
     "on-click": "kitty --class activity btop"
   },
-
   "memory": {
-    "format": " {percentage}%",
+    "format": " {percentage}%",
     "interval": 10,
     "on-click": "kitty --class activity btop"
   },
-
   "network": {
-    "format-wifi": "  {signalStrength}%",
+    "format-wifi": " {signalStrength}%",
     "format-ethernet": "󰈀",
-    "format-disconnected": "󰤭",
+    "format-disconnected": "󰈁",
     "tooltip-format-wifi": "{essid}  {ipaddr}",
     "tooltip-format-ethernet": "{ifname}  {ipaddr}",
     "on-click": "kitty --class activity nmtui"
   },
-
   "bluetooth": {
-    "format": "",
+    "format": "",
     "format-disabled": "",
-    "format-connected": " {num_connections}",
+    "format-connected": " {num_connections}",
     "tooltip-format-connected": "{device_enumerate}",
     "on-click": "kitty --class activity bluetoothctl"
   },
-
   "pulseaudio": {
     "format": "{icon} {volume}%",
-    "format-muted": "󰝟",
+    "format-muted": "",
     "format-icons": {
-      "headphone": "",
-      "default": ["", "", ""]
+      "headphone": "",
+      "default": [
+        "",
+        ""
+      ]
     },
     "on-click": "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle",
     "on-click-right": "pavucontrol",
     "on-scroll-up": "wpctl set-volume -l 1 @DEFAULT_AUDIO_SINK@ 5%+",
     "on-scroll-down": "wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-"
   },
-
   "pulseaudio#microphone": {
     "format": "{format_source}",
-    "format-source": "",
-    "format-source-muted": "",
+    "format-source": "",
+    "format-source-muted": "",
     "on-click": "wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"
   },
-
   "battery": {
     "states": {
       "warning": 25,
@@ -123,7 +152,13 @@
     },
     "format": "{icon} {capacity}%",
     "format-charging": "󰂄 {capacity}%",
-    "format-icons": ["", "", "", "", ""],
+    "format-icons": [
+      "",
+      "",
+      "",
+      "",
+      ""
+    ],
     "tooltip-format": "{timeTo}"
   }
 }

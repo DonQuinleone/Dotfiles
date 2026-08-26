@@ -164,6 +164,15 @@ def link(rendered_name, relative):
     path.symlink_to(target)
 
 
+def follow_wallpaper():
+    chooser = shutil.which("wallpaper")
+    if chooser is None:
+        return
+    subprocess.run((chooser, "theme"), check=False,
+                   stdout=subprocess.DEVNULL,
+                   stderr=subprocess.DEVNULL)
+
+
 def reload_live():
     for binary, command in RELOADS:
         if shutil.which(binary) is None:
@@ -194,6 +203,7 @@ def set_theme(slug):
         link(rendered_name, relative)
 
     CURRENT.write_text(slug + "\n")
+    follow_wallpaper()
     reload_live()
     print("theme: %s (%d files)" % (slug, written))
 
