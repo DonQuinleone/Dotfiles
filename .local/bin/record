@@ -4,6 +4,7 @@ set -euo pipefail
 readonly RUNTIME="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
 readonly PIDFILE="${RUNTIME}/record.pid"
 readonly SAVE_DIR="${XDG_VIDEOS_DIR:-$HOME/Videos}/recordings"
+readonly BLOB='●'
 
 running() {
     [ -r "$PIDFILE" ] || return 1
@@ -14,6 +15,7 @@ stop() {
     kill -INT "$(cat "$PIDFILE")" 2>/dev/null || true
     rm -f "$PIDFILE"
     notify-send -a record -t 2000 "Recording saved"
+    bar-signal record
 }
 
 start() {
@@ -24,6 +26,27 @@ start() {
         -f "${SAVE_DIR}/$(date +%Y-%m-%d-%H%M%S).mp4" &
     printf '%s\n' "$!" > "$PIDFILE"
     notify-send -a record -t 2000 "Recording"
+    bar-signal record
 }
 
-if running; then stop; else start; fi
+report() {
+    running || { printf '{"text":""}\n'; return; }
+    printf '{"text":"%s","tooltip":"Recording to %s"}\n' \
+        "$BLOB" "$SAVE_DIR"
+}
+
+case "${1:-toggle}" in
+    toggle)
+        if running; then stop; else start; fi
+        ;;
+    status)
+        running && echo recording || echo idle
+        ;;
+    waybar)
+        report
+        ;;
+    *)
+        printf 'usage: %s toggle|status|waybar\n' "${0##*/}" >&2
+        exit 2
+        ;;
+esac

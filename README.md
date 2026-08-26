@@ -61,9 +61,9 @@ kept out of the repository because it is images.
 The rest are small commands the session binds to keys:
 `focus-monitor` and `send-window-to-monitor` step the screens in
 position order rather than trusting a compass direction,
-`caffeinate` holds an inhibitor, `power-menu`, `screenshot`,
-`clipboard-history` and `keybind-help` each do the one thing they
-are named for.
+`caffeinate` holds an inhibitor, `dnd` drives mako's quiet mode,
+`power-menu`, `screenshot`, `clipboard-history` and `keybind-help`
+each do the one thing they are named for.
 
 Monitors are stated absolutely in `.config/hypr/lua/monitors.lua`,
 keyed by description rather than connector, and each screen owns a
@@ -72,7 +72,13 @@ adds or removes one screen and moves nothing else.
 
 The bar is waybar, one flat strip across the top of every screen
 carrying only what is worth a glance: the workspaces, the time,
-tailscale, the battery and the system tray. Since each screen owns
+tailscale, the battery and the system tray. Three indicators show
+only while they have something to say: a red blob left of the tray
+while `record` is running, a struck bell right of it while `dnd`
+is set, and a bolt either side of the clock while `caffeinate`
+holds the machine awake. Each is redrawn on a signal rather than a
+timer, so the bar changes the instant the state does; `bar-signal`
+owns the numbers both sides agree on. Since each screen owns
 its own run, the bar labels a workspace by its slot rather than
 its number, so what it shows is what `Super+N` presses.
 `Super+Shift+B` hides and restores it. `tailscale-status` feeds

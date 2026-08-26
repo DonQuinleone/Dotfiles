@@ -25,6 +25,9 @@ window#waybar {
 
 #clock,
 #battery,
+#custom-caffeine,
+#custom-dnd,
+#custom-record,
 #custom-tailscale,
 #tray {
     padding: 7px 2px;
@@ -94,4 +97,16 @@ window#waybar {
 
 #custom-tailscale.attention {
     color: {{ yellow }};
+}
+
+#custom-record {
+    color: {{ red }};
+}
+
+#custom-dnd {
+    color: {{ yellow }};
+}
+
+#custom-caffeine {
+    color: {{ accent }};
 }

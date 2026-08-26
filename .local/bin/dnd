@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+readonly MODE='do-not-disturb'
+readonly BELL='󰂛'
+
+active() {
+    makoctl mode | grep -qx "$MODE"
+}
+
+set_mode() {
+    makoctl mode "$1" "$MODE" > /dev/null
+    bar-signal dnd
+}
+
+report() {
+    active || { printf '{"text":""}\n'; return; }
+    printf '{"text":"%s","tooltip":"Do not disturb"}\n' "$BELL"
+}
+
+case "${1:-toggle}" in
+    on)     active || set_mode -a ;;
+    off)    active && set_mode -r ;;
+    toggle) set_mode -t ;;
+    status) active && echo quiet || echo normal ;;
+    waybar) report ;;
+    *)
+        printf 'usage: %s on|off|toggle|status|waybar\n' \
+            "${0##*/}" >&2
+        exit 2
+        ;;
+esac

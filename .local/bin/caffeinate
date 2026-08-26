@@ -4,6 +4,7 @@ set -euo pipefail
 readonly RUNTIME="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
 readonly PIDFILE="${RUNTIME}/caffeinate.pid"
 readonly REASON="Requested from the desktop"
+readonly BOLT=''
 
 running() {
     [ -r "$PIDFILE" ] || return 1
@@ -15,12 +16,20 @@ start() {
         --why="$REASON" sleep infinity &
     printf '%s\n' "$!" > "$PIDFILE"
     notify-send -a caffeinate -t 2000 "Staying awake"
+    bar-signal caffeine
 }
 
 stop() {
     [ -r "$PIDFILE" ] && kill "$(cat "$PIDFILE")" 2>/dev/null
     rm -f "$PIDFILE"
     notify-send -a caffeinate -t 2000 "Sleeping normally"
+    bar-signal caffeine
+}
+
+report() {
+    running || { printf '{"text":""}\n'; return; }
+    printf '{"text":"%s","tooltip":"Idle and sleep inhibited"}\n' \
+        "$BOLT"
 }
 
 case "${1:-toggle}" in
@@ -36,8 +45,12 @@ case "${1:-toggle}" in
     status)
         running && echo awake || echo normal
         ;;
+    waybar)
+        report
+        ;;
     *)
-        printf 'usage: %s on|off|toggle|status\n' "${0##*/}" >&2
+        printf 'usage: %s on|off|toggle|status|waybar\n' \
+            "${0##*/}" >&2
         exit 2
         ;;
 esac

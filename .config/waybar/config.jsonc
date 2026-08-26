@@ -4,8 +4,13 @@
     "spacing": 14,
 
     "modules-left": ["hyprland/workspaces"],
-    "modules-center": ["clock"],
-    "modules-right": ["tray", "custom/tailscale", "battery"],
+    "modules-center": [
+        "custom/caffeine#left", "clock", "custom/caffeine#right"
+    ],
+    "modules-right": [
+        "custom/record", "tray", "custom/dnd",
+        "custom/tailscale", "battery"
+    ],
 
     "hyprland/workspaces": {
         "format": "{icon}",
@@ -34,6 +39,41 @@
         "interval": 30,
         "format": "{:%H:%M}",
         "tooltip-format": "{:%A %e %B %Y}"
+    },
+
+    // Each indicator is redrawn on SIGRTMIN plus the number below
+    // rather than polled; bar-signal maps the same names to the
+    // same numbers and must be changed alongside them.
+    "custom/caffeine#left": {
+        "exec": "caffeinate waybar",
+        "return-type": "json",
+        "interval": "once",
+        "signal": 3,
+        "on-click": "caffeinate toggle"
+    },
+
+    "custom/caffeine#right": {
+        "exec": "caffeinate waybar",
+        "return-type": "json",
+        "interval": "once",
+        "signal": 3,
+        "on-click": "caffeinate toggle"
+    },
+
+    "custom/record": {
+        "exec": "record waybar",
+        "return-type": "json",
+        "interval": "once",
+        "signal": 1,
+        "on-click": "record toggle"
+    },
+
+    "custom/dnd": {
+        "exec": "dnd waybar",
+        "return-type": "json",
+        "interval": "once",
+        "signal": 2,
+        "on-click": "dnd toggle"
     },
 
     "custom/tailscale": {

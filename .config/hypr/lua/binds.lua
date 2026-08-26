@@ -47,7 +47,7 @@ local rows = {
     { "SUPER + CTRL",         "comma",                 run(BINDS),                                    "Modify keybinds"        },
 
     { "SUPER",                "n",                     run("makoctl restore"),                        "Restore notification"   },
-    { "SUPER + SHIFT",        "n",                     run("makoctl mode -t do-not-disturb"),         "Toggle do not disturb"  },
+    { "SUPER + SHIFT",        "n",                     run("dnd toggle"),                             "Toggle do not disturb"  },
     { "SUPER + CTRL",         "n",                     run("makoctl dismiss --all"),                  "Dismiss notifications"  },
 
     { "SUPER + ALT",          "t",                     run("theme pick"),                             "Pick theme"             },
