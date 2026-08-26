@@ -2,7 +2,7 @@
 set -euo pipefail
 
 readonly RUNTIME="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
-readonly PIDFILE="${RUNTIME}/keep-awake.pid"
+readonly PIDFILE="${RUNTIME}/caffeinate.pid"
 readonly REASON="Requested from the desktop"
 
 running() {
@@ -11,16 +11,16 @@ running() {
 }
 
 start() {
-    systemd-inhibit --what=idle:sleep --who=keep-awake \
+    systemd-inhibit --what=idle:sleep --who=caffeinate \
         --why="$REASON" sleep infinity &
     printf '%s\n' "$!" > "$PIDFILE"
-    notify-send -a keep-awake -t 2000 "Staying awake"
+    notify-send -a caffeinate -t 2000 "Staying awake"
 }
 
 stop() {
     [ -r "$PIDFILE" ] && kill "$(cat "$PIDFILE")" 2>/dev/null
     rm -f "$PIDFILE"
-    notify-send -a keep-awake -t 2000 "Sleeping normally"
+    notify-send -a caffeinate -t 2000 "Sleeping normally"
 }
 
 case "${1:-toggle}" in

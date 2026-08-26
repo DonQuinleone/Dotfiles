@@ -2,7 +2,7 @@
 set -euo pipefail
 
 readonly SOUND=message
-readonly SILENT='^(volume|brightness|keep-awake|record|night-shift)$'
+readonly SILENT='^(volume|brightness|caffeinate|record|night-shift)$'
 
 dbus-monitor "interface='org.freedesktop.Notifications',member='Notify'" \
     2>/dev/null | while IFS= read -r line; do

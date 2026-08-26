@@ -61,7 +61,7 @@ kept out of the repository because it is images.
 The rest are small commands the session binds to keys:
 `focus-monitor` and `send-window-to-monitor` step the screens in
 position order rather than trusting a compass direction,
-`keep-awake` holds an inhibitor, `power-menu`, `screenshot`,
+`caffeinate` holds an inhibitor, `power-menu`, `screenshot`,
 `clipboard-history` and `keybind-help` each do the one thing they
 are named for.
 

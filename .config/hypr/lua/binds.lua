@@ -91,7 +91,7 @@ local rows = {
     { "SUPER",                "mouse_up",              actions.zoom_in,                               "Zoom in"                },
     { "SUPER",                "mouse_down",            actions.zoom_out,                              "Zoom out"               },
 
-    { "SUPER + CTRL",         "c",                     run("keep-awake toggle"),                      "Toggle keep awake"      },
+    { "SUPER + CTRL",         "c",                     run("caffeinate toggle"),                      "Toggle caffeinate"      },
     { "SUPER + SHIFT",        "c",                     run(BLUETOOTH),                                "Open bluetooth console" },
     { "SUPER + ALT",          "n",                     run("night-shift toggle"),                     "Toggle night shift"     },
     { "SUPER + ALT",          "r",                     run("record"),                                 "Toggle recording"       },
