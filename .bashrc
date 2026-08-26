@@ -114,6 +114,33 @@ export PYTHON_HISTORY="$XDG_STATE_HOME/python/history"
 
 export W3M_DIR="$XDG_STATE_HOME/w3m"
 
+# newt's built-in palette is a fixed blue-on-lightgray. These
+# ANSI names resolve through the terminal palette, so nmtui and
+# whiptail follow the active theme.
+export NEWT_COLORS='root=lightgray,black
+border=brown,black
+window=lightgray,black
+shadow=black,black
+title=brown,black
+button=black,brown
+actbutton=black,brown
+compactbutton=lightgray,black
+checkbox=lightgray,black
+actcheckbox=black,brown
+entry=lightgray,black
+disentry=gray,black
+label=lightgray,black
+listbox=lightgray,black
+actlistbox=black,brown
+sellistbox=brown,black
+actsellistbox=black,brown
+textbox=lightgray,black
+acttextbox=black,brown
+helpline=lightgray,black
+roottext=gray,black
+emptyscale=lightgray,black
+fullscale=black,brown'
+
 eval "$(thefuck --alias)"
 # >>> theme >>>
 __theme_file="/home/user/.local/state/theme/shell-colours.sh"
