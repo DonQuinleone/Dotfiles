@@ -31,8 +31,8 @@ local BLUETOOTH  = TERM .. " bluetoothctl"
 local BAR_TOGGLE = "systemctl --user kill -s SIGUSR1 waybar.service"
 
 local BASTION    = "op item get ITEM_ID"
-    .. " --reveal --fields password | wl-copy"
-    .. " && wtype -M ctrl -M shift -k v -m shift -m ctrl"
+.. " --reveal --fields password | wl-copy"
+.. " && wtype -M ctrl -M shift -k v -m shift -m ctrl"
 
 local SLACK_MUTE = {
     mods = "CTRL SHIFT",
@@ -65,11 +65,14 @@ local rows = {
     { "SUPER",                "b",                     run(BROWSER),                                  "Open browser"           },
     { "SUPER",                "i",                     run(LLM),                                      "Open Claude Code"       },
     { "SUPER",                "f",                     run(FILES),                                    "Open file manager"      },
-    { "SUPER",                "s",                     run(JUMPBOX),                                  "Open jumpbox"           },
+    { "SUPER",                "s",                     run("fltapak run com.slack.Slack"),            "Open Slack"             },
+    { "SUPER",                "t",                     run("teamspeak3"),                             "Open TeamSpeak 3"       },
     { "SUPER",                "o",                     run("cpanel-sso"),                             "Open cPanel SSO"        },
+    { "SUPER + SHIFT",        "o",                     run(JUMPBOX),                                  "Open jumpbox"           },
+    { "SUPER + CTRL",         "o",                     run(BASTION),                                  "Paste Bastion password" },
     { "SUPER",                "a",                     run(ACTIVITY),                                 "Open activity monitor"  },
     { "SUPER",                "v",                     run("clipboard-history"),                      "Open clipboard history" },
-    { "SUPER + CTRL",         "o",                     run(BASTION),                                  "Paste Bastion password" },
+    { "SUPER",                "y",                     run("flatpak run com.yubico.yubioath"),        "Open Yubikey Auth"      },
     { "SUPER + CTRL",         "comma",                 run(BINDS),                                    "Modify keybinds"        },
 
     { "SUPER + SHIFT",        "t",                     layouts.set("master"),                         "Set master layout"      },
