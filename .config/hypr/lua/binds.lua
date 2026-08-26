@@ -23,7 +23,8 @@ local BROWSER    = "firefox"
 local ACTIVITY   = TERM .. " -o font_size=20 btop"
 local LLM        = TERM .. " claude --dangerously-skip-permissions"
 local PICKER     = "rofi -show drun"
-local BINDS      = TERM .. " nvim ~/.dotfiles/.config/hypr/lua/binds.lua"
+local BINDS      = TERM .. " -o font_size=16"
+    .. " nvim ~/.dotfiles/.config/hypr/lua/binds.lua"
 local JUMPBOX    = TERM .. " jumpbox"
 local BLUETOOTH  = TERM .. " bluetoothctl"
 
@@ -33,38 +34,13 @@ local BASTION    = "op item get ITEM_ID"
     .. " --reveal --fields password | wl-copy"
     .. " && wtype -M ctrl -M shift -k v -m shift -m ctrl"
 
+local SLACK_MUTE = {
+    mods = "CTRL SHIFT",
+    key = "space",
+    window = "class:^(com\\.slack\\.Slack)$",
+}
+
 local rows = {
-    { "SUPER",                "Return",                run(TERM),                                     "Open terminal"          },
-    { "SUPER",                "b",                     run(BROWSER),                                  "Open browser"           },
-    { "SUPER",                "f",                     run(FILES),                                    "Open file manager"      },
-    { "SUPER",                "a",                     run(ACTIVITY),                                 "Open activity monitor"  },
-    { "SUPER",                "o",                     run("cpanel-sso"),                             "Open cPanel SSO"        },
-    { "SUPER",                "i",                     run(LLM),                                      "Open Claude Code"       },
-    { "SUPER",                "s",                     run(JUMPBOX),                                  "Open jumpbox"           },
-    { "SUPER",                "space",                 run(PICKER),                                   "Open launcher"          },
-    { "SUPER",                "v",                     run("clipboard-history"),                      "Open clipboard history" },
-    { "SUPER + CTRL",         "o",                     run(BASTION),                                  "Paste Bastion password" },
-    { "SUPER + CTRL",         "comma",                 run(BINDS),                                    "Modify keybinds"        },
-
-    { "SUPER",                "n",                     run("makoctl restore"),                        "Restore notification"   },
-    { "SUPER + SHIFT",        "n",                     run("dnd toggle"),                             "Toggle do not disturb"  },
-    { "SUPER + CTRL",         "n",                     run("makoctl dismiss --all"),                  "Dismiss notifications"  },
-
-    { "SUPER + ALT",          "t",                     run("theme pick"),                             "Pick theme"             },
-    { "SUPER + ALT",          "w",                     run("wallpaper pick"),                         "Pick wallpaper"         },
-    { "SUPER + SHIFT",        "slash",                 run("keybind-help"),                           "Search keybinds"        },
-
-    { "SUPER + SHIFT",        "q",                     window.close(),                                "Close window"           },
-    { "SUPER + SHIFT",        "x",                     window.pin(),                                  "Pin window"             },
-    { "SUPER + SHIFT",        "f",                     window.fullscreen(),                           "Fullscreen window"      },
-    { "SUPER + SHIFT",        "space",                 window.float({ action = "toggle" }),           "Toggle floating"        },
-
-    { "SUPER + SHIFT",        "t",                     layouts.set("master"),                         "Set master layout"      },
-    { "SUPER + SHIFT",        "m",                     layouts.set("monocle"),                        "Set monocle layout"     },
-    { "SUPER + SHIFT",        "s",                     layouts.set("scrolling"),                      "Set scrolling layout"   },
-    { "SUPER + SHIFT",        "g",                     gaps.toggle,                                   "Toggle gaps"            },
-    { "SUPER + SHIFT",        "b",                     run(BAR_TOGGLE),                               "Toggle bar"             },
-
     { "SUPER",                "h",                     focus({ direction = "left" }),                 "Focus left"             },
     { "SUPER",                "j",                     actions.focus_step("down"),                    "Focus down"             },
     { "SUPER",                "k",                     actions.focus_step("up"),                      "Focus up"               },
@@ -79,41 +55,38 @@ local rows = {
     { "SUPER + SHIFT",        "comma",                 run("send-window-to-monitor left"),            "Send window left"       },
     { "SUPER + SHIFT",        "period",                run("send-window-to-monitor right"),           "Send window right"      },
 
+    { "SUPER + SHIFT",        "q",                     window.close(),                                "Close window"           },
+    { "SUPER + SHIFT",        "f",                     window.fullscreen(),                           "Fullscreen window"      },
+    { "SUPER + SHIFT",        "space",                 window.float({ action = "toggle" }),           "Toggle floating"        },
+    { "SUPER + SHIFT",        "x",                     window.pin(),                                  "Pin window"             },
+
+    { "SUPER",                "Return",                run(TERM),                                     "Open terminal"          },
+    { "SUPER",                "space",                 run(PICKER),                                   "Open launcher"          },
+    { "SUPER",                "b",                     run(BROWSER),                                  "Open browser"           },
+    { "SUPER",                "i",                     run(LLM),                                      "Open Claude Code"       },
+    { "SUPER",                "f",                     run(FILES),                                    "Open file manager"      },
+    { "SUPER",                "s",                     run(JUMPBOX),                                  "Open jumpbox"           },
+    { "SUPER",                "o",                     run("cpanel-sso"),                             "Open cPanel SSO"        },
+    { "SUPER",                "a",                     run(ACTIVITY),                                 "Open activity monitor"  },
+    { "SUPER",                "v",                     run("clipboard-history"),                      "Open clipboard history" },
+    { "SUPER + CTRL",         "o",                     run(BASTION),                                  "Paste Bastion password" },
+    { "SUPER + CTRL",         "comma",                 run(BINDS),                                    "Modify keybinds"        },
+
+    { "SUPER + SHIFT",        "t",                     layouts.set("master"),                         "Set master layout"      },
+    { "SUPER + SHIFT",        "m",                     layouts.set("monocle"),                        "Set monocle layout"     },
+    { "SUPER + SHIFT",        "s",                     layouts.set("scrolling"),                      "Set scrolling layout"   },
+    { "SUPER + SHIFT",        "g",                     gaps.toggle,                                   "Toggle gaps"            },
+    { "SUPER + SHIFT",        "b",                     run(BAR_TOGGLE),                               "Toggle bar"             },
+
     { "SUPER + CTRL",         "h",                     actions.resize(-RESIZE_STEP, 0),               "Resize narrower"        },
     { "SUPER + CTRL",         "j",                     actions.resize(0, RESIZE_STEP),                "Resize taller"          },
     { "SUPER + CTRL",         "k",                     actions.resize(0, -RESIZE_STEP),               "Resize shorter"         },
     { "SUPER + CTRL",         "l",                     actions.resize(RESIZE_STEP, 0),                "Resize wider"           },
 
-    { "SUPER",                "equal",                 actions.zoom_in,                               "Zoom in"                },
-    { "SUPER",                "minus",                 actions.zoom_out,                              "Zoom out"               },
-    { "SUPER",                "0",                     actions.zoom_reset,                            "Reset zoom"             },
-    { "SUPER",                "z",                     actions.zoom_follow_toggle,                    "Toggle zoom follow"     },
-    { "SUPER",                "mouse_up",              actions.zoom_in,                               "Zoom in"                },
-    { "SUPER",                "mouse_down",            actions.zoom_out,                              "Zoom out"               },
-
-    { "SUPER + CTRL",         "c",                     run("caffeinate toggle"),                      "Toggle caffeinate"      },
-    { "SUPER + SHIFT",        "c",                     run(BLUETOOTH),                                "Open bluetooth console" },
-    { "SUPER + ALT",          "n",                     run("night-shift toggle"),                     "Toggle night shift"     },
-    { "SUPER + ALT",          "r",                     run("record"),                                 "Toggle recording"       },
-
-    { "SUPER",                "Escape",                run("power-menu"),                             "Open power menu"        },
-    { "SUPER + SHIFT",        "Escape",                run("loginctl lock-session"),                  "Lock screen"            },
-    { "SUPER + ALT",          "e",                     hl.dsp.exit(),                                 "Exit session"           },
-
-    { "SUPER",                "p",                     run("screenshot copy-screen"),                 "Copy screen"            },
-    { "SUPER + SHIFT",        "p",                     run("screenshot copy-region"),                 "Copy region"            },
-    { "SUPER + CTRL",         "p",                     run("screenshot save-screen"),                 "Save screen"            },
-    { "SUPER + CTRL + SHIFT", "p",                     run("screenshot save-region"),                 "Save region"            },
-    { "SUPER + ALT",          "p",                     run("screenshot annotate"),                    "Annotate region"        },
-
-    { "",                     "Print",                 run("screenshot copy-region"),                 "Copy region"            },
-    { "SHIFT",                "Print",                 run("screenshot copy-screen"),                 "Copy screen"            },
-    { "CTRL",                 "Print",                 run("screenshot save-screen"),                 "Save screen"            },
-    { "CTRL + SHIFT",         "Print",                 run("screenshot save-region"),                 "Save region"            },
-
+    { "SUPER",                "numbersign",            hl.dsp.send_shortcut(SLACK_MUTE),              "Toggle Slack mute"      },
+    { "SUPER + ALT",          "m",                     run("volume mute"),                    locked, "Mute sound"             },
     { "SUPER + ALT",          "up",                    run("volume up"),                      held,   "Raise volume"           },
     { "SUPER + ALT",          "down",                  run("volume down"),                    held,   "Lower volume"           },
-    { "SUPER + ALT",          "m",                     run("volume mute"),                    locked, "Mute sound"             },
     { "SUPER + ALT",          "right",                 run("brightness up"),                  held,   "Raise brightness"       },
     { "SUPER + ALT",          "left",                  run("brightness down"),                held,   "Lower brightness"       },
 
@@ -128,6 +101,41 @@ local rows = {
     { "",                     "XF86AudioPause",        run("playerctl play-pause"),           locked, "Toggle playback"        },
     { "",                     "XF86AudioNext",         run("playerctl next"),                 locked, "Play next track"        },
     { "",                     "XF86AudioPrev",         run("playerctl previous"),             locked, "Play previous track"    },
+
+    { "SUPER",                "p",                     run("screenshot copy-screen"),                 "Copy screen"            },
+    { "SUPER + SHIFT",        "p",                     run("screenshot copy-region"),                 "Copy region"            },
+    { "SUPER + CTRL",         "p",                     run("screenshot save-screen"),                 "Save screen"            },
+    { "SUPER + CTRL + SHIFT", "p",                     run("screenshot save-region"),                 "Save region"            },
+    { "SUPER + ALT",          "p",                     run("screenshot annotate"),                    "Annotate region"        },
+    { "SUPER + ALT",          "r",                     run("record"),                                 "Toggle recording"       },
+
+    { "",                     "Print",                 run("screenshot copy-region"),                 "Copy region"            },
+    { "SHIFT",                "Print",                 run("screenshot copy-screen"),                 "Copy screen"            },
+    { "CTRL",                 "Print",                 run("screenshot save-screen"),                 "Save screen"            },
+    { "CTRL + SHIFT",         "Print",                 run("screenshot save-region"),                 "Save region"            },
+
+    { "SUPER",                "n",                     run("makoctl restore"),                        "Restore notification"   },
+    { "SUPER + SHIFT",        "n",                     run("dnd toggle"),                             "Toggle do not disturb"  },
+    { "SUPER + CTRL",         "n",                     run("makoctl dismiss --all"),                  "Dismiss notifications"  },
+
+    { "SUPER",                "c",                     run("caffeinate toggle"),                      "Toggle caffeinate"      },
+    { "SUPER + ALT",          "n",                     run("night-shift toggle"),                     "Toggle night shift"     },
+    { "SUPER + SHIFT",        "c",                     run(BLUETOOTH),                                "Open bluetooth console" },
+
+    { "SUPER",                "equal",                 actions.zoom_in,                               "Zoom in"                },
+    { "SUPER",                "minus",                 actions.zoom_out,                              "Zoom out"               },
+    { "SUPER",                "0",                     actions.zoom_reset,                            "Reset zoom"             },
+    { "SUPER",                "z",                     actions.zoom_follow_toggle,                    "Toggle zoom follow"     },
+    { "SUPER",                "mouse_up",              actions.zoom_in,                               "Zoom in"                },
+    { "SUPER",                "mouse_down",            actions.zoom_out,                              "Zoom out"               },
+
+    { "SUPER + ALT",          "t",                     run("theme pick"),                             "Pick theme"             },
+    { "SUPER + ALT",          "w",                     run("wallpaper pick"),                         "Pick wallpaper"         },
+    { "SUPER + SHIFT",        "slash",                 run("keybind-help"),                           "Search keybinds"        },
+
+    { "SUPER",                "Escape",                run("power-menu"),                             "Open power menu"        },
+    { "SUPER + SHIFT",        "Escape",                run("loginctl lock-session"),                  "Lock screen"            },
+    { "SUPER + ALT",          "e",                     hl.dsp.exit(),                                 "Exit session"           },
 
     { "SUPER",                "mouse:272",             window.drag(),                         mouse,  "Drag window"            },
     { "SUPER + SHIFT",        "mouse:272",             window.resize(),                       mouse,  "Resize window"          },
