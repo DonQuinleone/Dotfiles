@@ -217,6 +217,9 @@
       "video/x-flv",
       "video/x-matroska",
       "video/x-msvideo"
+    ],
+    "files.desktop": [
+      "inode/directory"
     ]
   }
 }
