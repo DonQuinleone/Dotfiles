@@ -1,0 +1,90 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+readonly LABEL='ts'
+
+readonly FIELDS='
+    [ (.BackendState // "Unknown"),
+      (.CurrentTailnet.Name // "-"),
+      ((.Self.DNSName // "-") | split(".") | (.[0] // "-")),
+      (.Self.TailscaleIPs[0] // "-"),
+      ([ (.Peer // {})[] | select(.ExitNode) | .DNSName ]
+        | (.[0] // "") | split(".") | (.[0] // ""))
+    ] | @tsv'
+
+quote() {
+    printf '%s' "$1" | jq -Rs .
+}
+
+emit() {
+    printf '{"text":%s,"class":%s,"tooltip":%s}\n' \
+        "$(quote "$LABEL $1")" "$(quote "$2")" "$(quote "$3")"
+}
+
+state() {
+    tailscale status --json 2>/dev/null | jq -r "$FIELDS"
+}
+
+connected() {
+    [ "$(tailscale status --json 2>/dev/null \
+        | jq -r '.BackendState // "Unknown"')" = Running ]
+}
+
+report() {
+    local backend tailnet host address exit_node
+    if ! IFS=$'\t' read -r backend tailnet host address exit_node \
+        < <(state); then
+        emit "?" attention "Tailscale is not running"
+        return
+    fi
+
+    local word class
+    case "$backend" in
+        Running)
+            word='up' class='up' ;;
+        Starting|NoState|NeedsLogin|NeedsMachineAuth)
+            word='?' class='attention' ;;
+        *)
+            word='off' class='off' ;;
+    esac
+
+    local tooltip=$backend
+    [ "$tailnet" = "-" ] || tooltip="$backend on $tailnet"
+    [ "$address" = "-" ] || tooltip+=$'\n'"$host ($address)"
+
+    if [ "$class" = up ] && [ -n "$exit_node" ]; then
+        word=$exit_node
+        class='exit'
+        tooltip+=$'\n'"Exit node: $exit_node"
+    fi
+
+    emit "$word" "$class" "$tooltip"
+}
+
+toggle() {
+    if connected; then
+        tailscale down
+        return
+    fi
+    tailscale up || notify-send -a tailscale "Tailscale" \
+        "Could not connect; run tailscale up in a terminal"
+}
+
+copy_ip() {
+    local address
+    address=$(tailscale status --json 2>/dev/null \
+        | jq -r '.Self.TailscaleIPs[0] // empty')
+    [ -n "$address" ] || exit 1
+    printf '%s' "$address" | wl-copy
+    notify-send -a tailscale -t 2000 "Tailscale" "Copied $address"
+}
+
+case "${1:-status}" in
+    status)  report ;;
+    toggle)  toggle ;;
+    copy-ip) copy_ip ;;
+    *)
+        printf 'usage: %s status|toggle|copy-ip\n' "${0##*/}" >&2
+        exit 2
+        ;;
+esac

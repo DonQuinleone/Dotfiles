@@ -70,6 +70,16 @@ keyed by description rather than connector, and each screen owns a
 fixed run of nine workspaces. Opening or closing the lid therefore
 adds or removes one screen and moves nothing else.
 
+The bar is waybar, one flat strip across the top of every screen
+carrying only what is worth a glance: the workspaces, the time,
+tailscale, the battery and the system tray. Since each screen owns
+its own run, the bar labels a workspace by its slot rather than
+its number, so what it shows is what `Super+N` presses.
+`Super+Shift+B` hides and restores it. `tailscale-status` feeds
+the tailnet module, which names the exit node in use, connects or
+disconnects on a click and copies this machine's tailnet address
+on a right-click.
+
 ## The netkit tools
 
 Five network-diagnosis commands for a hosting engineer, sharing

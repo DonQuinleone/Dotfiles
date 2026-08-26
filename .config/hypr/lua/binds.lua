@@ -88,6 +88,9 @@ local rows = {
       "The next layout along" },
     { "SUPER + SHIFT", "g", gaps.toggle,
       "Toggle the gaps" },
+    { "SUPER + SHIFT", "b",
+      run("systemctl --user kill -s SIGUSR1 waybar.service"),
+      "Show or hide the bar" },
 
     { "SUPER", "h", focus({ direction = "left" }),
       "Focus leftwards" },

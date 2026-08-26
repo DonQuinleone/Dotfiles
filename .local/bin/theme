@@ -27,6 +27,7 @@ FONT_UI = "IBM Plex Sans"
 FONT_MONO = "JetBrainsMono Nerd Font"
 SIZE_UI = 17
 SIZE_MONO = 17
+SIZE_BAR = 15
 WEIGHT_BODY = 400
 WEIGHT_BOLD = 700
 
@@ -58,6 +59,7 @@ LINKS = (
     ("rofi.rasi", "rofi/theme.rasi"),
     ("mako.conf", "mako/config"),
     ("hyprlock.conf", "hypr/hyprlock-colours.conf"),
+    ("waybar.css", "waybar/style.css"),
 )
 
 BRAVE_POLICY = pathlib.Path(
@@ -76,6 +78,7 @@ RELOADS = (
     ("makoctl", ("makoctl", "reload")),
     ("hyprctl", ("hyprctl", "reload")),
     ("kitty", ("pkill", "-SIGUSR1", "kitty")),
+    ("waybar", ("pkill", "-SIGUSR2", "waybar")),
 )
 
 MIX_TOKEN = re.compile(
@@ -138,6 +141,7 @@ def tokens_for(slug):
     tokens["theme_font_mono"] = FONT_MONO
     tokens["theme_size_ui"] = str(SIZE_UI)
     tokens["theme_size_mono"] = str(SIZE_MONO)
+    tokens["theme_size_bar"] = str(SIZE_BAR)
     tokens["theme_weight_body"] = str(WEIGHT_BODY)
     tokens["theme_weight_bold"] = str(WEIGHT_BOLD)
     tokens.update(MOTION)

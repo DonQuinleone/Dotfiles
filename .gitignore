@@ -21,6 +21,7 @@ HANDOFF.md
 .local/share/claude/skills/theme-template/
 .local/share/claude/skills/visual-verification/
 .config/rofi/theme.rasi
+.config/waybar/style.css
 .config/mako/config
 .config/hypr/hyprlock-colours.conf
 .config/gtk-3.0/gtk.css
