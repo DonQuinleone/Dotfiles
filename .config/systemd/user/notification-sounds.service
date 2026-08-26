@@ -1,12 +1,13 @@
 [Unit]
-Description=Serve the login keyring to the session
+Description=Notification sounds
 PartOf=desktop-session.target
 After=desktop-session.target
 
 [Service]
-Type=oneshot
-RemainAfterExit=yes
-ExecStart=%h/.local/bin/start-keyring
+Type=exec
+ExecStart=%h/.local/bin/notification-sounds
+Restart=on-failure
+RestartSec=2
 Slice=session.slice
 
 [Install]

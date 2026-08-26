@@ -1,0 +1,58 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+readonly SINK=@DEFAULT_AUDIO_SINK@
+readonly SOURCE=@DEFAULT_AUDIO_SOURCE@
+readonly STEP=5
+readonly MAX=1.0
+readonly APP=volume
+readonly SOUND=audio-volume-change
+
+readonly STATE="${XDG_RUNTIME_DIR:-/tmp}/volume-osd"
+
+notify_level() {
+    local label=$1 value=$2 icon=$3
+    local previous=""
+    [ -r "$STATE" ] && previous=$(cat "$STATE")
+    local id
+    id=$(notify-send -p -a "$APP" -t 1500 -u low \
+        ${previous:+-r "$previous"} \
+        -h "int:value:${value}" -i "$icon" "$label")
+    printf '%s\n' "$id" > "$STATE"
+}
+
+level() {
+    wpctl get-volume "$SINK" | awk '{print int($2 * 100)}'
+}
+
+muted() {
+    wpctl get-volume "$SINK" | grep -q MUTED
+}
+
+show() {
+    if muted; then
+        notify_level "Muted" 0 audio-volume-muted
+        return
+    fi
+    notify_level "Volume  $(level)%" "$(level)" audio-volume-high
+    canberra-gtk-play -i "$SOUND" >/dev/null 2>&1 &
+}
+
+case "${1:-show}" in
+    up)     wpctl set-volume -l "$MAX" "$SINK" "${STEP}%+"; show ;;
+    down)   wpctl set-volume "$SINK" "${STEP}%-"; show ;;
+    mute)   wpctl set-mute "$SINK" toggle; show ;;
+    mic)
+        wpctl set-mute "$SOURCE" toggle
+        if wpctl get-volume "$SOURCE" | grep -q MUTED; then
+            notify_level "Microphone muted" 0 microphone-sensitivity-muted
+        else
+            notify_level "Microphone on" 100 audio-input-microphone
+        fi
+        ;;
+    show)   show ;;
+    *)
+        printf 'usage: %s up|down|mute|mic|show\n' "${0##*/}" >&2
+        exit 2
+        ;;
+esac

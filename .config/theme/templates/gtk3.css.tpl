@@ -1,6 +1,3 @@
-/* idiom: symlink. ~/.config/gtk-3.0/gtk.css is a link to
- * current/theme/gtk3.css, which is the one file GTK 3 reads
- * its colours from. */
 @define-color theme_bg_color {{ background }};
 @define-color theme_fg_color {{ foreground }};
 @define-color theme_base_color {{ dark_background }};

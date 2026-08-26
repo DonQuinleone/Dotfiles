@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+readonly SOUND=message
+readonly SILENT='^(volume|brightness|keep-awake|record|night-shift)$'
+
+dbus-monitor "interface='org.freedesktop.Notifications',member='Notify'" \
+    2>/dev/null | while IFS= read -r line; do
+    case "$line" in
+        *member=Notify*) ;;
+        *) continue ;;
+    esac
+    IFS= read -r app || break
+    name=${app#*\"}
+    name=${name%\"*}
+    printf '%s' "$name" | grep -qE "$SILENT" && continue
+    canberra-gtk-play -i "$SOUND" >/dev/null 2>&1 &
+done

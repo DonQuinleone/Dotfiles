@@ -1,7 +1,6 @@
 local CURSOR_SIZE = "48"
 
 local home = os.getenv("HOME")
-local runtime = os.getenv("XDG_RUNTIME_DIR")
 local path = os.getenv("PATH") or "/usr/local/bin:/usr/bin"
 
 local home_directories = {
@@ -34,11 +33,6 @@ local envs = {
     { "QT_LINUX_ACCESSIBILITY_ALWAYS_ON", "1" },
     { "GNOME_ACCESSIBILITY", "1" },
 }
-
-if runtime ~= nil then
-    table.insert(envs,
-        { "SSH_AUTH_SOCK", runtime .. "/keyring/ssh" })
-end
 
 for _, variable in ipairs(envs) do
     hl.env(variable[1], variable[2])

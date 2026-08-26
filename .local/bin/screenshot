@@ -1,0 +1,75 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+readonly SAVE_DIR="${XDG_PICTURES_DIR:-$HOME/Pictures}/screenshots"
+readonly APP=screenshot
+
+stamp() {
+    printf '%s/%s.png' "$SAVE_DIR" "$(date +%Y-%m-%d-%H%M%S)"
+}
+
+region() {
+    slurp -d
+}
+
+told() {
+    notify-send -a "$APP" -t 2000 "$1" "${2:-}"
+}
+
+copy_region() {
+    local area
+    area=$(region) || exit 0
+    grim -g "$area" - | wl-copy
+    told "Region copied"
+}
+
+copy_screen() {
+    grim - | wl-copy
+    told "Screen copied"
+}
+
+save_region() {
+    local area file
+    area=$(region) || exit 0
+    file=$(stamp)
+    grim -g "$area" "$file"
+    wl-copy < "$file"
+    told "Region saved" "${file##*/}"
+}
+
+save_screen() {
+    local file
+    file=$(stamp)
+    grim "$file"
+    wl-copy < "$file"
+    told "Screen saved" "${file##*/}"
+}
+
+annotate() {
+    local area
+    area=$(region) || exit 0
+    command -v swappy >/dev/null 2>&1 || {
+        printf 'screenshot: swappy is not installed\n' >&2
+        exit 1
+    }
+    grim -g "$area" - | swappy -f -
+}
+
+declare -rA ACTIONS=(
+    [copy-region]=copy_region
+    [copy-screen]=copy_screen
+    [save-region]=save_region
+    [save-screen]=save_screen
+    [annotate]=annotate
+)
+
+handler=${ACTIONS[${1:-copy-region}]:-}
+
+[ -n "$handler" ] || {
+    printf 'usage: %s %s\n' "${0##*/}" \
+        "copy-region|copy-screen|save-region|save-screen|annotate" >&2
+    exit 2
+}
+
+mkdir -p "$SAVE_DIR"
+"$handler"

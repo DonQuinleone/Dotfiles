@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+readonly STEP=5
+readonly APP=brightness
+readonly STATE="${XDG_RUNTIME_DIR:-/tmp}/brightness-osd"
+
+level() {
+    brightnessctl -m | awk -F, '{gsub("%","",$4); print $4}'
+}
+
+show() {
+    local previous=""
+    [ -r "$STATE" ] && previous=$(cat "$STATE")
+    local id
+    id=$(notify-send -p -a "$APP" -t 1500 -u low \
+        ${previous:+-r "$previous"} \
+        -h "int:value:$(level)" -i display-brightness \
+        "Brightness  $(level)%")
+    printf '%s\n' "$id" > "$STATE"
+}
+
+case "${1:-show}" in
+    up)   brightnessctl -q set "${STEP}%+"; show ;;
+    down) brightnessctl -q set "${STEP}%-"; show ;;
+    show) show ;;
+    *)
+        printf 'usage: %s up|down|show\n' "${0##*/}" >&2
+        exit 2
+        ;;
+esac

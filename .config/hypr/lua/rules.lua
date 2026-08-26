@@ -21,17 +21,6 @@ for _, terminal in ipairs(FLOATING_TERMINALS) do
     float_centred(terminal.class, terminal.width, terminal.height)
 end
 
--- The overlay is a normal window, so focus-follows-mouse hands
--- focus to whatever is under the pointer and flameshot exits the
--- moment the cursor moves.
-hl.window_rule({
-    match = { class = "flameshot" },
-    float = true,
-    pin = true,
-    no_focus = false,
-    size = { "100%", "100%" },
-})
-
 hl.window_rule({
     match = { title = "Picture-in-Picture" },
     float = true,

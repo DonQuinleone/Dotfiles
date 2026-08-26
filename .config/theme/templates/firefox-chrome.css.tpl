@@ -1,8 +1,3 @@
-/* idiom: symlink. Every Firefox profile's chrome/theme.css is a
- * link to current/theme/firefox-chrome.css, imported by
- * userChrome.css at launch and re-registered while the browser
- * runs by the loader donbox theme firefox install puts in
- * place. */
 :root {
     color-scheme: {{ mode }} !important;
 

@@ -1,6 +1,3 @@
-/* idiom: symlink. The chat half of the style named "current" is
- * a link to current/theme/teamspeak-chat.qss, which TeamSpeak
- * reads for the message log and the info frame. */
 p {
   padding: 0px;
   margin: 0px;

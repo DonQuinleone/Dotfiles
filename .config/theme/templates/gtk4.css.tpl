@@ -1,11 +1,3 @@
-/* idiom: symlink. ~/.config/gtk-4.0/gtk.css is a link to
- * current/theme/gtk4.css. libadwaita 1.6 moved these to CSS
- * variables and left the older spelling deprecated but read,
- * so both go out: the variables are what a current libadwaita
- * honours and the @define-color names are what plain GTK 4
- * applications still look for. A surface missing here keeps
- * Adwaita's own grey, and one is enough to leave a window
- * looking like stock GNOME. */
 :root {
     --window-bg-color: {{ background }};
     --window-fg-color: {{ foreground }};

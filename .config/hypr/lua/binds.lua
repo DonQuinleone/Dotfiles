@@ -21,12 +21,10 @@ local VOLUME_UP = "wpctl set-volume -l 1 @DEFAULT_AUDIO_SINK@ 5%+"
 local VOLUME_DOWN = "wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-"
 local SINK_MUTE = "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"
 local SOURCE_MUTE = "wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"
-local SHOTS = (os.getenv("XDG_PICTURES_DIR")
-    or (os.getenv("HOME") .. "/Pictures")) .. "/screenshots"
-local COPY_SCREEN = "flameshot full --clipboard"
-local COPY_REGION = "flameshot gui --clipboard"
-local SAVE_SCREEN = "flameshot full --path " .. SHOTS
-local SAVE_REGION = "flameshot gui --path " .. SHOTS
+local COPY_SCREEN = "screenshot copy-screen"
+local COPY_REGION = "screenshot copy-region"
+local SAVE_SCREEN = "screenshot save-screen"
+local SAVE_REGION = "screenshot save-region"
 
 local BRIGHTER = "brightnessctl set 5%+"
 local DIMMER = "brightnessctl set 5%-"

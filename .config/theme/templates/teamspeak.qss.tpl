@@ -1,6 +1,3 @@
-/* idiom: symlink. The TeamSpeak style named "current" is a link
- * to current/theme/teamspeak.qss; pick it under Options,
- * Design, Skin and it follows every switch after. */
 QWidget {
 	background-color: {{ background }};
 	color: {{ foreground }};
