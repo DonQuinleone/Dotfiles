@@ -1,13 +1,15 @@
 # dotfiles
 
 Personal configuration for a Fedora machine, kept as a single GNU
-Stow package. The desktop itself is [Donbox], a Hyprland session
-under a Quickshell shell with system-wide theming; this repository
-holds what sits beneath and beside it: the shells, the editor, the
-terminals, the network-diagnosis tools and the package manifest. A
-fresh machine is one clone and two commands away.
+Stow package: a Hyprland session, the shells, the editor, the
+terminals, the network-diagnosis tools and the package manifest.
+A fresh machine is one clone and two commands away.
 
-[Donbox]: ssh://git@forge.example.com/user/donbox.git
+The desktop is assembled from packaged parts rather than a shell
+of its own. Hyprland tiles, waybar draws the status bar, rofi is
+the launcher and every menu, mako shows notifications, swaybg
+paints the background, hyprlock locks and hypridle decides when.
+One `theme` command recolours the lot.
 
 ## What goes where
 
@@ -22,18 +24,51 @@ exactly where it appears.
 | `.config/git` | identity by includes, never inline |
 | `.config/tmux`, `.config/lsd`, `.config/fastfetch` | the small tools |
 | `.config/environment.d` | session environment |
-| `.config/hypr/xdph.conf` | the screenshare portal's settings |
-| `.config/systemd/user` | personal units, none of Donbox's |
-| `.local/bin`, `.local/lib/netkit` | the netkit tools |
+| `.config/hypr` | the Hyprland session, lock and idle |
+| `.config/waybar`, `.config/rofi` | the bar and the launcher |
+| `.config/theme` | the palettes and their templates |
+| `.config/systemd/user` | the session target and its daemons |
+| `.local/bin`, `.local/lib/netkit` | the commands and netkit |
 | `.local/share/claude` | assistant rules and skills |
 | `packages.json` | the manifest for the machine |
 
-Nothing generated is kept here. Donbox renders themed files into
-`~/.local/state/donbox/current` and writes its own units, links
-and completions into real directories; the few of its lines that
-live in these configs are the include each tool needs to find its
-themed colours. What Donbox writes through a stowed link is
-listed in `.gitignore` rather than committed.
+Nothing generated is kept here. `theme` renders each template
+into `~/.local/state/theme` and links the result where the tool
+expects it; the few generated lines inside these configs are the
+include each tool needs to find its colours. Every rendered path
+is listed in `.gitignore` rather than committed, and
+`bootstrap.sh` stows with `--no-folding` so a directory holding
+only stowed files stays a real directory: folded, the next render
+would land inside this repository.
+
+## The desktop
+
+Seven palettes live in `.config/theme/themes`, one file each, and
+every tool that takes colour is a template beside them. `theme`
+renders the set and reloads whatever is running, so a switch is
+one command and no restart.
+
+    theme list
+    theme set gruvbox-dark
+    theme pick
+
+`wallpaper` works the same way over `~/Pictures/walls`, which is
+kept out of the repository because it is images.
+
+    wallpaper pick
+    wallpaper random
+
+The rest are small commands the session binds to keys:
+`focus-monitor` and `send-window-to-monitor` step the screens in
+position order rather than trusting a compass direction,
+`keep-awake` holds an inhibitor, `power-menu`, `screenshot`,
+`clipboard-history` and `keybind-help` each do the one thing they
+are named for.
+
+Monitors are stated absolutely in `.config/hypr/lua/monitors.lua`,
+keyed by description rather than connector, and each screen owns a
+fixed run of nine workspaces. Opening or closing the lid therefore
+adds or removes one screen and moves nothing else.
 
 ## The netkit tools
 
@@ -69,15 +104,8 @@ in its output.
 
 `packages.json` is the only list. It names the repositories, the
 COPRs, the packages, the flatpaks and which application opens
-which kind of file. `get_packages.sh` renders a machine from it
-and `donbox pkg` keeps it true as things are installed and
-removed, so neither can drift from the other.
-
-    donbox pkg search ripgrep
-    donbox pkg add dnf ripgrep
-    donbox pkg remove
-    donbox pkg list flatpak
-    donbox pkg drift
+which kind of file. `get_packages.sh` renders a machine from it,
+so a package installed by hand belongs in the manifest too.
 
 File associations are stated rather than left to whichever
 package registered last, because a browser claims far more than
@@ -106,6 +134,4 @@ Fedora 44 and GNU Stow.
       ~/.dotfiles
     ~/.dotfiles/get_packages.sh
     ~/.dotfiles/bootstrap.sh
-
-Then install [Donbox] on top, which lays its own links, units and
-themes down beside these.
+    theme set ember
