@@ -47,7 +47,6 @@ MOTION = {
 
 LINKS = (
     ("btop.theme", "btop/themes/current.theme"),
-    ("fastfetch.jsonc", "fastfetch/config.jsonc"),
     ("lsd-colours.yaml", "lsd/colors.yaml"),
     ("qt6ct.conf", "qt6ct/colors/current.conf"),
     ("gtk3.css", "gtk-3.0/gtk.css"),
