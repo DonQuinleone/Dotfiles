@@ -4,43 +4,53 @@ set -euo pipefail
 readonly SAVE_DIR="${XDG_PICTURES_DIR:-$HOME/Pictures}/screenshots"
 readonly ACTION=${1:-copy-region}
 
-declare -rA MODES=(
-    [copy-screen]=output
-    [copy-region]=region
-    [copy-window]=window
-    [save-screen]=output
-    [save-region]=region
-    [save-window]=window
-)
+copy_region() {
+    flameshot gui --clipboard
+}
 
-shoot() {
-    local mode=$1
-    shift
-    hyprshot --mode "$mode" --output-folder "$SAVE_DIR" --silent "$@"
+copy_screen() {
+    flameshot full --clipboard
+}
+
+save_region() {
+    flameshot gui --path "$SAVE_DIR"
+}
+
+save_screen() {
+    flameshot full --path "$SAVE_DIR"
+}
+
+annotate() {
+    flameshot gui --path "$SAVE_DIR" --clipboard
 }
 
 read_text() {
-    local shot
+    local shot region
+    region=$(slurp) || exit 0
     shot=$(mktemp --suffix=.png)
     trap 'rm -f "$shot"' EXIT
-    grim -g "$(slurp)" "$shot"
+    grim -g "$region" "$shot"
     tesseract "$shot" - 2>/dev/null | wl-copy
     notify-send -a screenshot -t 2000 "Text copied"
 }
 
-[ "$ACTION" = text ] && { read_text; exit 0; }
+declare -rA ACTIONS=(
+    [copy-region]=copy_region
+    [copy-screen]=copy_screen
+    [save-region]=save_region
+    [save-screen]=save_screen
+    [annotate]=annotate
+    [text]=read_text
+)
 
-mode=${MODES[$ACTION]:-}
+handler=${ACTIONS[$ACTION]:-}
 
-[ -n "$mode" ] || {
-    printf 'usage: %s copy-screen|copy-region|copy-window|save-screen|save-region|save-window|text\n' \
-        "${0##*/}" >&2
+[ -n "$handler" ] || {
+    printf 'usage: %s %s\n' "${0##*/}" \
+        "copy-region|copy-screen|save-region|save-screen|annotate|text" >&2
     exit 2
 }
 
 mkdir -p "$SAVE_DIR"
 
-case "$ACTION" in
-    copy-*) shoot "$mode" --clipboard-only ;;
-    save-*) shoot "$mode" ;;
-esac
+"$handler"
