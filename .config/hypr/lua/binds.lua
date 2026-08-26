@@ -41,7 +41,7 @@ local rows = {
     { "SUPER", "o", run("cpanel-sso"),
       "cPanel SSO" },
     { "SUPER", "i",
-      run("kitty --class agent claude --dangerously-skip-permissions"),
+      run("kitty claude --dangerously-skip-permissions"),
       "Open the coding agent" },
     { "SUPER", "space", run("rofi -show drun"),
       "Open the launcher" },
