@@ -6,8 +6,6 @@ local layouts = require("layouts")
 local RESIZE_STEP = 60
 local WORKSPACES_PER_MONITOR = 9
 
-local held = { repeating = true }
-local locked = { locked = true }
 local mouse = { mouse = true }
 
 local focus = hl.dsp.focus
@@ -168,28 +166,28 @@ local rows = {
     { "CTRL + SHIFT", "Print", run(SAVE_REGION),
       "Save a region" },
 
-    { "SUPER + ALT", "up", run(VOLUME_UP), held, "Volume up" },
-    { "SUPER + ALT", "down", run(VOLUME_DOWN), held,
+    { "SUPER + ALT", "up", run(VOLUME_UP), "Volume up" },
+    { "SUPER + ALT", "down", run(VOLUME_DOWN),
       "Volume down" },
-    { "SUPER + ALT", "m", run(SINK_MUTE), locked,
+    { "SUPER + ALT", "m", run(SINK_MUTE),
       "Mute the sound" },
-    { "SUPER + ALT", "right", run(BRIGHTER), held, "Brighter" },
-    { "SUPER + ALT", "left", run(DIMMER), held, "Dimmer" },
+    { "SUPER + ALT", "right", run(BRIGHTER), "Brighter" },
+    { "SUPER + ALT", "left", run(DIMMER), "Dimmer" },
 
-    { "", "XF86AudioRaiseVolume", run(VOLUME_UP), held },
-    { "", "XF86AudioLowerVolume", run(VOLUME_DOWN), held },
-    { "", "XF86AudioMute", run(SINK_MUTE), locked },
-    { "", "XF86AudioMicMute", run(SOURCE_MUTE), locked },
-    { "", "XF86MonBrightnessUp", run(BRIGHTER), held },
-    { "", "XF86MonBrightnessDown", run(DIMMER), held },
+    { "", "XF86AudioRaiseVolume", run(VOLUME_UP) },
+    { "", "XF86AudioLowerVolume", run(VOLUME_DOWN) },
+    { "", "XF86AudioMute", run(SINK_MUTE) },
+    { "", "XF86AudioMicMute", run(SOURCE_MUTE) },
+    { "", "XF86MonBrightnessUp", run(BRIGHTER) },
+    { "", "XF86MonBrightnessDown", run(DIMMER) },
 
-    { "", "XF86AudioPlay", run("playerctl play-pause"), locked,
+    { "", "XF86AudioPlay", run("playerctl play-pause"),
       "Play or pause" },
-    { "", "XF86AudioPause", run("playerctl play-pause"), locked,
+    { "", "XF86AudioPause", run("playerctl play-pause"),
       "Play or pause" },
-    { "", "XF86AudioNext", run("playerctl next"), locked,
+    { "", "XF86AudioNext", run("playerctl next"),
       "Next track" },
-    { "", "XF86AudioPrev", run("playerctl previous"), locked,
+    { "", "XF86AudioPrev", run("playerctl previous"),
       "Previous track" },
 
     { "SUPER", "mouse:272", window.drag(), mouse,
