@@ -5,7 +5,7 @@
 
     "modules-left": ["hyprland/workspaces"],
     "modules-center": ["clock"],
-    "modules-right": ["custom/tailscale", "battery", "tray"],
+    "modules-right": ["tray", "custom/tailscale", "battery"],
 
     "hyprland/workspaces": {
         "format": "{icon}",
