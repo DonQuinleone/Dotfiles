@@ -25,45 +25,11 @@
   "hyprland/workspaces": {
     "format": "{icon}",
     "format-icons": {
-      "1": "1",
-      "2": "2",
-      "3": "3",
-      "4": "4",
-      "5": "5",
-      "6": "6",
-      "7": "7",
-      "8": "8",
-      "9": "9",
-      "11": "1",
-      "12": "2",
-      "13": "3",
-      "14": "4",
-      "15": "5",
-      "16": "6",
-      "17": "7",
-      "18": "8",
-      "19": "9",
-      "21": "1",
-      "22": "2",
-      "23": "3",
-      "24": "4",
-      "25": "5",
-      "26": "6",
-      "27": "7",
-      "28": "8",
-      "29": "9",
-      "31": "1",
-      "32": "2",
-      "33": "3",
-      "34": "4",
-      "35": "5",
-      "36": "6",
-      "37": "7",
-      "38": "8",
-      "39": "9",
-      "urgent": "!",
-      "default": "●"
+      "active": "<span font_family='JetBrainsMono Nerd Font' size='x-large'>◆</span>",
+      "urgent": "<span font_family='JetBrainsMono Nerd Font' size='x-large'>◆</span>",
+      "default": "<span font_family='JetBrainsMono Nerd Font' size='small'>◇</span>"
     },
+    "markup": "pango",
     "on-click": "activate",
     "sort-by-number": true
   },
@@ -100,65 +66,72 @@
     "on-click": "kitty --class activity sudo dnf upgrade"
   },
   "cpu": {
-    "format": "󰍛 {usage}%",
+    "format": "<span font_family='JetBrainsMono Nerd Font' rise='-1000'>󰍛</span>  {usage}%",
     "interval": 5,
-    "on-click": "kitty --class activity btop"
+    "on-click": "kitty --class activity btop",
+    "markup": "pango"
   },
   "memory": {
-    "format": " {percentage}%",
+    "format": "<span font_family='JetBrainsMono Nerd Font' rise='-1000'></span>  {percentage}%",
     "interval": 10,
-    "on-click": "kitty --class activity btop"
+    "on-click": "kitty --class activity btop",
+    "markup": "pango"
   },
   "network": {
-    "format-wifi": " {signalStrength}%",
-    "format-ethernet": "󰈀",
-    "format-disconnected": "󰈁",
+    "format-wifi": "<span font_family='JetBrainsMono Nerd Font' rise='-1000'></span>  {signalStrength}%",
+    "format-ethernet": "<span font_family='JetBrainsMono Nerd Font' rise='-1000'>󰈀</span>",
+    "format-disconnected": "<span font_family='JetBrainsMono Nerd Font' rise='-1000'>󰈁</span>",
     "tooltip-format-wifi": "{essid}  {ipaddr}",
     "tooltip-format-ethernet": "{ifname}  {ipaddr}",
-    "on-click": "kitty --class activity nmtui"
+    "on-click": "kitty --class activity nmtui",
+    "markup": "pango"
   },
   "bluetooth": {
-    "format": "",
+    "format": "<span font_family='JetBrainsMono Nerd Font' rise='-1000'></span>",
     "format-disabled": "",
-    "format-connected": " {num_connections}",
+    "format-connected": "<span font_family='JetBrainsMono Nerd Font' rise='-1000'></span>  {num_connections}",
     "tooltip-format-connected": "{device_enumerate}",
-    "on-click": "kitty --class activity bluetoothctl"
+    "on-click": "kitty --class activity bluetoothctl",
+    "markup": "pango"
   },
   "pulseaudio": {
-    "format": "{icon} {volume}%",
-    "format-muted": "",
+    "format": "{icon}  {volume}%",
+    "format-muted": "<span font_family='JetBrainsMono Nerd Font' rise='-1000'></span>",
     "format-icons": {
-      "headphone": "",
+      "headphone": "<span font_family='JetBrainsMono Nerd Font' rise='-1000'></span>",
       "default": [
-        "",
-        ""
+        "<span font_family='JetBrainsMono Nerd Font' rise='-1000'></span>",
+        "<span font_family='JetBrainsMono Nerd Font' rise='-1000'></span>"
       ]
     },
     "on-click": "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle",
     "on-click-right": "pavucontrol",
     "on-scroll-up": "wpctl set-volume -l 1 @DEFAULT_AUDIO_SINK@ 5%+",
-    "on-scroll-down": "wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-"
+    "on-scroll-down": "wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-",
+    "markup": "pango"
   },
   "pulseaudio#microphone": {
     "format": "{format_source}",
-    "format-source": "",
-    "format-source-muted": "",
-    "on-click": "wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"
+    "format-source": "<span font_family='JetBrainsMono Nerd Font' rise='-1000'></span>",
+    "format-source-muted": "<span font_family='JetBrainsMono Nerd Font' rise='-1000'></span>",
+    "on-click": "wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle",
+    "markup": "pango"
   },
   "battery": {
     "states": {
       "warning": 25,
       "critical": 10
     },
-    "format": "{icon} {capacity}%",
-    "format-charging": "󰂄 {capacity}%",
+    "format": "{icon}  {capacity}%",
+    "format-charging": "<span font_family='JetBrainsMono Nerd Font' rise='-1000'>󰂄</span>  {capacity}%",
     "format-icons": [
-      "",
-      "",
-      "",
-      "",
-      ""
+      "<span font_family='JetBrainsMono Nerd Font' rise='-1000'></span>",
+      "<span font_family='JetBrainsMono Nerd Font' rise='-1000'></span>",
+      "<span font_family='JetBrainsMono Nerd Font' rise='-1000'></span>",
+      "<span font_family='JetBrainsMono Nerd Font' rise='-1000'></span>",
+      "<span font_family='JetBrainsMono Nerd Font' rise='-1000'></span>"
     ],
-    "tooltip-format": "{timeTo}"
+    "tooltip-format": "{timeTo}",
+    "markup": "pango"
   }
 }

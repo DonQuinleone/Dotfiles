@@ -20,26 +20,27 @@ window#waybar.hidden {
 }
 
 #workspaces button {
-    padding: 0 10px;
-    margin: 6px 2px;
-    border-radius: 8px;
-    color: {{ dark_foreground }};
+    padding: 0 6px;
+    margin: 0;
+    border: none;
+    border-radius: 0;
     background: transparent;
+    color: {{ muted }};
 }
 
 #workspaces button:hover {
-    background: {{ lighter_background }};
+    background: transparent;
     color: {{ foreground }};
 }
 
 #workspaces button.active {
-    background: {{ accent }};
-    color: {{ background }};
+    background: transparent;
+    color: {{ accent }};
 }
 
 #workspaces button.urgent {
-    background: {{ red }};
-    color: {{ background }};
+    background: transparent;
+    color: {{ red }};
 }
 
 #clock {

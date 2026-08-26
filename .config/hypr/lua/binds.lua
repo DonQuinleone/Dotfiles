@@ -1,4 +1,5 @@
 local actions = require("actions")
+local monitors = require("monitors")
 local gaps = require("gaps")
 local layouts = require("layouts")
 
@@ -166,13 +167,15 @@ local rows = {
 }
 
 for index = 1, WORKSPACES_PER_MONITOR do
-    local workspace = "r~" .. index
-    table.insert(rows, { "SUPER", index,
-        focus({ workspace = workspace }),
-        "Focus workspace " .. index })
-    table.insert(rows, { "SUPER + SHIFT", index,
-        layouts.send_to_workspace(workspace),
-        "Send the window to workspace " .. index })
+    table.insert(rows, { "SUPER", index, function()
+        hl.dispatch(focus({
+            workspace = monitors.workspace_for(index),
+        }))
+    end, "Focus workspace " .. index })
+    table.insert(rows, { "SUPER + SHIFT", index, function()
+        layouts.send_to_workspace(
+            monitors.workspace_for(index))()
+    end, "Send the window to workspace " .. index })
 end
 
 local function combination(mods, key)

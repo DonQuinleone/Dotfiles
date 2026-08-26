@@ -82,6 +82,41 @@ end
 
 apply()
 
+local monitors = {}
+
+function monitors.workspace_for(slot)
+    local focused
+    for _, monitor in ipairs(hl.get_monitors()) do
+        if monitor.focused then
+            focused = monitor.description
+        end
+    end
+    for index, monitor in ipairs(MONITORS) do
+        if monitor.description == focused then
+            return tostring((index - 1) * RUN_STRIDE + slot)
+        end
+    end
+    return "r~" .. slot
+end
+
+local function publish_runs()
+    local state = os.getenv("XDG_STATE_HOME")
+        or (os.getenv("HOME") .. "/.local/state")
+    os.execute("mkdir -p '" .. state .. "/hypr'")
+    local file = io.open(state .. "/hypr/runs.tsv", "w")
+    if file == nil then
+        return
+    end
+    for index, monitor in ipairs(MONITORS) do
+        file:write(monitor.description, "\t",
+            tostring((index - 1) * RUN_STRIDE + 1), "\t",
+            tostring(WORKSPACES_PER_MONITOR), "\n")
+    end
+    file:close()
+end
+
+publish_runs()
+
 local function described(monitor)
     if type(monitor) == "table" and monitor.description then
         return monitor.description
@@ -96,3 +131,5 @@ end)
 hl.on("monitor.removed", function(monitor)
     apply(nil, described(monitor))
 end)
+
+return monitors
