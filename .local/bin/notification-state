@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+readonly SILENCED_ICON=""
+readonly ACTIVE_ICON=""
+
+modes=$(makoctl mode 2>/dev/null || printf '')
+
+if printf '%s\n' "$modes" | grep -qx 'do-not-disturb'; then
+    printf '{"text":"%s","class":"silenced","tooltip":"Do not disturb"}\n' \
+        "$SILENCED_ICON"
+    exit 0
+fi
+
+printf '{"text":"%s","class":"active","tooltip":"Notifications on"}\n' \
+    "$ACTIVE_ICON"

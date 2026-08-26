@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+declare -rA ACTIONS=(
+    [Lock]="loginctl lock-session"
+    [Suspend]="systemctl suspend"
+    [Log out]="hyprctl dispatch exit"
+    [Reboot]="systemctl reboot"
+    [Shut down]="systemctl poweroff"
+)
+
+readonly ORDER=("Lock" "Suspend" "Log out" "Reboot" "Shut down")
+
+choice=$(printf '%s\n' "${ORDER[@]}" \
+    | rofi -dmenu -i -p Power -no-custom)
+
+[ -n "$choice" ] || exit 0
+
+command=${ACTIONS[$choice]:-}
+
+[ -n "$command" ] || {
+    printf 'power-menu: no action for %s\n' "$choice" >&2
+    exit 1
+}
+
+exec $command

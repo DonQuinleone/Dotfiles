@@ -1,0 +1,59 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+readonly STATE="${XDG_STATE_HOME:-$HOME/.local/state}/theme"
+readonly WALLS="${XDG_PICTURES_DIR:-$HOME/Pictures}/walls"
+readonly CHOSEN="${STATE}/wallpaper"
+
+theme_slug() {
+    [ -r "${STATE}/current" ] && cat "${STATE}/current" || echo ember
+}
+
+available() {
+    local dir
+    dir="${WALLS}/$(theme_slug)"
+    [ -d "$dir" ] || dir="$WALLS"
+    find "$dir" -type f \
+        \( -iname '*.png' -o -iname '*.jpg' -o -iname '*.jpeg' \) \
+        | sort
+}
+
+apply() {
+    local image=$1
+    [ -r "$image" ] || {
+        printf 'wallpaper: cannot read %s\n' "$image" >&2
+        exit 1
+    }
+    hyprctl hyprpaper reload ",${image}" >/dev/null
+    mkdir -p "$STATE"
+    printf '%s\n' "$image" > "$CHOSEN"
+}
+
+case "${1:-current}" in
+    set)
+        [ -n "${2:-}" ] || {
+            printf 'wallpaper: set needs a path\n' >&2
+            exit 2
+        }
+        apply "$2"
+        ;;
+    pick)
+        choice=$(available | rofi -dmenu -i -p Wallpaper \
+            -show-icons -no-custom) || exit 0
+        [ -n "$choice" ] && apply "$choice"
+        ;;
+    restore)
+        [ -r "$CHOSEN" ] && apply "$(cat "$CHOSEN")"
+        ;;
+    current)
+        [ -r "$CHOSEN" ] && cat "$CHOSEN" || echo none
+        ;;
+    list)
+        available
+        ;;
+    *)
+        printf 'usage: %s set|pick|restore|current|list\n' \
+            "${0##*/}" >&2
+        exit 2
+        ;;
+esac

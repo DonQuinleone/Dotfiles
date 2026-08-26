@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+on_mains() {
+    local supply
+    for supply in /sys/class/power_supply/*/online; do
+        [ -r "$supply" ] || continue
+        [ "$(cat "$supply")" = "1" ] && return 0
+    done
+    return 1
+}
+
+on_mains && exit 0
+
+systemctl suspend

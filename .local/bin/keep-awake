@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+readonly RUNTIME="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
+readonly PIDFILE="${RUNTIME}/keep-awake.pid"
+readonly REASON="Requested from the desktop"
+
+running() {
+    [ -r "$PIDFILE" ] || return 1
+    kill -0 "$(cat "$PIDFILE")" 2>/dev/null
+}
+
+start() {
+    systemd-inhibit --what=idle:sleep --who=keep-awake \
+        --why="$REASON" sleep infinity &
+    printf '%s\n' "$!" > "$PIDFILE"
+    notify-send -a keep-awake -t 2000 "Staying awake"
+}
+
+stop() {
+    [ -r "$PIDFILE" ] && kill "$(cat "$PIDFILE")" 2>/dev/null
+    rm -f "$PIDFILE"
+    notify-send -a keep-awake -t 2000 "Sleeping normally"
+}
+
+case "${1:-toggle}" in
+    on)
+        running || start
+        ;;
+    off)
+        running && stop
+        ;;
+    toggle)
+        if running; then stop; else start; fi
+        ;;
+    status)
+        running && echo awake || echo normal
+        ;;
+    *)
+        printf 'usage: %s on|off|toggle|status\n' "${0##*/}" >&2
+        exit 2
+        ;;
+esac

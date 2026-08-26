@@ -1,0 +1,129 @@
+{
+  "layer": "top",
+  "position": "top",
+  "height": 48,
+  "spacing": 6,
+  "modules-left": ["hyprland/workspaces", "hyprland/submap"],
+  "modules-center": ["clock"],
+  "modules-right": [
+    "tray",
+    "custom/notifications",
+    "custom/updates",
+    "cpu",
+    "memory",
+    "network",
+    "bluetooth",
+    "pulseaudio#microphone",
+    "pulseaudio",
+    "battery"
+  ],
+
+  "hyprland/workspaces": {
+    "format": "{icon}",
+    "format-icons": {
+      "default": "",
+      "active": "",
+      "urgent": ""
+    },
+    "on-click": "activate",
+    "sort-by-number": true
+  },
+
+  "hyprland/submap": {
+    "format": "{}",
+    "tooltip": false
+  },
+
+  "clock": {
+    "format": "{:%a %d %b  %H:%M}",
+    "tooltip-format": "<tt>{calendar}</tt>",
+    "calendar": {
+      "mode": "month",
+      "weeks-pos": "left",
+      "format": {
+        "today": "<b>{}</b>"
+      }
+    },
+    "on-click": "rofi -show calc -modi calc -no-show-match -no-sort"
+  },
+
+  "tray": {
+    "icon-size": 20,
+    "spacing": 8
+  },
+
+  "custom/notifications": {
+    "exec": "notification-state",
+    "return-type": "json",
+    "interval": 2,
+    "on-click": "makoctl mode -t do-not-disturb",
+    "on-click-right": "makoctl dismiss --all"
+  },
+
+  "custom/updates": {
+    "exec": "pending-updates",
+    "return-type": "json",
+    "interval": 3600,
+    "on-click": "kitty --class activity sudo dnf upgrade"
+  },
+
+  "cpu": {
+    "format": "󰍛 {usage}%",
+    "interval": 5,
+    "on-click": "kitty --class activity btop"
+  },
+
+  "memory": {
+    "format": " {percentage}%",
+    "interval": 10,
+    "on-click": "kitty --class activity btop"
+  },
+
+  "network": {
+    "format-wifi": "  {signalStrength}%",
+    "format-ethernet": "󰈀",
+    "format-disconnected": "󰤭",
+    "tooltip-format-wifi": "{essid}  {ipaddr}",
+    "tooltip-format-ethernet": "{ifname}  {ipaddr}",
+    "on-click": "kitty --class activity nmtui"
+  },
+
+  "bluetooth": {
+    "format": "",
+    "format-disabled": "",
+    "format-connected": " {num_connections}",
+    "tooltip-format-connected": "{device_enumerate}",
+    "on-click": "kitty --class activity bluetoothctl"
+  },
+
+  "pulseaudio": {
+    "format": "{icon} {volume}%",
+    "format-muted": "󰝟",
+    "format-icons": {
+      "headphone": "",
+      "default": ["", "", ""]
+    },
+    "on-click": "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle",
+    "on-click-right": "pwvucontrol",
+    "on-scroll-up": "wpctl set-volume -l 1 @DEFAULT_AUDIO_SINK@ 5%+",
+    "on-scroll-down": "wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-"
+  },
+
+  "pulseaudio#microphone": {
+    "format": "{format_source}",
+    "format-source": "",
+    "format-source-muted": "",
+    "on-click": "wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"
+  },
+
+  "battery": {
+    "states": {
+      "warning": 25,
+      "critical": 10
+    },
+    "format": "{icon} {capacity}%",
+    "format-charging": "󰂄 {capacity}%",
+    "format-icons": ["", "", "", "", ""],
+    "tooltip-format": "{timeTo}"
+  }
+}

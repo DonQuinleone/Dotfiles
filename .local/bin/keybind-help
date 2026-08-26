@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+readonly SHEET="${XDG_STATE_HOME:-$HOME/.local/state}/hypr/binds.tsv"
+
+[ -r "$SHEET" ] || {
+    printf 'keybind-help: no bind sheet at %s\n' "$SHEET" >&2
+    exit 1
+}
+
+column -t -s $'\t' -- "$SHEET" \
+    | rofi -dmenu -i -p Keys -no-custom > /dev/null

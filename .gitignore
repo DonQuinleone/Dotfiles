@@ -20,3 +20,17 @@ HANDOFF.md
 .local/share/claude/skills/restart-shell/
 .local/share/claude/skills/theme-template/
 .local/share/claude/skills/visual-verification/
+.config/waybar/style.css
+.config/rofi/theme.rasi
+.config/mako/config
+.config/hypr/hyprlock-colours.conf
+.config/gtk-3.0/gtk.css
+.config/gtk-3.0/settings.ini
+.config/gtk-4.0/gtk.css
+.config/gtk-4.0/settings.ini
+.config/btop/themes/current.theme
+.config/lsd/colors.yaml
+.config/qt6ct/colors/current.conf
+.config/yazi/theme.toml
+.config/imv/config
+.config/fastfetch/config.jsonc

@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+readonly TARGET=${1:-region}
+readonly SAVE_DIR="${XDG_PICTURES_DIR:-$HOME/Pictures}/screenshots"
+
+declare -rA MODES=(
+    [region]=region
+    [screen]=output
+    [window]=window
+)
+
+mode=${MODES[$TARGET]:-}
+
+[ -n "$mode" ] || {
+    printf 'usage: %s region|screen|window\n' "${0##*/}" >&2
+    exit 2
+}
+
+mkdir -p "$SAVE_DIR"
+
+hyprshot --mode "$mode" --output-folder "$SAVE_DIR" --silent
