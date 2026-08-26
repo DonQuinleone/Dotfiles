@@ -18,10 +18,14 @@ notify_level() {
     local previous=""
     [ -r "$STATE" ] && previous=$(cat "$STATE")
     local id
-    id=$(notify-send -p -a "$APP" -t 1500 -u low \
-        ${previous:+-r "$previous"} \
-        -h "int:value:${value}" -i "$icon" "$label")
+    if ! id=$(notify-send -p -a "$APP" -t 1500 -u low \
+            ${previous:+-r "$previous"} \
+            -h "int:value:${value}" -i "$icon" "$label" 2>&1); then
+        printf '  notify-send failed: %s\n' "$id" >> "$LOG"
+        return 0
+    fi
     printf '%s\n' "$id" > "$STATE"
+    printf '  notified id=%s\n' "$id" >> "$LOG"
 }
 
 level() {
@@ -38,7 +42,7 @@ show() {
         return
     fi
     notify_level "Volume  $(level)%" "$(level)" audio-volume-high
-    canberra-gtk-play -i "$SOUND" >/dev/null 2>&1 &
+    setsid -f canberra-gtk-play -i "$SOUND" >/dev/null 2>&1 || true
 }
 
 case "${1:-show}" in

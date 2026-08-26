@@ -16,11 +16,15 @@ show() {
     local previous=""
     [ -r "$STATE" ] && previous=$(cat "$STATE")
     local id
-    id=$(notify-send -p -a "$APP" -t 1500 -u low \
-        ${previous:+-r "$previous"} \
-        -h "int:value:$(level)" -i display-brightness \
-        "Brightness  $(level)%")
+    if ! id=$(notify-send -p -a "$APP" -t 1500 -u low \
+            ${previous:+-r "$previous"} \
+            -h "int:value:$(level)" -i display-brightness \
+            "Brightness  $(level)%" 2>&1); then
+        printf '  notify-send failed: %s\n' "$id" >> "$LOG"
+        return 0
+    fi
     printf '%s\n' "$id" > "$STATE"
+    printf '  notified id=%s\n' "$id" >> "$LOG"
 }
 
 case "${1:-show}" in
