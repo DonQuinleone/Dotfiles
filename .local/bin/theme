@@ -58,6 +58,7 @@ LINKS = (
     ("rofi.rasi", "rofi/theme.rasi"),
     ("mako.conf", "mako/config"),
     ("hyprlock.conf", "hypr/hyprlock-colours.conf"),
+    ("flameshot.ini", "flameshot/flameshot.ini"),
 )
 
 RELOADS = (
