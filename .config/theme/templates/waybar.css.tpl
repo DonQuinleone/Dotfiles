@@ -1,6 +1,6 @@
 * {
     font-family: "{{ theme_font_ui }}", "{{ theme_font_mono }}";
-    font-size: 14px;
+    font-size: 15px;
     border: none;
     border-radius: 0;
     min-height: 0;

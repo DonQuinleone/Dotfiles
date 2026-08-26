@@ -1,4 +1,4 @@
-local BAR_HEIGHT = 48
+local BAR_HEIGHT = 40
 
 local FLOATING_TERMINALS = {
     { class = "activity", width = 0.75, height = 0.90 },
