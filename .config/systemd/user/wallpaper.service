@@ -1,11 +1,11 @@
 [Unit]
-Description=Wallpaper daemon
+Description=Wallpaper
 PartOf=desktop-session.target
 After=desktop-session.target
 
 [Service]
 Type=exec
-ExecStart=/usr/bin/hyprpaper
+ExecStart=%h/.local/bin/run-wallpaper
 Restart=on-failure
 RestartSec=2
 Slice=session.slice

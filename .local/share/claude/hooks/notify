@@ -6,8 +6,7 @@ readonly NOTIFICATION_TITLE='Claude Code'
 readonly STOP_TITLE='Claude finished'
 readonly QUIET_TURN_SECONDS=60
 readonly STAMP_DIR="${XDG_RUNTIME_DIR:-/tmp}/claude-turns"
-readonly PREFERRED_NOTIFIER=(donbox notify)
-readonly FALLBACK_NOTIFIER=(notify-send)
+readonly NOTIFIER=(notify-send)
 
 root=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)
 readonly root
@@ -21,12 +20,8 @@ has_display() {
 
 send_notification() {
   local -r title=$1 body=$2
-  if has_command "${PREFERRED_NOTIFIER[0]}"; then
-    "${PREFERRED_NOTIFIER[@]}" "$title" "$body"
-    return 0
-  fi
-  if has_command "${FALLBACK_NOTIFIER[0]}"; then
-    "${FALLBACK_NOTIFIER[@]}" "$title" "$body"
+  if has_command "${NOTIFIER[0]}"; then
+    "${NOTIFIER[@]}" "$title" "$body"
   fi
 }
 

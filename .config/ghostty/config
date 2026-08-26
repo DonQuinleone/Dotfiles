@@ -18,4 +18,4 @@ cursor-opacity = 1
 cursor-text = cell-foreground
 shell-integration-features = no-cursor,ssh-env,ssh-terminfo
 
-config-file = ?/home/user/.local/state/donbox/current/theme/ghostty.conf
+config-file = ?/home/user/.local/state/theme/ghostty.conf

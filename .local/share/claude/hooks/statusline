@@ -11,7 +11,7 @@ ansi_fg() {
     printf '\033[38;2;%sm' "$(hex_rgb "$1")"
 }
 
-theme_file=$HOME/.local/state/donbox/current/theme.json
+theme_file=$HOME/.local/state/theme/current
 accent=
 dim=
 reset=

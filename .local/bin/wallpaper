@@ -24,9 +24,9 @@ apply() {
         printf 'wallpaper: cannot read %s\n' "$image" >&2
         exit 1
     }
-    hyprctl hyprpaper reload ",${image}" >/dev/null
     mkdir -p "$STATE"
     printf '%s\n' "$image" > "$CHOSEN"
+    systemctl --user restart wallpaper.service
 }
 
 case "${1:-current}" in
@@ -38,12 +38,11 @@ case "${1:-current}" in
         apply "$2"
         ;;
     pick)
-        choice=$(available | rofi -dmenu -i -p Wallpaper \
-            -show-icons -no-custom) || exit 0
+        choice=$(available | rofi -dmenu -i -p Wallpaper -no-custom) || exit 0
         [ -n "$choice" ] && apply "$choice"
         ;;
-    restore)
-        [ -r "$CHOSEN" ] && apply "$(cat "$CHOSEN")"
+    random)
+        apply "$(available | shuf -n 1)"
         ;;
     current)
         [ -r "$CHOSEN" ] && cat "$CHOSEN" || echo none
@@ -52,8 +51,7 @@ case "${1:-current}" in
         available
         ;;
     *)
-        printf 'usage: %s set|pick|restore|current|list\n' \
-            "${0##*/}" >&2
+        printf 'usage: %s set|pick|random|current|list\n' "${0##*/}" >&2
         exit 2
         ;;
 esac

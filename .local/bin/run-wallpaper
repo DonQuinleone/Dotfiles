@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+readonly STATE="${XDG_STATE_HOME:-$HOME/.local/state}/theme"
+readonly CHOSEN="${STATE}/wallpaper"
+readonly FALLBACK_COLOUR='#1b1b1b'
+readonly MODE=fill
+
+image=""
+[ -r "$CHOSEN" ] && image=$(cat "$CHOSEN")
+
+[ -n "$image" ] && [ -r "$image" ] || {
+    exec swaybg -c "$FALLBACK_COLOUR"
+}
+
+exec swaybg -m "$MODE" -i "$image"
