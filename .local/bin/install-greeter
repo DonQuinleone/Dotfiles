@@ -18,6 +18,7 @@ owner=${SUDO_USER:-}
 home=$(getent passwd "$owner" | cut -d: -f6)
 readonly REPO="${home}/.dotfiles/etc/greetd"
 readonly RENDERED="${home}/.local/state/theme/gtkgreet.css"
+readonly WALLPAPER_POINTER="${home}/.local/state/theme/wallpaper"
 
 command -v gtkgreet >/dev/null 2>&1 || {
     printf 'install-greeter: gtkgreet is not installed\n' >&2
@@ -37,6 +38,14 @@ backup="${TARGET}/config.toml.before-gtkgreet"
 install -m 644 "${REPO}/config.toml" "${TARGET}/config.toml"
 install -m 644 "${REPO}/hyprland.conf" "${TARGET}/hyprland.conf"
 install -m 644 "$RENDERED" "${TARGET}/style.css"
+
+# The greeter runs as its own user and cannot read the home
+# directory, so the wallpaper is copied rather than linked.
+if [ -r "$WALLPAPER_POINTER" ]; then
+    wallpaper=$(cat "$WALLPAPER_POINTER")
+    [ -r "$wallpaper" ] &&
+        install -m 644 "$wallpaper" "${TARGET}/background.jpg"
+fi
 
 printf 'install-greeter: installed. Previous config kept at %s\n' "$backup"
 printf 'install-greeter: restart greetd to apply\n'

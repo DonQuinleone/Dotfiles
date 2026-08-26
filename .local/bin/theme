@@ -54,7 +54,6 @@ LINKS = (
     ("gtk4-settings.ini", "gtk-4.0/settings.ini"),
     ("yazi-theme.toml", "yazi/theme.toml"),
     ("imv.conf", "imv/config"),
-    ("waybar.css", "waybar/style.css"),
     ("rofi.rasi", "rofi/theme.rasi"),
     ("mako.conf", "mako/config"),
     ("hyprlock.conf", "hypr/hyprlock-colours.conf"),
@@ -62,7 +61,6 @@ LINKS = (
 )
 
 RELOADS = (
-    ("waybar", ("pkill", "-SIGUSR2", "waybar")),
     ("makoctl", ("makoctl", "reload")),
     ("hyprctl", ("hyprctl", "reload")),
     ("kitty", ("pkill", "-SIGUSR1", "kitty")),

@@ -20,7 +20,6 @@ HANDOFF.md
 .local/share/claude/skills/restart-shell/
 .local/share/claude/skills/theme-template/
 .local/share/claude/skills/visual-verification/
-.config/waybar/style.css
 .config/rofi/theme.rasi
 .config/mako/config
 .config/hypr/hyprlock-colours.conf

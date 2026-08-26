@@ -21,6 +21,13 @@ local VOLUME_UP = "wpctl set-volume -l 1 @DEFAULT_AUDIO_SINK@ 5%+"
 local VOLUME_DOWN = "wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-"
 local SINK_MUTE = "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"
 local SOURCE_MUTE = "wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"
+local SHOTS = (os.getenv("XDG_PICTURES_DIR")
+    or (os.getenv("HOME") .. "/Pictures")) .. "/screenshots"
+local COPY_SCREEN = "flameshot full --clipboard"
+local COPY_REGION = "flameshot gui --clipboard"
+local SAVE_SCREEN = "flameshot full --path " .. SHOTS
+local SAVE_REGION = "flameshot gui --path " .. SHOTS
+
 local BRIGHTER = "brightnessctl set 5%+"
 local DIMMER = "brightnessctl set 5%-"
 
@@ -44,12 +51,8 @@ local rows = {
       "Paste from the clipboard history" },
     { "SUPER + CTRL", "v", run("clipboard-history"),
       "Paste from the clipboard history" },
-    { "SUPER + ALT", "space", run("menu"),
-      "Open the menu" },
     { "SUPER + CTRL", "e", run("rofimoji"),
       "Insert an emoji" },
-    { "SUPER + SHIFT", "b", run("toggle-bar"),
-      "Show or hide the bar" },
 
     { "SUPER", "n", run("makoctl restore"),
       "Bring back the last notification" },
@@ -150,25 +153,19 @@ local rows = {
     { "SUPER + ALT", "e", hl.dsp.exit(),
       "Leave the session" },
 
-    { "SUPER", "p", run("screenshot copy-screen"),
+    { "SUPER", "p", run(COPY_SCREEN),
       "Copy the screen" },
-    { "SUPER + SHIFT", "p", run("screenshot copy-region"),
+    { "SUPER + SHIFT", "p", run(COPY_REGION),
       "Copy a region" },
-    { "SUPER + CTRL", "p", run("screenshot save-screen"),
+    { "SUPER + CTRL", "p", run(SAVE_SCREEN),
       "Save the screen" },
-    { "SUPER + CTRL + SHIFT", "p",
-      run("screenshot save-region"),
+    { "SUPER + CTRL + SHIFT", "p", run(SAVE_REGION),
       "Save a region" },
-    { "SUPER + ALT", "p", run("screenshot text"),
-      "Copy the text in a region" },
 
-    { "", "Print", run("screenshot copy-region"),
-      "Copy a region" },
-    { "SHIFT", "Print", run("screenshot copy-screen"),
-      "Copy the screen" },
-    { "CTRL", "Print", run("screenshot save-screen"),
-      "Save the screen" },
-    { "CTRL + SHIFT", "Print", run("screenshot save-region"),
+    { "", "Print", run(COPY_REGION), "Copy a region" },
+    { "SHIFT", "Print", run(COPY_SCREEN), "Copy the screen" },
+    { "CTRL", "Print", run(SAVE_SCREEN), "Save the screen" },
+    { "CTRL + SHIFT", "Print", run(SAVE_REGION),
       "Save a region" },
 
     { "SUPER + ALT", "up", run(VOLUME_UP), held, "Volume up" },
