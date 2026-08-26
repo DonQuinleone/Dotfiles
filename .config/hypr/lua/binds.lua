@@ -15,17 +15,17 @@ local function run(command)
     return hl.dsp.exec_cmd(command)
 end
 
-local VOLUME_UP = "wpctl set-volume -l 1 @DEFAULT_AUDIO_SINK@ 5%+"
-local VOLUME_DOWN = "wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-"
-local SINK_MUTE = "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"
-local SOURCE_MUTE = "wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"
+local VOLUME_UP = "volume up"
+local VOLUME_DOWN = "volume down"
+local SINK_MUTE = "volume mute"
+local SOURCE_MUTE = "volume mic"
 local COPY_SCREEN = "screenshot copy-screen"
 local COPY_REGION = "screenshot copy-region"
 local SAVE_SCREEN = "screenshot save-screen"
 local SAVE_REGION = "screenshot save-region"
 
-local BRIGHTER = "brightnessctl set 5%+"
-local DIMMER = "brightnessctl set 5%-"
+local BRIGHTER = "brightness up"
+local DIMMER = "brightness down"
 
 local rows = {
     { "SUPER", "Return", run("kitty"),
