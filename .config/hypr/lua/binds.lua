@@ -33,6 +33,8 @@ local rows = {
       "Open the file manager" },
     { "SUPER", "a", run("kitty --class activity btop"),
       "See the machine's activity" },
+    { "SUPER", "o", run("cpanel-sso"),
+      "cPanel SSO" },
     { "SUPER", "i",
       run("kitty --class agent claude --dangerously-skip-permissions"),
       "Open the coding agent" },
