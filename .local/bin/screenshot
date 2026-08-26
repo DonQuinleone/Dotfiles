@@ -1,22 +1,46 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-readonly TARGET=${1:-region}
 readonly SAVE_DIR="${XDG_PICTURES_DIR:-$HOME/Pictures}/screenshots"
+readonly ACTION=${1:-copy-region}
 
 declare -rA MODES=(
-    [region]=region
-    [screen]=output
-    [window]=window
+    [copy-screen]=output
+    [copy-region]=region
+    [copy-window]=window
+    [save-screen]=output
+    [save-region]=region
+    [save-window]=window
 )
 
-mode=${MODES[$TARGET]:-}
+shoot() {
+    local mode=$1
+    shift
+    hyprshot --mode "$mode" --output-folder "$SAVE_DIR" --silent "$@"
+}
+
+read_text() {
+    local shot
+    shot=$(mktemp --suffix=.png)
+    trap 'rm -f "$shot"' EXIT
+    grim -g "$(slurp)" "$shot"
+    tesseract "$shot" - 2>/dev/null | wl-copy
+    notify-send -a screenshot -t 2000 "Text copied"
+}
+
+[ "$ACTION" = text ] && { read_text; exit 0; }
+
+mode=${MODES[$ACTION]:-}
 
 [ -n "$mode" ] || {
-    printf 'usage: %s region|screen|window\n' "${0##*/}" >&2
+    printf 'usage: %s copy-screen|copy-region|copy-window|save-screen|save-region|save-window|text\n' \
+        "${0##*/}" >&2
     exit 2
 }
 
 mkdir -p "$SAVE_DIR"
 
-hyprshot --mode "$mode" --output-folder "$SAVE_DIR" --silent
+case "$ACTION" in
+    copy-*) shoot "$mode" --clipboard-only ;;
+    save-*) shoot "$mode" ;;
+esac

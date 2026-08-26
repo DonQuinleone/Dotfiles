@@ -1,6 +1,6 @@
 * {
     font-family: "{{ theme_font_ui }}", "{{ theme_font_mono }}";
-    font-size: {{ theme_size_ui }}px;
+    font-size: 14px;
     border: none;
     border-radius: 0;
     min-height: 0;
@@ -20,7 +20,7 @@ window#waybar.hidden {
 }
 
 #workspaces button {
-    padding: 0 6px;
+    padding: 0 5px;
     margin: 0;
     border: none;
     border-radius: 0;
@@ -46,7 +46,7 @@ window#waybar.hidden {
 #clock {
     color: {{ foreground }};
     font-weight: {{ theme_weight_bold }};
-    padding: 0 12px;
+    padding: 0 10px;
 }
 
 #tray,
@@ -58,20 +58,19 @@ window#waybar.hidden {
 #battery,
 #custom-notifications,
 #custom-updates {
-    padding: 0 10px;
-    margin: 6px 2px;
-    border-radius: 8px;
-    background: {{ lighter_background }};
+    padding: 0 8px;
+    margin: 0;
+    background: transparent;
+    color: {{ dark_foreground }};
+}
+
+#clock,
+#battery {
     color: {{ foreground }};
 }
 
-#tray {
-    background: transparent;
-}
-
 #custom-updates.pending {
-    background: {{ yellow }};
-    color: {{ background }};
+    color: {{ yellow }};
 }
 
 #custom-notifications.silenced {
@@ -88,8 +87,7 @@ window#waybar.hidden {
 }
 
 #battery.critical {
-    background: {{ red }};
-    color: {{ background }};
+    color: {{ red }};
 }
 
 #battery.charging {

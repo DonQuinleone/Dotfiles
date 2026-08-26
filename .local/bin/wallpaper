@@ -4,6 +4,14 @@ set -euo pipefail
 readonly STATE="${XDG_STATE_HOME:-$HOME/.local/state}/theme"
 readonly WALLS="${XDG_PICTURES_DIR:-$HOME/Pictures}/walls"
 readonly CHOSEN="${STATE}/wallpaper"
+readonly THUMBNAIL_THEME='
+listview { lines: 3; columns: 4; spacing: 10px; }
+element { orientation: vertical; padding: 8px; }
+element-icon { size: 190px; }
+element-text { horizontal-align: 0.5; }
+window { width: 1100px; }
+'
+
 readonly PER_THEME="${STATE}/wallpapers"
 
 theme_slug() {
@@ -53,8 +61,16 @@ case "${1:-current}" in
         apply "$2"
         ;;
     pick)
-        choice=$(available | rofi -dmenu -i -p Wallpaper -no-custom) || exit 0
-        [ -n "$choice" ] && apply "$choice"
+        choice=$(
+            while IFS= read -r image; do
+                printf '%s\0icon\x1f%s\n' \
+                    "$(basename "${image%.*}")" "$image"
+            done < <(available) \
+            | rofi -dmenu -i -p Wallpaper -no-custom -show-icons \
+                -theme-str "${THUMBNAIL_THEME}"
+        ) || exit 0
+        [ -n "$choice" ] || exit 0
+        apply "$(available | grep -m1 -F "/${choice}.")"
         ;;
     random)
         apply "$(available | shuf -n 1)"

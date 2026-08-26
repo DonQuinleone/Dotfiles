@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+readonly WARM=3400
+readonly NEUTRAL=6500
+readonly STATE="${XDG_STATE_HOME:-$HOME/.local/state}/night-shift"
+
+current() {
+    [ -r "$STATE" ] && cat "$STATE" || printf '%s\n' "$NEUTRAL"
+}
+
+apply() {
+    hyprctl hyprsunset temperature "$1" >/dev/null 2>&1 \
+        || hyprsunset -t "$1" >/dev/null 2>&1 &
+    printf '%s\n' "$1" > "$STATE"
+    notify-send -a night-shift -t 1500 "Night shift ${2}"
+}
+
+case "${1:-toggle}" in
+    on)     apply "$WARM" on ;;
+    off)    apply "$NEUTRAL" off ;;
+    toggle)
+        if [ "$(current)" = "$WARM" ]; then
+            apply "$NEUTRAL" off
+        else
+            apply "$WARM" on
+        fi
+        ;;
+    *)
+        printf 'usage: %s on|off|toggle\n' "${0##*/}" >&2
+        exit 2
+        ;;
+esac
