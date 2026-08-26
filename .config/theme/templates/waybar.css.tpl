@@ -1,0 +1,11 @@
+@define-color background {{ background }};
+@define-color background_alt {{ lighter_background }};
+@define-color background_dark {{ dark_background }};
+@define-color foreground {{ foreground }};
+@define-color foreground_dim {{ dark_foreground }};
+@define-color muted {{ muted }};
+@define-color accent {{ accent }};
+@define-color good {{ green }};
+@define-color warn {{ yellow }};
+@define-color bad {{ red }};
+@define-color selection {{ selection }};

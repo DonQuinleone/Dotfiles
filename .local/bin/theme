@@ -1,0 +1,230 @@
+#!/usr/bin/env python3
+"""Render every themed file from one palette and reload what is live."""
+
+import os
+import pathlib
+import re
+import shutil
+import subprocess
+import sys
+import tomllib
+
+HOME = pathlib.Path.home()
+CONFIG = pathlib.Path(
+    os.environ.get("XDG_CONFIG_HOME", HOME / ".config"))
+STATE = pathlib.Path(
+    os.environ.get("XDG_STATE_HOME", HOME / ".local/state"))
+
+THEMES = CONFIG / "theme/themes"
+TEMPLATES = CONFIG / "theme/templates"
+RENDERED = STATE / "theme"
+CURRENT = RENDERED / "current"
+
+WALLPAPERS = HOME / "Pictures/walls"
+
+FONT_UI = "IBM Plex Sans"
+FONT_MONO = "JetBrainsMono Nerd Font"
+SIZE_UI = 17
+SIZE_MONO = 17
+WEIGHT_BODY = 400
+WEIGHT_BOLD = 700
+
+TERMINAL_DARK_OPACITY = "0.8"
+TERMINAL_LIGHT_OPACITY = "0.97"
+LIGHT_MODE_SUM = 382
+
+MOTION = {
+    "motion_quick": "150",
+    "motion_normal": "175",
+    "motion_slow": "200",
+    "motion_standard": "OutCubic",
+    "motion_enter": "OutBack",
+    "motion_exit": "OutCubic",
+    "motion_reduce": "false",
+}
+
+LINKS = (
+    ("btop.theme", "btop/themes/current.theme"),
+    ("fastfetch.jsonc", "fastfetch/config.jsonc"),
+    ("lsd-colours.yaml", "lsd/colors.yaml"),
+    ("qt6ct.conf", "qt6ct/colors/current.conf"),
+    ("gtk3.css", "gtk-3.0/gtk.css"),
+    ("gtk3-settings.ini", "gtk-3.0/settings.ini"),
+    ("gtk4.css", "gtk-4.0/gtk.css"),
+    ("gtk4-settings.ini", "gtk-4.0/settings.ini"),
+    ("yazi-theme.toml", "yazi/theme.toml"),
+    ("imv.conf", "imv/config"),
+    ("waybar.css", "waybar/colours.css"),
+    ("rofi.rasi", "rofi/colours.rasi"),
+    ("mako.conf", "mako/config"),
+    ("hyprlock.conf", "hypr/hyprlock-colours.conf"),
+)
+
+RELOADS = (
+    ("waybar", ("pkill", "-SIGUSR2", "waybar")),
+    ("makoctl", ("makoctl", "reload")),
+    ("hyprctl", ("hyprctl", "reload")),
+    ("kitty", ("pkill", "-SIGUSR1", "kitty")),
+)
+
+MIX_TOKEN = re.compile(
+    r"\{\{\s*(mix|mix_strip)\s+(\w+)\s+(\w+)\s+"
+    r"([0-9.]+)%?\s*\}\}")
+NAME_TOKEN = re.compile(r"\{\{\s*(\w+)\s*\}\}")
+
+
+def die(message):
+    sys.exit("theme: " + message)
+
+
+def channels(colour):
+    bare = colour.lstrip("#")
+    return tuple(int(bare[at:at + 2], 16) for at in (0, 2, 4))
+
+
+def mix(start, end, amount):
+    fraction = max(0.0, min(1.0, float(amount) / 100.0))
+    blended = (
+        int(one * (1 - fraction) + other * fraction + 0.5)
+        for one, other in zip(channels(start), channels(end)))
+    return "#" + "".join("%02x" % value for value in blended)
+
+
+def slugs():
+    return sorted(path.stem for path in THEMES.glob("*.toml"))
+
+
+def palette_of(slug):
+    path = THEMES / (slug + ".toml")
+    if not path.is_file():
+        die("no theme called '%s' (have: %s)"
+            % (slug, ", ".join(slugs())))
+    return tomllib.load(open(path, "rb"))
+
+
+def tokens_for(slug):
+    palette = palette_of(slug)
+    tokens = {key: str(value) for key, value in palette.items()}
+
+    mode = tokens.get("mode")
+    if mode is None:
+        mode = ("light" if sum(channels(tokens["background"]))
+                > LIGHT_MODE_SUM else "dark")
+        tokens["mode"] = mode
+
+    tokens.setdefault("cursor", tokens["bright_foreground"])
+    tokens.setdefault("selection_background", tokens["selection"])
+    tokens.setdefault("selection_foreground",
+                      tokens["bright_foreground"])
+    tokens["prefers_dark"] = "true" if mode == "dark" else "false"
+    tokens["terminal_opacity"] = (
+        TERMINAL_DARK_OPACITY if mode == "dark"
+        else TERMINAL_LIGHT_OPACITY)
+
+    tokens["theme_slug"] = slug
+    tokens["theme_name"] = tokens.get("name", slug)
+    tokens["theme_font_ui"] = FONT_UI
+    tokens["theme_font_mono"] = FONT_MONO
+    tokens["theme_size_ui"] = str(SIZE_UI)
+    tokens["theme_size_mono"] = str(SIZE_MONO)
+    tokens["theme_weight_body"] = str(WEIGHT_BODY)
+    tokens["theme_weight_bold"] = str(WEIGHT_BOLD)
+    tokens.update(MOTION)
+
+    for key, value in list(tokens.items()):
+        if value.startswith("#"):
+            tokens[key + "_strip"] = value.lstrip("#")
+    return tokens
+
+
+def render(text, tokens):
+    def blend(match):
+        verb, start, end, amount = match.groups()
+        if start not in tokens or end not in tokens:
+            return match.group(0)
+        value = mix(tokens[start], tokens[end], amount)
+        return value.lstrip("#") if verb == "mix_strip" else value
+
+    def name(match):
+        return tokens.get(match.group(1), match.group(0))
+
+    return NAME_TOKEN.sub(name, MIX_TOKEN.sub(blend, text))
+
+
+def link(rendered_name, relative):
+    target = RENDERED / rendered_name
+    if not target.is_file():
+        return
+    path = CONFIG / relative
+    path.parent.mkdir(parents=True, exist_ok=True)
+    if path.is_symlink() and path.readlink() == target:
+        return
+    if path.exists() or path.is_symlink():
+        path.unlink()
+    path.symlink_to(target)
+
+
+def reload_live():
+    for binary, command in RELOADS:
+        if shutil.which(binary) is None:
+            continue
+        subprocess.run(command, check=False,
+                       stdout=subprocess.DEVNULL,
+                       stderr=subprocess.DEVNULL)
+
+
+def current():
+    if CURRENT.is_file():
+        return CURRENT.read_text().strip()
+    return None
+
+
+def set_theme(slug):
+    tokens = tokens_for(slug)
+    RENDERED.mkdir(parents=True, exist_ok=True)
+
+    written = 0
+    for template in sorted(TEMPLATES.glob("*.tpl")):
+        text = template.read_text(errors="surrogateescape")
+        (RENDERED / template.stem).write_text(
+            render(text, tokens), errors="surrogateescape")
+        written += 1
+
+    for rendered_name, relative in LINKS:
+        link(rendered_name, relative)
+
+    CURRENT.write_text(slug + "\n")
+    reload_live()
+    print("theme: %s (%d files)" % (slug, written))
+
+
+def pick():
+    choice = subprocess.run(
+        ("rofi", "-dmenu", "-i", "-p", "Theme"),
+        input="\n".join(slugs()), capture_output=True, text=True)
+    chosen = choice.stdout.strip()
+    if chosen:
+        set_theme(chosen)
+
+
+def main(argv):
+    if not argv or argv[0] == "list":
+        print("\n".join(slugs()))
+        return
+    verb = argv[0]
+    if verb == "current":
+        print(current() or "none")
+        return
+    if verb == "pick":
+        pick()
+        return
+    if verb == "set":
+        if len(argv) < 2:
+            die("set needs a theme name")
+        set_theme(argv[1])
+        return
+    die("unknown command '%s' (list, current, set, pick)" % verb)
+
+
+if __name__ == "__main__":
+    main(sys.argv[1:])
