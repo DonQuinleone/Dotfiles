@@ -7,19 +7,7 @@ HANDOFF.md
 # Personal identity include, never committed
 .config/git/personal.inc
 
-# Written by donbox through the stowed links
-.config/fish/conf.d/donbox.fish
-.config/fish/completions/
-.config/nvim/lua/donbox/
-.local/share/claude/skills/add-migration/
-.local/share/claude/skills/diagnose-crash/
-.local/share/claude/skills/new-command/
-.local/share/claude/skills/new-plugin/
-.local/share/claude/skills/new-theme/
-.local/share/claude/skills/port-omarchy/
-.local/share/claude/skills/restart-shell/
-.local/share/claude/skills/theme-template/
-.local/share/claude/skills/visual-verification/
+# Rendered by theme into the stowed links
 .config/rofi/theme.rasi
 .config/waybar/style.css
 .config/mako/config
@@ -33,4 +21,4 @@ HANDOFF.md
 .config/qt6ct/colors/current.conf
 .config/yazi/theme.toml
 .config/imv/config
-.config/fastfetch/config.jsonc
+.config/zathura/zathurarc
