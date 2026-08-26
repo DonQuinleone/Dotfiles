@@ -31,8 +31,12 @@ for source in "${REPO}/config.toml" "${REPO}/hyprland.conf" "$RENDERED"; do
     }
 done
 
+backup="${TARGET}/config.toml.before-gtkgreet"
+[ -e "$backup" ] || cp -p "${TARGET}/config.toml" "$backup"
+
 install -m 644 "${REPO}/config.toml" "${TARGET}/config.toml"
 install -m 644 "${REPO}/hyprland.conf" "${TARGET}/hyprland.conf"
 install -m 644 "$RENDERED" "${TARGET}/style.css"
 
-printf 'install-greeter: installed; restart greetd to apply\n'
+printf 'install-greeter: installed. Previous config kept at %s\n' "$backup"
+printf 'install-greeter: restart greetd to apply\n'
