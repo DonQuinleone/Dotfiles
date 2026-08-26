@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+readonly DIRECTION=${1:-}
+
+case "$DIRECTION" in
+    left|right) ;;
+    *)
+        printf 'usage: %s left|right\n' "${0##*/}" >&2
+        exit 2
+        ;;
+esac
+
+hyprctl -j monitors | python3 -c '
+import json
+import sys
+
+direction = sys.argv[1]
+monitors = [m for m in json.load(sys.stdin) if not m["disabled"]]
+if len(monitors) < 2:
+    sys.exit(1)
+
+ordered = sorted(monitors, key=lambda m: (m["x"], m["y"]))
+focused = next(
+    (i for i, m in enumerate(ordered) if m.get("focused")), 0)
+step = -1 if direction == "left" else 1
+print(ordered[(focused + step) % len(ordered)]["name"])
+' "$DIRECTION"

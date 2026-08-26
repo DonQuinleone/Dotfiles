@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+HERE=$(dirname "$(readlink -f "$0")")
+readonly HERE
+readonly NO_NEIGHBOUR=1
+
+set +e
+target=$("${HERE}/monitor-neighbour" "${1:-}")
+status=$?
+set -e
+
+[ "$status" -eq "$NO_NEIGHBOUR" ] && exit 0
+[ "$status" -ne 0 ] && exit "$status"
+
+hyprctl dispatch movewindow "mon:$target" >/dev/null
