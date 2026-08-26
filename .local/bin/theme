@@ -59,6 +59,7 @@ LINKS = (
     ("mako.conf", "mako/config"),
     ("hyprlock.conf", "hypr/hyprlock-colours.conf"),
     ("waybar.css", "waybar/style.css"),
+    ("zathurarc", "zathura/zathurarc"),
 )
 
 BRAVE_POLICY = pathlib.Path(
@@ -72,6 +73,12 @@ FIREFOX_LINKS = (
 )
 FIREFOX_PREF = ("toolkit.legacyUserProfileCustomizations"
                 ".stylesheets")
+
+TEAMSPEAK_STYLES = HOME / ".local/opt/teamspeak3/styles"
+TEAMSPEAK_LINKS = (
+    ("teamspeak.qss", "current.qss"),
+    ("teamspeak-chat.qss", "current_chat.qss"),
+)
 
 RELOADS = (
     ("makoctl", ("makoctl", "reload")),
@@ -244,6 +251,18 @@ def apply_firefox():
                                pref + "\n")
 
 
+# TeamSpeak reads its stylesheet once at start, so there is no
+# reload entry for it; a switch shows on its next launch.
+def apply_teamspeak():
+    if not TEAMSPEAK_STYLES.is_dir():
+        return
+    for rendered, name in TEAMSPEAK_LINKS:
+        source = RENDERED / rendered
+        if not source.is_file():
+            continue
+        link_file(source, TEAMSPEAK_STYLES / name)
+
+
 def reload_live():
     for binary, command in RELOADS:
         if shutil.which(binary) is None:
@@ -275,6 +294,7 @@ def set_theme(slug):
 
     apply_brave(tokens)
     apply_firefox()
+    apply_teamspeak()
 
     CURRENT.write_text(slug + "\n")
     follow_wallpaper()
