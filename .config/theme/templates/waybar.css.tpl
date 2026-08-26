@@ -27,7 +27,7 @@ window#waybar {
 #battery,
 #custom-tailscale,
 #tray {
-    padding: 3px 2px;
+    padding: 7px 2px;
     background-color: transparent;
 }
 
@@ -41,7 +41,7 @@ window#waybar {
 }
 
 #workspaces button {
-    padding: 2px 6px 0 6px;
+    padding: 6px 6px 0 6px;
     margin: 0;
     color: {{ dark_foreground }};
     background-color: transparent;
