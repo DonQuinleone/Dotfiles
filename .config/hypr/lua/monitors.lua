@@ -1,0 +1,98 @@
+local WORKSPACES_PER_MONITOR = 9
+local RUN_STRIDE = 10
+
+local MONITORS = {
+    {
+        description = "Microstep MPG321UX OLED 0x01010101",
+        mode = "3840x2160@60.00",
+        position = "0x720",
+        scale = 1.5,
+        bitdepth = 10,
+    },
+    {
+        description = "LG Electronics BL650 201NTFAP0155",
+        mode = "1920x1080@60.00",
+        position = "2560x0",
+        scale = 1,
+        bitdepth = 8,
+    },
+    {
+        description = "LG Electronics BL650 201NTJJP0156",
+        mode = "1920x1080@60.00",
+        position = "2560x1080",
+        scale = 1,
+        bitdepth = 8,
+    },
+    {
+        description = "Chimei Innolux Corporation N160JCA-GT1",
+        mode = "1920x1200@60.00",
+        position = "0x2160",
+        scale = 1,
+        bitdepth = 8,
+    },
+}
+
+hl.monitor({
+    output = "",
+    mode = "preferred",
+    position = "auto",
+    scale = 1,
+})
+
+for _, monitor in ipairs(MONITORS) do
+    hl.monitor({
+        output = "desc:" .. monitor.description,
+        mode = monitor.mode,
+        position = monitor.position,
+        scale = monitor.scale,
+        transform = 0,
+        bitdepth = monitor.bitdepth,
+    })
+end
+
+local function present(joining, leaving)
+    local here = {}
+    for _, monitor in ipairs(hl.get_monitors()) do
+        here[monitor.description] = true
+    end
+    if joining then
+        here[joining] = true
+    end
+    if leaving then
+        here[leaving] = nil
+    end
+    return here
+end
+
+local function apply(joining, leaving)
+    local here = present(joining, leaving)
+    for index, monitor in ipairs(MONITORS) do
+        local connected = here[monitor.description] == true
+        local first = (index - 1) * RUN_STRIDE + 1
+        for offset = 0, WORKSPACES_PER_MONITOR - 1 do
+            hl.workspace_rule({
+                workspace = tostring(first + offset),
+                monitor = "desc:" .. monitor.description,
+                persistent = connected,
+                default = connected and offset == 0,
+            })
+        end
+    end
+end
+
+apply()
+
+local function described(monitor)
+    if type(monitor) == "table" and monitor.description then
+        return monitor.description
+    end
+    return nil
+end
+
+hl.on("monitor.added", function(monitor)
+    apply(described(monitor), nil)
+end)
+
+hl.on("monitor.removed", function(monitor)
+    apply(nil, described(monitor))
+end)
