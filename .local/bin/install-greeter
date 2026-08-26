@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+readonly TARGET=/etc/greetd
+
+[ "$(id -u)" -eq 0 ] || {
+    printf 'install-greeter: run me with sudo\n' >&2
+    exit 1
+}
+
+owner=${SUDO_USER:-}
+
+[ -n "$owner" ] || {
+    printf 'install-greeter: cannot tell whose dotfiles to read\n' >&2
+    exit 1
+}
+
+home=$(getent passwd "$owner" | cut -d: -f6)
+readonly REPO="${home}/.dotfiles/etc/greetd"
+readonly RENDERED="${home}/.local/state/theme/gtkgreet.css"
+
+command -v gtkgreet >/dev/null 2>&1 || {
+    printf 'install-greeter: gtkgreet is not installed\n' >&2
+    exit 1
+}
+
+for source in "${REPO}/config.toml" "${REPO}/hyprland.conf" "$RENDERED"; do
+    [ -r "$source" ] || {
+        printf 'install-greeter: cannot read %s\n' "$source" >&2
+        exit 1
+    }
+done
+
+install -m 644 "${REPO}/config.toml" "${TARGET}/config.toml"
+install -m 644 "${REPO}/hyprland.conf" "${TARGET}/hyprland.conf"
+install -m 644 "$RENDERED" "${TARGET}/style.css"
+
+printf 'install-greeter: installed; restart greetd to apply\n'

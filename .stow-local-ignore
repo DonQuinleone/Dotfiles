@@ -7,3 +7,4 @@ bootstrap\.sh
 get_packages\.sh
 packages\.json
 packages\.sh
+etc
