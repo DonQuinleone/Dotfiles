@@ -17,188 +17,170 @@ local function run(command)
     return hl.dsp.exec_cmd(command)
 end
 
-local VOLUME_UP = "volume up"
-local VOLUME_DOWN = "volume down"
-local SINK_MUTE = "volume mute"
-local SOURCE_MUTE = "volume mic"
-local COPY_SCREEN = "screenshot copy-screen"
-local COPY_REGION = "screenshot copy-region"
-local SAVE_SCREEN = "screenshot save-screen"
-local SAVE_REGION = "screenshot save-region"
+local VOLUME_UP     = "volume up"
+local VOLUME_DOWN   = "volume down"
+local MUTE_VOL      = "volume mute"
+local MUTE_MIC      = "volume mic"
+local COPY_SCREEN   = "screenshot copy-screen"
+local COPY_REGION   = "screenshot copy-region"
+local SAVE_SCREEN   = "screenshot save-screen"
+local SAVE_REGION   = "screenshot save-region"
+local ANNOTATE      = "screenshot annotate"
 
-local BRIGHTER = "brightness up"
-local DIMMER = "brightness down"
+local BRIGHTER      = "brightness up"
+local DIMMER        = "brightness down"
+
+local TERM          = "kitty"
+local FILES         = TERM .. " yazi"
+local BROWSER       = "firefox"
+local ACTIVITY      = TERM .. " -o font_size=20 btop"
+local LLM           = TERM .. " claude --dangerously-skip-permissions"
+local PICKER        = "rofi -show drun"
+local BINDS         = TERM .. " nvim ~/.dotfiles/.config/hypr/lua/binds.lua"
+local JUMPBOX       = TERM .. " jumpbox"
+local BLUETOOTH     = TERM .. " bluetoothctl"
+
+local RESTORE_NOTE  = "makoctl restore"
+local DND           = "makoctl mode -t do-not-disturb"
+local DISMISS_ALL   = "makoctl dismiss --all"
+
+local MONITOR_LEFT  = "focus-monitor left"
+local MONITOR_RIGHT = "focus-monitor right"
+local SEND_LEFT     = "send-window-to-monitor left"
+local SEND_RIGHT    = "send-window-to-monitor right"
+
+local BAR_TOGGLE    = "systemctl --user kill -s SIGUSR1 waybar.service"
+local KEEP_AWAKE    = "keep-awake toggle"
+local NIGHT_SHIFT   = "night-shift toggle"
+local LOCK          = "loginctl lock-session"
+local PLAY_PAUSE    = "playerctl play-pause"
+local NEXT_TRACK    = "playerctl next"
+local PREV_TRACK    = "playerctl previous"
+
+local FOCUS_LEFT    = focus({ direction = "left" })
+local FOCUS_RIGHT   = focus({ direction = "right" })
+local FOCUS_DOWN    = actions.focus_step("down")
+local FOCUS_UP      = actions.focus_step("up")
+
+local MOVE_LEFT     = window.move({ direction = "left" })
+local MOVE_DOWN     = window.move({ direction = "down" })
+local MOVE_UP       = window.move({ direction = "up" })
+local MOVE_RIGHT    = window.move({ direction = "right" })
+local FLOAT_TOGGLE  = window.float({ action = "toggle" })
+
+local NARROWER      = actions.resize(-RESIZE_STEP, 0)
+local WIDER         = actions.resize(RESIZE_STEP, 0)
+local TALLER        = actions.resize(0, RESIZE_STEP)
+local SHORTER       = actions.resize(0, -RESIZE_STEP)
+
+local KEY_VOL_UP    = "XF86AudioRaiseVolume"
+local KEY_VOL_DOWN  = "XF86AudioLowerVolume"
+local KEY_MUTE      = "XF86AudioMute"
+local KEY_MIC_MUTE  = "XF86AudioMicMute"
+local KEY_BRIGHT_UP = "XF86MonBrightnessUp"
+local KEY_BRIGHT_DN = "XF86MonBrightnessDown"
+local KEY_PLAY      = "XF86AudioPlay"
+local KEY_PAUSE     = "XF86AudioPause"
+local KEY_NEXT      = "XF86AudioNext"
+local KEY_PREV      = "XF86AudioPrev"
 
 local rows = {
-    { "SUPER", "Return", run("kitty"),
-      "Open the terminal" },
-    { "SUPER", "b", run("firefox"),
-      "Open the browser" },
-    { "SUPER", "f", run("kitty yazi"),
-      "Open the file manager" },
-    { "SUPER", "a", run("kitty btop"),
-      "See the machine's activity" },
-    { "SUPER", "o", run("cpanel-sso"),
-      "cPanel SSO" },
-    { "SUPER", "i",
-      run("kitty claude --dangerously-skip-permissions"),
-      "Open the coding agent" },
-    { "SUPER", "space", run("rofi -show drun"),
-      "Open the launcher" },
-    { "SUPER", "v", run("clipboard-history"),
-      "Paste from the clipboard history" },
-    { "SUPER + CTRL", "v", run("clipboard-history"),
-      "Paste from the clipboard history" },
-    { "SUPER + CTRL", "e", run("rofimoji"),
-      "Insert an emoji" },
+    { "SUPER",                "Return",      run(TERM),                          "Open terminal"          },
+    { "SUPER",                "b",           run(BROWSER),                       "Open browser"           },
+    { "SUPER",                "f",           run(FILES),                         "Open file manager"      },
+    { "SUPER",                "a",           run(ACTIVITY),                      "Open activity monitor"  },
+    { "SUPER",                "o",           run("cpanel-sso"),                  "Open cPanel SSO"        },
+    { "SUPER",                "i",           run(LLM),                           "Open Claude Code"       },
+    { "SUPER",                "s",           run(JUMPBOX),                       "Open jumpbox"           },
+    { "SUPER",                "space",       run(PICKER),                        "Open launcher"          },
+    { "SUPER",                "v",           run("clipboard-history"),           "Open clipboard history" },
+    { "SUPER + CTRL",         "comma",       run(BINDS),                         "Modify keybinds"        },
 
-    { "SUPER", "n", run("makoctl restore"),
-      "Bring back the last notification" },
-    { "SUPER + SHIFT", "n",
-      run("makoctl mode -t do-not-disturb"),
-      "Toggle do not disturb" },
-    { "SUPER + CTRL", "n", run("makoctl dismiss --all"),
-      "Dismiss every notification" },
+    { "SUPER",                "n",           run(RESTORE_NOTE),                  "Restore notification"   },
+    { "SUPER + SHIFT",        "n",           run(DND),                           "Toggle do not disturb"  },
+    { "SUPER + CTRL",         "n",           run(DISMISS_ALL),                   "Dismiss notifications"  },
 
-    { "SUPER + ALT", "t", run("theme pick"),
-      "Choose the theme" },
-    { "SUPER + ALT", "w", run("wallpaper pick"),
-      "Choose the wallpaper" },
+    { "SUPER + ALT",          "t",           run("theme pick"),                  "Pick theme"             },
+    { "SUPER + ALT",          "w",           run("wallpaper pick"),              "Pick wallpaper"         },
+    { "SUPER + SHIFT",        "slash",       run("keybind-help"),                "Search keybinds"        },
 
-    { "SUPER + SHIFT", "slash", run("keybind-help"),
-      "Search these keybinds" },
+    { "SUPER + SHIFT",        "q",           window.close(),                     "Close window"           },
+    { "SUPER + SHIFT",        "x",           window.pin(),                       "Pin window"             },
+    { "SUPER + SHIFT",        "f",           window.fullscreen(),                "Fullscreen window"      },
+    { "SUPER + SHIFT",        "space",       FLOAT_TOGGLE,                       "Toggle floating"        },
 
-    { "SUPER + SHIFT", "q", window.close(),
-      "Close the window" },
-    { "SUPER + SHIFT", "x", window.pin(),
-      "Pin the window" },
-    { "SUPER + SHIFT", "f", window.fullscreen(),
-      "Fullscreen the window" },
-    { "SUPER + SHIFT", "space",
-      window.float({ action = "toggle" }),
-      "Float or tile the window" },
+    { "SUPER + SHIFT",        "t",           layouts.set("master"),              "Set master layout"      },
+    { "SUPER + SHIFT",        "m",           layouts.set("monocle"),             "Set monocle layout"     },
+    { "SUPER + SHIFT",        "s",           layouts.set("scrolling"),           "Set scrolling layout"   },
+    { "SUPER + SHIFT",        "g",           gaps.toggle,                        "Toggle gaps"            },
+    { "SUPER + SHIFT",        "b",           run(BAR_TOGGLE),                    "Toggle bar"             },
 
-    { "SUPER + SHIFT", "t", layouts.set("master"),
-      "The master layout" },
-    { "SUPER + SHIFT", "m", layouts.set("monocle"),
-      "The monocle layout" },
-    { "SUPER + SHIFT", "s", layouts.set("scrolling"),
-      "The scrolling layout" },
-    { "SUPER + SHIFT", "backslash", layouts.cycle,
-      "The next layout along" },
-    { "SUPER + SHIFT", "g", gaps.toggle,
-      "Toggle the gaps" },
-    { "SUPER + SHIFT", "b",
-      run("systemctl --user kill -s SIGUSR1 waybar.service"),
-      "Show or hide the bar" },
+    { "SUPER",                "h",           FOCUS_LEFT,                         "Focus left"             },
+    { "SUPER",                "j",           FOCUS_DOWN,                         "Focus down"             },
+    { "SUPER",                "k",           FOCUS_UP,                           "Focus up"               },
+    { "SUPER",                "l",           FOCUS_RIGHT,                        "Focus right"            },
+    { "SUPER + SHIFT",        "h",           MOVE_LEFT,                          "Move window left"       },
+    { "SUPER + SHIFT",        "j",           MOVE_DOWN,                          "Move window down"       },
+    { "SUPER + SHIFT",        "k",           MOVE_UP,                            "Move window up"         },
+    { "SUPER + SHIFT",        "l",           MOVE_RIGHT,                         "Move window right"      },
 
-    { "SUPER", "h", focus({ direction = "left" }),
-      "Focus leftwards" },
-    { "SUPER", "j", actions.focus_step("down"),
-      "Focus downwards" },
-    { "SUPER", "k", actions.focus_step("up"),
-      "Focus upwards" },
-    { "SUPER", "l", focus({ direction = "right" }),
-      "Focus rightwards" },
-    { "SUPER + SHIFT", "h", window.move({ direction = "left" }),
-      "Move the window left" },
-    { "SUPER + SHIFT", "j", window.move({ direction = "down" }),
-      "Move the window down" },
-    { "SUPER + SHIFT", "k", window.move({ direction = "up" }),
-      "Move the window up" },
-    { "SUPER + SHIFT", "l", window.move({ direction = "right" }),
-      "Move the window right" },
+    { "SUPER",                "comma",       run(MONITOR_LEFT),                  "Focus monitor left"     },
+    { "SUPER",                "period",      run(MONITOR_RIGHT),                 "Focus monitor right"    },
+    { "SUPER + SHIFT",        "comma",       run(SEND_LEFT),                     "Send window left"       },
+    { "SUPER + SHIFT",        "period",      run(SEND_RIGHT),                    "Send window right"      },
 
-    { "SUPER", "comma", run("focus-monitor left"),
-      "Focus the monitor to the left" },
-    { "SUPER", "period", run("focus-monitor right"),
-      "Focus the monitor to the right" },
-    { "SUPER + SHIFT", "comma",
-      run("send-window-to-monitor left"),
-      "Send the window a monitor left" },
-    { "SUPER + SHIFT", "period",
-      run("send-window-to-monitor right"),
-      "Send the window a monitor right" },
+    { "SUPER + CTRL",         "h",           NARROWER,                           "Resize narrower"        },
+    { "SUPER + CTRL",         "j",           TALLER,                             "Resize taller"          },
+    { "SUPER + CTRL",         "k",           SHORTER,                            "Resize shorter"         },
+    { "SUPER + CTRL",         "l",           WIDER,                              "Resize wider"           },
 
-    { "SUPER + CTRL", "h", actions.resize(-RESIZE_STEP, 0),
-      "Resize narrower" },
-    { "SUPER + CTRL", "j", actions.resize(0, RESIZE_STEP),
-      "Resize taller" },
-    { "SUPER + CTRL", "k", actions.resize(0, -RESIZE_STEP),
-      "Resize shorter" },
-    { "SUPER + CTRL", "l", actions.resize(RESIZE_STEP, 0),
-      "Resize wider" },
+    { "SUPER",                "equal",       actions.zoom_in,                    "Zoom in"                },
+    { "SUPER",                "minus",       actions.zoom_out,                   "Zoom out"               },
+    { "SUPER",                "0",           actions.zoom_reset,                 "Reset zoom"             },
+    { "SUPER",                "z",           actions.zoom_follow_toggle,         "Toggle zoom follow"     },
+    { "SUPER",                "mouse_up",    actions.zoom_in,                    "Zoom in"                },
+    { "SUPER",                "mouse_down",  actions.zoom_out,                   "Zoom out"               },
 
-    { "SUPER", "equal", actions.zoom_in, "Zoom in" },
-    { "SUPER", "minus", actions.zoom_out, "Zoom out" },
-    { "SUPER", "0", actions.zoom_reset, "Put the zoom back" },
-    { "SUPER", "z", actions.zoom_follow_toggle,
-      "Toggle the zoom following the cursor" },
-    { "SUPER", "mouse_up", actions.zoom_in, "Zoom in" },
-    { "SUPER", "mouse_down", actions.zoom_out, "Zoom out" },
+    { "SUPER + CTRL",         "c",           run(KEEP_AWAKE),                    "Toggle keep awake"      },
+    { "SUPER + SHIFT",        "c",           run(BLUETOOTH),                     "Open bluetooth console" },
+    { "SUPER + ALT",          "n",           run(NIGHT_SHIFT),                   "Toggle night shift"     },
+    { "SUPER + ALT",          "r",           run("record"),                      "Toggle recording"       },
 
-    { "SUPER + CTRL", "c", run("keep-awake toggle"),
-      "Keep the computer awake" },
-    { "SUPER + SHIFT", "c",
-      run("kitty bluetoothctl"),
-      "Bluetooth, at the console" },
-    { "SUPER + ALT", "n", run("night-shift toggle"),
-      "Toggle night shift" },
-    { "SUPER + ALT", "r", run("record"),
-      "Record a region, or stop" },
+    { "SUPER",                "Escape",      run("power-menu"),                  "Open power menu"        },
+    { "SUPER + SHIFT",        "Escape",      run(LOCK),                          "Lock screen"            },
+    { "SUPER + ALT",          "e",           hl.dsp.exit(),                      "Exit session"           },
 
-    { "SUPER", "Escape", run("power-menu"),
-      "Open the power menu" },
-    { "SUPER + SHIFT", "Escape", run("loginctl lock-session"),
-      "Lock the screen" },
-    { "SUPER + ALT", "e", hl.dsp.exit(),
-      "Leave the session" },
+    { "SUPER",                "p",           run(COPY_SCREEN),                   "Copy screen"            },
+    { "SUPER + SHIFT",        "p",           run(COPY_REGION),                   "Copy region"            },
+    { "SUPER + CTRL",         "p",           run(SAVE_SCREEN),                   "Save screen"            },
+    { "SUPER + CTRL + SHIFT", "p",           run(SAVE_REGION),                   "Save region"            },
+    { "SUPER + ALT",          "p",           run(ANNOTATE),                      "Annotate region"        },
 
-    { "SUPER", "p", run(COPY_SCREEN),
-      "Copy the screen" },
-    { "SUPER + SHIFT", "p", run(COPY_REGION),
-      "Copy a region" },
-    { "SUPER + CTRL", "p", run(SAVE_SCREEN),
-      "Save the screen" },
-    { "SUPER + CTRL + SHIFT", "p", run(SAVE_REGION),
-      "Save a region" },
-    { "SUPER + ALT", "p", run("screenshot annotate"),
-      "Annotate a region" },
+    { "",                     "Print",       run(COPY_REGION),                   "Copy region"            },
+    { "SHIFT",                "Print",       run(COPY_SCREEN),                   "Copy screen"            },
+    { "CTRL",                 "Print",       run(SAVE_SCREEN),                   "Save screen"            },
+    { "CTRL + SHIFT",         "Print",       run(SAVE_REGION),                   "Save region"            },
 
-    { "", "Print", run(COPY_REGION), "Copy a region" },
-    { "SHIFT", "Print", run(COPY_SCREEN), "Copy the screen" },
-    { "CTRL", "Print", run(SAVE_SCREEN), "Save the screen" },
-    { "CTRL + SHIFT", "Print", run(SAVE_REGION),
-      "Save a region" },
+    { "SUPER + ALT",          "up",          run(VOLUME_UP),             held,   "Raise volume"           },
+    { "SUPER + ALT",          "down",        run(VOLUME_DOWN),           held,   "Lower volume"           },
+    { "SUPER + ALT",          "m",           run(MUTE_VOL),              locked, "Mute sound"             },
+    { "SUPER + ALT",          "right",       run(BRIGHTER),              held,   "Raise brightness"       },
+    { "SUPER + ALT",          "left",        run(DIMMER),                held,   "Lower brightness"       },
 
-    { "SUPER + ALT", "up", run(VOLUME_UP), held, "Volume up" },
-    { "SUPER + ALT", "down", run(VOLUME_DOWN), held,
-      "Volume down" },
-    { "SUPER + ALT", "m", run(SINK_MUTE), locked,
-      "Mute the sound" },
-    { "SUPER + ALT", "right", run(BRIGHTER), held, "Brighter" },
-    { "SUPER + ALT", "left", run(DIMMER), held, "Dimmer" },
+    { "",                     KEY_VOL_UP,    run(VOLUME_UP),             held                             },
+    { "",                     KEY_VOL_DOWN,  run(VOLUME_DOWN),           held                             },
+    { "",                     KEY_MUTE,      run(MUTE_VOL),              locked                           },
+    { "",                     KEY_MIC_MUTE,  run(MUTE_MIC),              locked                           },
+    { "",                     KEY_BRIGHT_UP, run(BRIGHTER),              held                             },
+    { "",                     KEY_BRIGHT_DN, run(DIMMER),                held                             },
 
-    { "", "XF86AudioRaiseVolume", run(VOLUME_UP), held },
-    { "", "XF86AudioLowerVolume", run(VOLUME_DOWN), held },
-    { "", "XF86AudioMute", run(SINK_MUTE), locked },
-    { "", "XF86AudioMicMute", run(SOURCE_MUTE), locked },
-    { "", "XF86MonBrightnessUp", run(BRIGHTER), held },
-    { "", "XF86MonBrightnessDown", run(DIMMER), held },
+    { "",                     KEY_PLAY,      run(PLAY_PAUSE),            locked, "Toggle playback"        },
+    { "",                     KEY_PAUSE,     run(PLAY_PAUSE),            locked, "Toggle playback"        },
+    { "",                     KEY_NEXT,      run(NEXT_TRACK),            locked, "Play next track"        },
+    { "",                     KEY_PREV,      run(PREV_TRACK),            locked, "Play previous track"    },
 
-    { "", "XF86AudioPlay", run("playerctl play-pause"), locked,
-      "Play or pause" },
-    { "", "XF86AudioPause", run("playerctl play-pause"), locked,
-      "Play or pause" },
-    { "", "XF86AudioNext", run("playerctl next"), locked,
-      "Next track" },
-    { "", "XF86AudioPrev", run("playerctl previous"), locked,
-      "Previous track" },
-
-    { "SUPER", "mouse:272", window.drag(), mouse,
-      "Drag the window" },
-    { "SUPER + SHIFT", "mouse:272", window.resize(), mouse,
-      "Resize the window" },
+    { "SUPER",                "mouse:272",   window.drag(),              mouse,  "Drag window"            },
+    { "SUPER + SHIFT",        "mouse:272",   window.resize(),            mouse,  "Resize window"          },
 }
 
 for index = 1, WORKSPACES_PER_MONITOR do
@@ -210,7 +192,7 @@ for index = 1, WORKSPACES_PER_MONITOR do
     table.insert(rows, { "SUPER + SHIFT", index, function()
         layouts.send_to_workspace(
             monitors.workspace_for(index))()
-    end, "Send the window to workspace " .. index })
+    end, "Send window to workspace " .. index })
 end
 
 local function combination(mods, key)
