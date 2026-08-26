@@ -29,7 +29,9 @@ local BLUETOOTH  = TERM .. " bluetoothctl"
 
 local BAR_TOGGLE = "systemctl --user kill -s SIGUSR1 waybar.service"
 
-local BASTION    = "op item get ITEM_ID --reveal --fields password | wl-copy"
+local BASTION    = "op item get ITEM_ID"
+    .. " --reveal --fields password | wl-copy"
+    .. " && wtype -M ctrl -M shift -k v -m shift -m ctrl"
 
 local rows = {
     { "SUPER",                "Return",                run(TERM),                                     "Open terminal"          },
@@ -41,7 +43,7 @@ local rows = {
     { "SUPER",                "s",                     run(JUMPBOX),                                  "Open jumpbox"           },
     { "SUPER",                "space",                 run(PICKER),                                   "Open launcher"          },
     { "SUPER",                "v",                     run("clipboard-history"),                      "Open clipboard history" },
-    { "SUPER + CTRL",         "o",                     run(BASTION),                                  "Copy Bastion password"  },
+    { "SUPER + CTRL",         "o",                     run(BASTION),                                  "Paste Bastion password" },
     { "SUPER + CTRL",         "comma",                 run(BINDS),                                    "Modify keybinds"        },
 
     { "SUPER",                "n",                     run("makoctl restore"),                        "Restore notification"   },
