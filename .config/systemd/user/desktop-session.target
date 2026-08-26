@@ -1,0 +1,7 @@
+[Unit]
+Description=Desktop session
+BindsTo=graphical-session.target
+After=graphical-session.target
+
+[Install]
+WantedBy=graphical-session.target

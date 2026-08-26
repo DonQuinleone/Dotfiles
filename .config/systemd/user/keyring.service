@@ -1,0 +1,13 @@
+[Unit]
+Description=Serve the login keyring to the session
+PartOf=desktop-session.target
+After=desktop-session.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=%h/.local/bin/start-keyring
+Slice=session.slice
+
+[Install]
+WantedBy=desktop-session.target

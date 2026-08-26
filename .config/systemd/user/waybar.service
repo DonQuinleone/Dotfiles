@@ -1,0 +1,14 @@
+[Unit]
+Description=Status bar
+PartOf=desktop-session.target
+After=desktop-session.target
+
+[Service]
+Type=exec
+ExecStart=/usr/bin/waybar
+Restart=on-failure
+RestartSec=2
+Slice=session.slice
+
+[Install]
+WantedBy=desktop-session.target

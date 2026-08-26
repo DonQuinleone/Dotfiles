@@ -1,0 +1,14 @@
+[Unit]
+Description=Night shift
+PartOf=desktop-session.target
+After=desktop-session.target
+
+[Service]
+Type=exec
+ExecStart=/usr/bin/hyprsunset
+Restart=on-failure
+RestartSec=2
+Slice=session.slice
+
+[Install]
+WantedBy=desktop-session.target
