@@ -13,4 +13,4 @@ set -e
 [ "$status" -eq "$NO_NEIGHBOUR" ] && exit 0
 [ "$status" -ne 0 ] && exit "$status"
 
-hyprctl dispatch movewindow "mon:$target" >/dev/null
+hyprctl dispatch "hl.dsp.window.move({ monitor = '$target' })" >/dev/null

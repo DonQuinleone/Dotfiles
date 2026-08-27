@@ -4,7 +4,7 @@ set -euo pipefail
 declare -rA ACTIONS=(
     [Lock]="loginctl lock-session"
     [Suspend]="systemctl suspend"
-    [Log out]="hyprctl dispatch exit"
+    [Log out]="hyprctl dispatch hl.dsp.exit()"
     [Reboot]="systemctl reboot"
     [Shut down]="systemctl poweroff"
 )
