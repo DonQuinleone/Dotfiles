@@ -90,6 +90,7 @@ unknown_packages() {
 declare -a REPO_WRITE=() COPR_ADD=() COPR_DROP=()
 declare -a PACKAGE_ADD=() PACKAGE_DROP=() PACKAGE_MARK=()
 declare -a FLATPAK_ADD=() FLATPAK_DROP=()
+declare -a PACKAGE_HELD=()
 
 # Rewritten when it differs rather than skipped when it exists,
 # or a machine installed before a repo definition changed would
@@ -155,11 +156,29 @@ plan_flatpaks() {
     done <<<"${installed}"
 }
 
+# dnf takes everything that depends on a package out with it, so
+# a leaf something still needs is not the manifest's to remove.
+# perl-Unicode-Normalize on its own would have taken git.
+hold_depended_upon() {
+    ((${#PACKAGE_DROP[@]} > 0)) || return 0
+    local name kept=()
+    for name in "${PACKAGE_DROP[@]}"; do
+        if [[ -n "$(dnf repoquery --installed --whatrequires \
+            "${name}" 2>/dev/null)" ]]; then
+            PACKAGE_HELD+=("${name}")
+        else
+            kept+=("${name}")
+        fi
+    done
+    PACKAGE_DROP=("${kept[@]}")
+}
+
 build_plan() {
     plan_repos
     plan_coprs
     plan_packages
     plan_flatpaks
+    hold_depended_upon
 }
 
 plan_is_empty() {
@@ -187,6 +206,7 @@ render_plan() {
     section "install flatpak" "${FLATPAK_ADD[@]}"
     section "remove flatpak" "${FLATPAK_DROP[@]}"
     section "claim as wanted" "${PACKAGE_MARK[@]}"
+    section "held, something still needs it" "${PACKAGE_HELD[@]}"
     printf '\n'
 }
 
