@@ -23,11 +23,13 @@ pull is safe.
 
 `etc/install.sh` is the one step that needs root, and the only
 part of the repo that is not stowed: it installs the greeter's
-config into `/etc/greetd` and creates the directory the greeter
-reads its colours and wallpaper from, since greetd runs as its
-own user and cannot reach `$HOME`. It wants a theme already
-chosen, is idempotent as well, and takes effect at the next
-login.
+config into `/etc/greetd`, its session wrapper into
+`/usr/local/bin`, and creates the directory the greeter reads
+its colours and wallpaper from, since greetd runs as its own
+user and cannot reach `$HOME`. It wants a theme already chosen
+and is idempotent as well. A live greeter is left alone and
+picks the change up at the next login; a stopped one is
+started.
 
 ## Managing packages
 
