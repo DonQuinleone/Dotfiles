@@ -15,10 +15,19 @@ Fedora 44 and GNU Stow.
     ~/.dotfiles/get_packages.sh
     ~/.dotfiles/bootstrap.sh
     theme set ember
+    sudo ~/.dotfiles/etc/install.sh
 
 `bootstrap.sh` stows the package into `$HOME`. Both it and
 `get_packages.sh` are idempotent, so re-running either after a
 pull is safe.
+
+`etc/install.sh` is the one step that needs root, and the only
+part of the repo that is not stowed: it installs the greeter's
+config into `/etc/greetd` and creates the directory the greeter
+reads its colours and wallpaper from, since greetd runs as its
+own user and cannot reach `$HOME`. It wants a theme already
+chosen, is idempotent as well, and takes effect at the next
+login.
 
 ## Managing packages
 

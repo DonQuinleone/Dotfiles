@@ -24,6 +24,12 @@ RENDERED = STATE / "theme"
 CURRENT = RENDERED / "current"
 
 WALLPAPERS = HOME / "Pictures/walls"
+WALLPAPER_CHOSEN = RENDERED / "wallpaper"
+
+GREETER_DIR = pathlib.Path("/var/lib/greeter-theme")
+GREETER_STYLE = GREETER_DIR / "style.css"
+GREETER_BACKGROUND = GREETER_DIR / "background"
+GREETER_SOURCE = RENDERED / "gtkgreet.css"
 
 FONT_UI = "IBM Plex Sans"
 FONT_MONO = "JetBrainsMono Nerd Font"
@@ -403,6 +409,23 @@ def apply_teamspeak():
         link_file(source, TEAMSPEAK_STYLES / name)
 
 
+# The greeter runs as its own user and cannot reach this
+# account's home, so its stylesheet and background are copied
+# where it can read them; the install step hands this account
+# ownership of that directory, and a switch is a no-op
+# without it.
+def apply_greeter():
+    if not os.access(GREETER_DIR, os.W_OK):
+        return
+    if GREETER_SOURCE.is_file():
+        shutil.copyfile(GREETER_SOURCE, GREETER_STYLE)
+    if not WALLPAPER_CHOSEN.is_file():
+        return
+    image = pathlib.Path(WALLPAPER_CHOSEN.read_text().strip())
+    if image.is_file():
+        shutil.copyfile(image, GREETER_BACKGROUND)
+
+
 def reload_live():
     for binary, command in RELOADS:
         if shutil.which(binary) is None:
@@ -439,6 +462,7 @@ def set_theme(slug):
 
     CURRENT.write_text(slug + "\n")
     follow_wallpaper()
+    apply_greeter()
     reload_live()
     print("theme: %s (%d files)" % (slug, written))
 

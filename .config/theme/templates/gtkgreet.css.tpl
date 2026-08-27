@@ -1,5 +1,5 @@
 window {
-    background-image: url("/etc/greetd/background.jpg");
+    background-image: url("/var/lib/greeter-theme/background");
     background-size: cover;
     background-position: center;
     color: {{ foreground }};
