@@ -54,6 +54,12 @@ hl.config({
         },
     },
     cursor = {
+        -- Hyprland holds the software-cursor lock for zoom in one
+        -- process-wide flag while the zoom itself is per monitor,
+        -- so another screen drops the lock mid-frame and the
+        -- hardware plane, which no zoom transform reaches, comes
+        -- back unmagnified.
+        no_hardware_cursors = true,
         zoom_factor = ZOOM_UNMAGNIFIED,
         zoom_rigid = false,
         zoom_detached_camera = false,
