@@ -1,0 +1,188 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+readonly REPO=${HOME}/.dotfiles
+readonly MANIFEST=${REPO}/packages.json
+readonly RECONCILER=${REPO}/get_packages.sh
+readonly EDITOR_COMMAND=${VISUAL:-${EDITOR:-nvim}}
+
+# Each row is a check: the heading it prints and the function
+# that fills it in. A check reports, it never changes anything.
+readonly CHECKS=(
+    "manifest against the machine|check_in_sync"
+    "packages at risk of a sweep|check_unclaimed"
+    "repositories earning their place|check_idle_coprs"
+    "packages nothing depends on|check_orphans"
+    "stowed links|check_stow"
+    "theme templates|check_templates"
+)
+
+problems=0
+
+die() {
+    printf 'packages: %s\n' "$1" >&2
+    exit 1
+}
+
+note() {
+    printf '  %s\n' "$1"
+}
+
+fault() {
+    printf '  %s\n' "$1"
+    problems=$((problems + 1))
+}
+
+heading() {
+    printf '\n%s\n' "$1"
+}
+
+edit_manifest() {
+    local before after
+    before=$(sha256sum "${MANIFEST}")
+    "${EDITOR_COMMAND}" "${MANIFEST}"
+    jq -e . "${MANIFEST}" >/dev/null 2>&1 ||
+        die "manifest is not valid JSON, nothing was run"
+    after=$(sha256sum "${MANIFEST}")
+    [[ "${before}" != "${after}" ]]
+}
+
+check_in_sync() {
+    local plan
+    plan=$("${RECONCILER}" --plan 2>&1) ||
+        { fault "the reconciler could not build a plan"; return 0; }
+    if grep -qE '^  (write|enable|remove|install|claim)' \
+        <<<"${plan}"; then
+        fault "still out of sync:"
+        grep -v '^plan against' <<<"${plan}" | sed '/^$/d'
+        return 0
+    fi
+    note "every declared package, repo, copr and flatpak is present"
+}
+
+# The trap that once put tmux and openssl a single sweep away
+# from removal: a declared package dnf thinks is only a
+# dependency.
+check_unclaimed() {
+    local wanted name unclaimed=()
+    wanted=$(installed_wanted_packages)
+    while read -r name; do
+        [[ -z "${name}" ]] && continue
+        grep -qxF "${name}" <<<"${wanted}" || unclaimed+=("${name}")
+    done < <(manifest_packages_sorted)
+    if ((${#unclaimed[@]} > 0)); then
+        fault "not claimed as wanted: ${unclaimed[*]}"
+        return 0
+    fi
+    note "every declared package is claimed as wanted"
+}
+
+check_idle_coprs() {
+    local repo name idle=()
+    while read -r name; do
+        [[ -z "${name}" ]] && continue
+        repo="copr:copr.fedorainfracloud.org:${name//\//:}"
+        dnf repoquery --installed --qf '%{from_repo}\n' 2>/dev/null |
+            grep -qxF "${repo}" || idle+=("${name}")
+    done < <(manifest_list coprs)
+    ((${#idle[@]} == 0)) || fault "coprs supplying nothing: ${idle[*]}"
+    ((${#idle[@]} > 0)) || note "every copr supplies something"
+}
+
+check_orphans() {
+    local orphans
+    orphans=$(dnf repoquery --unneeded --qf '%{name}\n' 2>/dev/null |
+        LC_ALL=C sort -u | tr '\n' ' ')
+    [[ -z "${orphans// /}" ]] ||
+        fault "nothing depends on: ${orphans}"
+    [[ -n "${orphans// /}" ]] || note "no orphaned packages"
+}
+
+# Browsers keep deliberately dangling lock links, so only links
+# pointing back at the repo or the render are ours to report.
+check_stow() {
+    local link broken=()
+    while read -r link; do
+        case "$(readlink "${link}")" in
+            *.dotfiles/* | *state/theme/*) broken+=("${link}") ;;
+        esac
+    done < <(find "${HOME}/.config" "${HOME}/.local" \
+        -xtype l 2>/dev/null)
+    if ((${#broken[@]} > 0)); then
+        fault "broken links: ${broken[*]}"
+        return 0
+    fi
+    note "no broken links"
+}
+
+# A template rendering for nothing is how TeamSpeak and zathura
+# quietly stopped following the palette.
+check_templates() {
+    local template name stray=()
+    for template in "${REPO}"/.config/theme/templates/*.tpl; do
+        name=$(basename "${template}" .tpl)
+        grep -qr "${name}" "${REPO}/.local/bin" "${REPO}/.config" \
+            "${REPO}/.bashrc" "${REPO}/etc" \
+            --exclude-dir=templates 2>/dev/null ||
+            stray+=("${name}")
+    done
+    ((${#stray[@]} == 0)) ||
+        fault "templates nothing reads: ${stray[*]}"
+    ((${#stray[@]} > 0)) || note "every template has a consumer"
+}
+
+health_check() {
+    local row
+    heading "health"
+    for row in "${CHECKS[@]}"; do
+        printf '\n  %s\n' "${row%%|*}"
+        "${row#*|}"
+    done
+}
+
+commit_manifest() {
+    git -C "${REPO}" diff --quiet -- packages.json && return 0
+    heading "committing the manifest"
+    git -C "${REPO}" add packages.json
+    git -C "${REPO}" commit -q -m "chore(packages): update the manifest"
+    git -C "${REPO}" log --oneline -1 | sed 's/^/  /'
+}
+
+offer_push() {
+    local ahead reply
+    ahead=$(git -C "${REPO}" log --oneline --branches --not \
+        --remotes 2>/dev/null | wc -l)
+    ((ahead > 0)) || return 0
+    heading "push"
+    note "${ahead} commits are not on the forge"
+    reply=""
+    read -r -p "  push them now? [y/N] " reply || true
+    [[ "${reply}" == [yY] ]] || { note "left unpushed"; return 0; }
+    git -C "${REPO}" push
+}
+
+main() {
+    command -v jq >/dev/null 2>&1 || die "jq is required"
+    [[ -x "${RECONCILER}" ]] || die "no reconciler at ${RECONCILER}"
+    # shellcheck disable=SC1091
+    source "${REPO}/packages.sh"
+
+    if edit_manifest; then
+        note "manifest changed"
+    else
+        note "manifest unchanged"
+    fi
+    "${RECONCILER}" "$@"
+    health_check
+    commit_manifest
+    offer_push
+
+    heading "summary"
+    if ((problems == 0)); then
+        note "everything in order"
+    else
+        note "${problems} things want attention"
+    fi
+}
+
+main "$@"
