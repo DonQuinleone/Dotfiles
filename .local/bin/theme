@@ -15,6 +15,8 @@ CONFIG = pathlib.Path(
     os.environ.get("XDG_CONFIG_HOME", HOME / ".config"))
 STATE = pathlib.Path(
     os.environ.get("XDG_STATE_HOME", HOME / ".local/state"))
+DATA = pathlib.Path(
+    os.environ.get("XDG_DATA_HOME", HOME / ".local/share"))
 
 THEMES = CONFIG / "theme/themes"
 TEMPLATES = CONFIG / "theme/templates"
@@ -73,6 +75,42 @@ FIREFOX_LINKS = (
 )
 FIREFOX_PREF = ("toolkit.legacyUserProfileCustomizations"
                 ".stylesheets")
+
+ICON_SOURCE = pathlib.Path("/usr/share/icons/Adwaita/scalable")
+ICON_THEME = "adwaita-accent"
+ICON_SIZE = 128
+ICON_MIN_SIZE = 8
+ICON_MAX_SIZE = 512
+LUMA_WEIGHTS = (299, 587, 114)
+LUMA_TOTAL = 1000
+CHANNEL_MAX = 255
+
+# Adwaita writes its blue ramp into each drawing, so icons are
+# the one surface no setting can point at an accent. Each blue
+# is re-shaded to the accent at its own lightness, which keeps
+# the depth the artwork relies on.
+ICON_BLUES = (
+    "#14498a", "#1a5fb4", "#1c71d8", "#3584e4", "#438de6",
+    "#62a0ea", "#99c1f1", "#a4caee", "#afd4ff", "#b3d3f9",
+    "#c0d5ea", "#d7e8fc",
+)
+
+# The blue a folder body is drawn in, so the shade that becomes
+# the accent exactly; the rest ramp around it.
+ICON_ANCHOR = "#438de6"
+
+ICON_CONTEXTS = {
+    "actions": "Actions",
+    "apps": "Applications",
+    "categories": "Categories",
+    "devices": "Devices",
+    "emblems": "Emblems",
+    "mimetypes": "MimeTypes",
+    "places": "Places",
+    "status": "Status",
+}
+
+ICON_BLUE_PATTERN = re.compile("|".join(ICON_BLUES), re.IGNORECASE)
 
 TEAMSPEAK_STYLES = HOME / ".local/opt/teamspeak3/styles"
 TEAMSPEAK_LINKS = (
@@ -253,6 +291,91 @@ def apply_firefox():
 
 # TeamSpeak reads its stylesheet once at start, so there is no
 # reload entry for it; a switch shows on its next launch.
+# Weighted the way the drawing is read rather than the way
+# contrast is measured: what matters is where a shade sits in
+# the ramp, not what it does against a background.
+def luma(colour):
+    weighted = sum(value * weight for value, weight
+                   in zip(channels(colour), LUMA_WEIGHTS))
+    return weighted // LUMA_TOTAL
+
+
+def icon_shade(blue, accent):
+    anchor = luma(ICON_ANCHOR)
+    value = luma(blue)
+    if value <= anchor:
+        return mix(accent, "#000000",
+                   (anchor - value) * 100 / anchor)
+    return mix(accent, "#ffffff",
+               (value - anchor) * 100 / (CHANNEL_MAX - anchor))
+
+
+def write_icon_index(theme_dir, directories):
+    lines = [
+        "[Icon Theme]",
+        "Name=" + ICON_THEME,
+        "Comment=Adwaita, re-shaded to the accent",
+        "Inherits=Adwaita,hicolor",
+        "Directories=" + ",".join(directories),
+    ]
+    for directory in directories:
+        context = ICON_CONTEXTS.get(directory.split("/")[-1],
+                                    "Legacy")
+        lines += [
+            "", "[%s]" % directory,
+            "Context=" + context,
+            "Size=%d" % ICON_SIZE,
+            "MinSize=%d" % ICON_MIN_SIZE,
+            "MaxSize=%d" % ICON_MAX_SIZE,
+            "Type=Scalable",
+        ]
+    (theme_dir / "index.theme").write_text("\n".join(lines) + "\n")
+
+
+# Re-shading the set is the one slow thing here and it turns on
+# nothing but the accent, so the accent it was shaded from is
+# recorded beside it and an unchanged one is not shaded twice.
+def apply_icons(tokens):
+    if not ICON_SOURCE.is_dir():
+        return
+    accent = tokens["accent"]
+    theme_dir = DATA / "icons" / ICON_THEME
+    stamp = theme_dir / "accent"
+    if stamp.is_file() and stamp.read_text().strip() == accent:
+        return
+
+    shades = {blue: icon_shade(blue, accent)
+              for blue in ICON_BLUES}
+    directories = []
+    if theme_dir.is_dir():
+        shutil.rmtree(theme_dir)
+    for source in sorted(ICON_SOURCE.rglob("*.svg")):
+        drawing = source.read_text(errors="surrogateescape")
+        if not ICON_BLUE_PATTERN.search(drawing):
+            continue
+        relative = source.relative_to(ICON_SOURCE)
+        target = theme_dir / relative
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(
+            ICON_BLUE_PATTERN.sub(
+                lambda found: shades[found.group(0).lower()],
+                drawing),
+            errors="surrogateescape")
+        if str(relative.parent) not in directories:
+            directories.append(str(relative.parent))
+
+    if not directories:
+        return
+    write_icon_index(theme_dir, directories)
+    stamp.write_text(accent + "\n")
+    if shutil.which("gtk-update-icon-cache") is None:
+        return
+    subprocess.run(
+        ("gtk-update-icon-cache", "--force", "--quiet",
+         str(theme_dir)),
+        check=False)
+
+
 def apply_teamspeak():
     if not TEAMSPEAK_STYLES.is_dir():
         return
@@ -295,6 +418,7 @@ def set_theme(slug):
     apply_brave(tokens)
     apply_firefox()
     apply_teamspeak()
+    apply_icons(tokens)
 
     CURRENT.write_text(slug + "\n")
     follow_wallpaper()
