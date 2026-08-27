@@ -189,24 +189,28 @@ plan_is_empty() {
 }
 
 section() {
-    local label=$1
-    shift
+    local colour=$1 label=$2 item
+    shift 2
     (($# > 0)) || return 0
-    printf '\n  %s\n' "${label}"
-    printf '    %s\n' "$@"
+    printf '\n  %s%s%s\n' "${colour}" "${label}" "${RESET}"
+    for item in "$@"; do
+        printf '    %s%s%s\n' "${colour}" "${item}" "${RESET}"
+    done
 }
 
 render_plan() {
-    printf '\nplan against %s\n' "${MANIFEST#"${HOME}"/}"
-    section "write repo" "${REPO_WRITE[@]}"
-    section "enable copr" "${COPR_ADD[@]}"
-    section "remove copr" "${COPR_DROP[@]}"
-    section "install" "${PACKAGE_ADD[@]}"
-    section "remove" "${PACKAGE_DROP[@]}"
-    section "install flatpak" "${FLATPAK_ADD[@]}"
-    section "remove flatpak" "${FLATPAK_DROP[@]}"
-    section "claim as wanted" "${PACKAGE_MARK[@]}"
-    section "held, something still needs it" "${PACKAGE_HELD[@]}"
+    printf '\n%splan against %s%s\n' \
+        "${ACCENT}" "${MANIFEST#"${HOME}"/}" "${RESET}"
+    section "${GOOD}" "write repo" "${REPO_WRITE[@]}"
+    section "${GOOD}" "enable copr" "${COPR_ADD[@]}"
+    section "${BAD}" "remove copr" "${COPR_DROP[@]}"
+    section "${GOOD}" "install" "${PACKAGE_ADD[@]}"
+    section "${BAD}" "remove" "${PACKAGE_DROP[@]}"
+    section "${GOOD}" "install flatpak" "${FLATPAK_ADD[@]}"
+    section "${BAD}" "remove flatpak" "${FLATPAK_DROP[@]}"
+    section "${GOOD}" "claim as wanted" "${PACKAGE_MARK[@]}"
+    section "${WARN}" "held, something still needs it" \
+        "${PACKAGE_HELD[@]}"
     printf '\n'
 }
 
@@ -340,6 +344,7 @@ main() {
     # shellcheck source=packages.sh
     source "${LIBRARY}"
     manifest_require
+    load_palette
     build_plan
     validate
     render_plan

@@ -149,3 +149,32 @@ installed_flatpak_apps() {
 manifest_packages_sorted() {
     manifest_list dnf | LC_ALL=C sort -u
 }
+
+ACCENT="" GOOD="" WARN="" BAD="" DIM="" RESET=""
+
+THEME_PALETTE=${XDG_STATE_HOME:-${HOME}/.local/state}
+THEME_PALETTE+=/theme/shell-colours.sh
+readonly THEME_PALETTE
+
+ansi() {
+    local hex=${1#\#}
+    printf '\033[38;2;%d;%d;%dm' \
+        "0x${hex:0:2}" "0x${hex:2:2}" "0x${hex:4:2}"
+}
+
+# Colour follows whatever theme is live rather than being stated
+# here, and only when a terminal is there to read it; a pipe gets
+# plain text.
+# shellcheck disable=SC2034  # the colours are read by callers
+load_palette() {
+    [[ -t 1 ]] || return 0
+    [[ -r "${THEME_PALETTE}" ]] || return 0
+    # shellcheck disable=SC1090
+    source "${THEME_PALETTE}"
+    ACCENT=$(ansi "${THEME_ACCENT:-7e9cd8}")
+    GOOD=$(ansi "${THEME_GOOD:-98bb6c}")
+    WARN=$(ansi "${THEME_WARN:-e6c384}")
+    BAD=$(ansi "${THEME_BAD:-c34043}")
+    DIM=$(ansi "${THEME_FG_DIM:-c8c093}")
+    RESET=$'\033[0m'
+}

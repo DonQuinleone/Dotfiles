@@ -19,6 +19,8 @@ readonly CHECKS=(
 
 problems=0
 read_only=0
+declare -a FAILED=()
+current_check=""
 
 usage() {
     cat <<'EOF'
@@ -58,16 +60,21 @@ die() {
 }
 
 note() {
-    printf '  %s\n' "$1"
+    printf '  %s%s%s\n' "${GOOD}" "$1" "${RESET}"
 }
 
 fault() {
-    printf '  %s\n' "$1"
+    printf '  %s%s%s\n' "${BAD}" "$1" "${RESET}"
     problems=$((problems + 1))
 }
 
+# Says what fault says without counting it a second time.
+alert() {
+    printf '  %s%s%s\n' "${BAD}" "$1" "${RESET}"
+}
+
 heading() {
-    printf '\n%s\n' "$1"
+    printf '\n%s%s%s\n' "${ACCENT}" "$1" "${RESET}"
 }
 
 edit_manifest() {
@@ -165,11 +172,31 @@ check_templates() {
 }
 
 health_check() {
-    local row
+    local row before
     heading "health"
     for row in "${CHECKS[@]}"; do
-        printf '\n  %s\n' "${row%%|*}"
+        current_check="${row%%|*}"
+        before=${problems}
+        printf '\n  %s%s%s\n' "${DIM}" "${current_check}" "${RESET}"
         "${row#*|}"
+        ((problems == before)) || FAILED+=("${current_check}")
+    done
+}
+
+summarise() {
+    heading "summary"
+    if ((problems == 0)); then
+        note "everything in order"
+        return 0
+    fi
+    if ((problems == 1)); then
+        alert "1 thing wants attention:"
+    else
+        alert "${problems} things want attention:"
+    fi
+    local name
+    for name in "${FAILED[@]}"; do
+        printf '    %s%s%s\n' "${BAD}" "${name}" "${RESET}"
     done
 }
 
@@ -200,6 +227,7 @@ main() {
     [[ -x "${RECONCILER}" ]] || die "no reconciler at ${RECONCILER}"
     # shellcheck disable=SC1091
     source "${REPO}/packages.sh"
+    load_palette
 
     if ((read_only == 0)); then
         if edit_manifest; then
@@ -215,12 +243,7 @@ main() {
         offer_push
     fi
 
-    heading "summary"
-    if ((problems == 0)); then
-        note "everything in order"
-    else
-        note "${problems} things want attention"
-    fi
+    summarise
 }
 
 main "$@"
