@@ -46,6 +46,13 @@ Claiming packages as wanted is what keeps them safe: dnf removes
 anything it believes is a spare dependency, and a declared
 package it has never been told about is exactly that.
 
+Only packages dnf records as directly wanted are reconciled.
+Anything that arrived as a dependency or a recommendation is
+invisible to the manifest: the foot terminal came in with a Sway
+config nobody asked for, and no amount of editing this file
+would have removed it. Take those out by hand once and they
+stay out.
+
 The health check that follows a run reports what has drifted:
 packages not yet claimed, COPRs supplying nothing, orphaned
 packages, broken stowed links, and theme templates that render
