@@ -67,6 +67,7 @@ LINKS = (
 BRAVE_POLICY = pathlib.Path(
     "/etc/brave/policies/managed/theme-colour.json")
 BRAVE_BINARY = "brave-origin"
+BRAVE_REFRESH_TIMEOUT = 10
 
 FIREFOX_ROOT = CONFIG / "mozilla/firefox"
 FIREFOX_LINKS = (
@@ -253,13 +254,29 @@ def apply_brave(tokens):
         "BrowserThemeColor": colour,
         "BrowserColorScheme": scheme,
     }, indent=2) + "\n")
+    refresh_brave()
+
+
+# The flag tells a running browser to reread its policy, but with
+# no browser to tell it starts a whole one that never exits, since
+# there is no window to close. A browser that is not running reads
+# the policy at launch anyway, so it needs no telling.
+def refresh_brave():
     if shutil.which(BRAVE_BINARY) is None:
         return
-    subprocess.run(
-        (BRAVE_BINARY, "--refresh-platform-policy",
-         "--no-startup-window"),
-        check=False, stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL)
+    running = subprocess.run(
+        ("pgrep", "-x", "brave"), check=False,
+        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    if running.returncode != 0:
+        return
+    try:
+        subprocess.run(
+            (BRAVE_BINARY, "--refresh-platform-policy",
+             "--no-startup-window"),
+            check=False, timeout=BRAVE_REFRESH_TIMEOUT,
+            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    except subprocess.TimeoutExpired:
+        pass
 
 
 def apply_firefox():
