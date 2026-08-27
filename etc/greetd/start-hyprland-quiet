@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# greetd hands the greeter and the session VT1 as their stdout, so
+# Hyprland's banner and early log scroll across the screen on every
+# handover; the journal takes them instead.
+exec systemd-cat --identifier=hyprland start-hyprland "$@"

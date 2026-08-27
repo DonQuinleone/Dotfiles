@@ -30,7 +30,8 @@ local MONITORS = {
 }
 
 local ALT_ON_BOTH_SIDES = "lv3:ralt_alt"
-local GREETER = "gtkgreet -l -c start-hyprland"
+local GREETER = "gtkgreet -l"
+    .. " -c /etc/greetd/start-hyprland-quiet"
     .. " -s /etc/greetd/style.css"
     .. "; hyprctl dispatch \"hl.dsp.exit()\""
 
