@@ -36,11 +36,19 @@ flatpaks follow the same rule. Two things are never touched: a
 floor of base-system packages, and the endpoint agents this
 machine is required to run.
 
-Nothing is applied before you have seen it. `get_packages.sh`
-prints the plan and waits:
+Nothing is applied before you have seen it. Both commands print
+the plan and wait:
 
-    get_packages.sh --plan    # print the plan and stop
-    get_packages.sh --yes     # apply it without asking
+    packages --plan           # look, change nothing
+    packages --yes            # reconcile without confirming
+    packages --help           # what the flags do
+
+    get_packages.sh --plan    # the reconciler on its own
+    get_packages.sh --yes
+
+`packages --plan` opens no editor and commits nothing, so it is
+the one to reach for when you only want to know where the
+machine stands.
 
 Claiming packages as wanted is what keeps them safe: dnf removes
 anything it believes is a spare dependency, and a declared

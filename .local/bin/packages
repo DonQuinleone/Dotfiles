@@ -18,6 +18,39 @@ readonly CHECKS=(
 )
 
 problems=0
+read_only=0
+
+usage() {
+    cat <<'EOF'
+usage: packages [--plan] [--yes] [--help]
+
+Opens packages.json in your editor, reconciles the machine
+against what you saved, reports what has drifted, then commits
+the manifest and offers to push it.
+
+  --plan   show what would change and how the machine is doing,
+           then stop: no editor, no changes, no commit
+  --yes    reconcile without confirming the plan first
+  --help   this
+
+The manifest is the truth. Anything declared is installed and
+claimed as wanted; anything installed by hand and left
+undeclared is offered for removal, bar a floor of base-system
+packages and this machine's mandated agents.
+EOF
+}
+
+parse_arguments() {
+    local argument
+    for argument in "$@"; do
+        case "${argument}" in
+            --plan) read_only=1 ;;
+            --yes) ;;
+            -h | --help) usage; exit 0 ;;
+            *) usage >&2; die "unknown argument ${argument}" ;;
+        esac
+    done
+}
 
 die() {
     printf 'packages: %s\n' "$1" >&2
@@ -162,20 +195,25 @@ offer_push() {
 }
 
 main() {
+    parse_arguments "$@"
     command -v jq >/dev/null 2>&1 || die "jq is required"
     [[ -x "${RECONCILER}" ]] || die "no reconciler at ${RECONCILER}"
     # shellcheck disable=SC1091
     source "${REPO}/packages.sh"
 
-    if edit_manifest; then
-        note "manifest changed"
-    else
-        note "manifest unchanged"
+    if ((read_only == 0)); then
+        if edit_manifest; then
+            note "manifest changed"
+        else
+            note "manifest unchanged"
+        fi
     fi
     "${RECONCILER}" "$@"
     health_check
-    commit_manifest
-    offer_push
+    if ((read_only == 0)); then
+        commit_manifest
+        offer_push
+    fi
 
     heading "summary"
     if ((problems == 0)); then
