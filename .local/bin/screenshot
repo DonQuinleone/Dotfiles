@@ -12,6 +12,10 @@ region() {
     slurp -d
 }
 
+focused_output() {
+    hyprctl monitors -j | jq -re '.[] | select(.focused) | .name'
+}
+
 told() {
     notify-send -a "$APP" -t 2000 "$1" "${2:-}"
 }
@@ -24,7 +28,7 @@ copy_region() {
 }
 
 copy_screen() {
-    grim - | wl-copy
+    grim -o "$(focused_output)" - | wl-copy
     told "Screen copied"
 }
 
@@ -40,7 +44,7 @@ save_region() {
 save_screen() {
     local file
     file=$(stamp)
-    grim "$file"
+    grim -o "$(focused_output)" "$file"
     wl-copy < "$file"
     told "Screen saved" "${file##*/}"
 }
