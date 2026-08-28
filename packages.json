@@ -183,6 +183,21 @@
     "com.yubico.yubioath",
     "org.localsend.localsend_app"
   ],
+  "opt": {
+    "clickup": {
+      "format": "appimage",
+      "url": "https://desktop.clickup.com/linux",
+      "version": "3.5.262",
+      "sha256": "f2cb66101a6f53be4948c0590a370e6cb9ddabee756ea4d86f43cad58ca9b9d7",
+      "flags": [
+        "--ozone-platform-hint=auto",
+        "--enable-wayland-ime"
+      ]
+    },
+    "teamspeak3": {
+      "managed": false
+    }
+  },
   "defaults": {
     "org.mozilla.firefox.desktop": [
       "x-scheme-handler/http",
