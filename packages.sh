@@ -23,6 +23,13 @@ readonly PROTECTED_PATTERNS=(
     'selinux-policy*' 'sudo' 'authselect*'
 )
 
+# Software that ships as neither an rpm nor a flatpak is
+# extracted here rather than run from an installer, so every
+# file it leaves behind is one the manifest can account for.
+readonly OPT_ROOT=${HOME}/.local/opt
+readonly OPT_VERSION_STAMP=.version
+readonly OPT_FORMATS=(appimage)
+
 # Endpoint and remote-management agents are mandated on this
 # machine and are not the manifest's to remove.
 readonly PROTECTED_AGENTS=(endpoint-agent rmm-agent)
@@ -80,6 +87,62 @@ manifest_drop() {
     jq --arg kind "$1" --arg name "$2" \
         '.[$kind] = (.[$kind] - [$name])' \
         "${MANIFEST}" | manifest_write
+}
+
+opt_names() {
+    jq -r '(.opt // {}) | keys[]' "${MANIFEST}"
+}
+
+# An entry marked unmanaged is declared only so the sweep knows
+# it was meant to be there; nothing installs or verifies it.
+opt_managed_names() {
+    jq -r '(.opt // {}) | to_entries[]
+           | select(.value.managed != false) | .key' "${MANIFEST}"
+}
+
+opt_field() {
+    jq -r --arg name "$1" --arg field "$2" \
+        '.opt[$name][$field] // ""' "${MANIFEST}"
+}
+
+opt_flags() {
+    jq -r --arg name "$1" '.opt[$name].flags // [] | .[]' \
+        "${MANIFEST}"
+}
+
+opt_format_valid() {
+    local format
+    for format in "${OPT_FORMATS[@]}"; do
+        [[ "${format}" == "$1" ]] && return 0
+    done
+    return 1
+}
+
+opt_directory() {
+    printf '%s/%s\n' "${OPT_ROOT}" "$1"
+}
+
+opt_installed_version() {
+    local stamp=${OPT_ROOT}/$1/${OPT_VERSION_STAMP}
+    [[ -r "${stamp}" ]] || return 0
+    cat "${stamp}"
+}
+
+opt_installed_names() {
+    [[ -d "${OPT_ROOT}" ]] || return 0
+    find "${OPT_ROOT}" -mindepth 1 -maxdepth 1 -type d \
+        -not -name '.*' -printf '%f\n' | LC_ALL=C sort
+}
+
+# The download serves whatever release is current, so the only
+# statement of its version is the attachment filename. A silent
+# upstream is answered with silence rather than a failure, since
+# the caller asking is a report, not an install.
+opt_upstream_version() {
+    curl -fsSI "$1" |
+        grep -io 'filename="[^"]*"' |
+        grep -oE '[0-9]+(\.[0-9]+)+' |
+        head -1 || true
 }
 
 repo_names() {

@@ -47,6 +47,17 @@ flatpaks follow the same rule. Two things are never touched: a
 floor of base-system packages, and the endpoint agents this
 machine is required to run.
 
+Software that ships as neither an rpm nor a flatpak is declared
+under `opt`. Each entry is extracted into `~/.local/opt` and
+gets a launcher in `~/.local/bin` and its own desktop entry,
+rewritten to point at both. ClickUp is one: an AppImage served
+from a URL that always hands back the current release, so the
+entry pins a version and a sha256 and the install refuses
+anything else, which is also how a new release announces
+itself. An entry marked `"managed": false` is declared only so
+the sweep of `~/.local/opt` leaves it alone, which is how
+TeamSpeak, installed by hand long before any of this, survives.
+
 Nothing is applied before you have seen it. Both commands print
 the plan and wait:
 
@@ -73,6 +84,6 @@ would have removed it. Take those out by hand once and they
 stay out.
 
 The health check that follows a run reports what has drifted:
-packages not yet claimed, COPRs supplying nothing, orphaned
-packages, broken stowed links, and theme templates that render
-for nobody.
+packages not yet claimed, COPRs supplying nothing, opt entries
+an upstream release has left behind, orphaned packages, broken
+stowed links, and theme templates that render for nobody.

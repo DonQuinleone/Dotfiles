@@ -6,6 +6,7 @@ REPO=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
 readonly REPO
 readonly MANIFEST="${REPO}/packages.json"
 readonly LIBRARY="${REPO}/packages.sh"
+readonly OPT_LIBRARY="${REPO}/opt.sh"
 
 readonly FLATHUB_URL=https://dl.flathub.org/repo/flathub.flatpakrepo
 readonly NERD_FONT_TAG=v3.5.0
@@ -65,13 +66,32 @@ preflight() {
 }
 
 validate() {
-    local duplicates missing
+    local duplicates missing undescribed
     duplicates=$(manifest_duplicates)
     [[ -z "${duplicates}" ]] ||
         die "duplicated entries:"$'\n'"${duplicates}"
     missing=$(unknown_packages)
     [[ -z "${missing}" ]] ||
         die "not in any enabled repo:"$'\n'"${missing}"
+    undescribed=$(opt_undescribed)
+    [[ -z "${undescribed}" ]] ||
+        die "opt entries that cannot be installed:"$'\n'"${undescribed}"
+}
+
+# A managed entry has to say enough to be reinstalled from
+# nothing, since the machine is meant to be reproducible from
+# the manifest alone.
+opt_undescribed() {
+    local name field
+    while read -r name; do
+        [[ -z "${name}" ]] && continue
+        opt_format_valid "$(opt_field "${name}" format)" ||
+            printf '  %s: unknown format\n' "${name}"
+        for field in url version sha256; do
+            [[ -n "$(opt_field "${name}" "${field}")" ]] ||
+                printf '  %s: no %s\n' "${name}" "${field}"
+        done
+    done < <(opt_managed_names)
 }
 
 # Only what is about to be installed is checked, since a package
@@ -91,6 +111,7 @@ declare -a REPO_WRITE=() COPR_ADD=() COPR_DROP=()
 declare -a PACKAGE_ADD=() PACKAGE_DROP=() PACKAGE_MARK=()
 declare -a FLATPAK_ADD=() FLATPAK_DROP=()
 declare -a PACKAGE_HELD=()
+declare -a OPT_ADD=() OPT_UPDATE=() OPT_DROP=()
 
 # Rewritten when it differs rather than skipped when it exists,
 # or a machine installed before a repo definition changed would
@@ -156,6 +177,27 @@ plan_flatpaks() {
     done <<<"${installed}"
 }
 
+# Everything under the root is the manifest's, declared or not,
+# so an entry that is only meant to be left alone still has to
+# be named there.
+plan_opt() {
+    local declared name
+    declared=$(opt_names | LC_ALL=C sort)
+    while read -r name; do
+        [[ -z "${name}" ]] && continue
+        if [[ ! -d "$(opt_directory "${name}")" ]]; then
+            OPT_ADD+=("${name}")
+        elif [[ "$(opt_installed_version "${name}")" != \
+            "$(opt_field "${name}" version)" ]]; then
+            OPT_UPDATE+=("${name}")
+        fi
+    done < <(opt_managed_names)
+    while read -r name; do
+        [[ -z "${name}" ]] && continue
+        grep -qxF "${name}" <<<"${declared}" || OPT_DROP+=("${name}")
+    done < <(opt_installed_names)
+}
+
 # dnf takes everything that depends on a package out with it, so
 # a leaf something still needs is not the manifest's to remove.
 # perl-Unicode-Normalize on its own would have taken git.
@@ -178,6 +220,7 @@ build_plan() {
     plan_coprs
     plan_packages
     plan_flatpaks
+    plan_opt
     hold_depended_upon
 }
 
@@ -185,7 +228,8 @@ plan_is_empty() {
     (( ${#REPO_WRITE[@]} + ${#COPR_ADD[@]} + ${#COPR_DROP[@]} +
        ${#PACKAGE_ADD[@]} + ${#PACKAGE_DROP[@]} +
        ${#PACKAGE_MARK[@]} + ${#FLATPAK_ADD[@]} +
-       ${#FLATPAK_DROP[@]} == 0 ))
+       ${#FLATPAK_DROP[@]} + ${#OPT_ADD[@]} +
+       ${#OPT_UPDATE[@]} + ${#OPT_DROP[@]} == 0 ))
 }
 
 section() {
@@ -208,6 +252,9 @@ render_plan() {
     section "${BAD}" "remove" "${PACKAGE_DROP[@]}"
     section "${GOOD}" "install flatpak" "${FLATPAK_ADD[@]}"
     section "${BAD}" "remove flatpak" "${FLATPAK_DROP[@]}"
+    section "${GOOD}" "install into opt" "${OPT_ADD[@]}"
+    section "${GOOD}" "update in opt" "${OPT_UPDATE[@]}"
+    section "${BAD}" "remove from opt" "${OPT_DROP[@]}"
     section "${GOOD}" "claim as wanted" "${PACKAGE_MARK[@]}"
     section "${WARN}" "held, something still needs it" \
         "${PACKAGE_HELD[@]}"
@@ -281,6 +328,22 @@ apply_flatpak_drops() {
     sudo flatpak uninstall -y --unused
 }
 
+apply_opt_installs() {
+    local name
+    for name in "${OPT_ADD[@]}" "${OPT_UPDATE[@]}"; do
+        say "installing ${name} $(opt_field "${name}" version)"
+        install_appimage "${name}"
+    done
+}
+
+apply_opt_drops() {
+    local name
+    for name in "${OPT_DROP[@]}"; do
+        say "removing ${name} from ${OPT_ROOT#"${HOME}"/}"
+        remove_opt_entry "${name}"
+    done
+}
+
 # Brave and Rhythmbox both claim types they are not wanted for
 # the moment they are installed, so the association is stated
 # here rather than left to whichever package registered last.
@@ -333,8 +396,10 @@ apply_plan() {
     apply_marks
     apply_installs
     apply_flatpak_adds
+    apply_opt_installs
     apply_removals
     apply_flatpak_drops
+    apply_opt_drops
     apply_copr_drops
 }
 
@@ -343,6 +408,8 @@ main() {
     preflight
     # shellcheck source=packages.sh
     source "${LIBRARY}"
+    # shellcheck source=opt.sh
+    source "${OPT_LIBRARY}"
     manifest_require
     load_palette
     build_plan

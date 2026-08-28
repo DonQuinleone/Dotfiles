@@ -12,6 +12,7 @@ readonly CHECKS=(
     "manifest against the machine|check_in_sync"
     "packages at risk of a sweep|check_unclaimed"
     "repositories earning their place|check_idle_coprs"
+    "opt entries against upstream|check_opt_upstream"
     "packages nothing depends on|check_orphans"
     "stowed links|check_stow"
     "theme templates|check_templates"
@@ -91,7 +92,7 @@ check_in_sync() {
     local plan
     plan=$("${RECONCILER}" --plan 2>&1) ||
         { fault "the reconciler could not build a plan"; return 0; }
-    if grep -qE '^  (write|enable|remove|install|claim)' \
+    if grep -qE '^  (write|enable|remove|install|update|claim)' \
         <<<"${plan}"; then
         fault "still out of sync:"
         grep -v '^plan against' <<<"${plan}" | sed '/^$/d'
@@ -127,6 +128,27 @@ check_idle_coprs() {
     done < <(manifest_list coprs)
     ((${#idle[@]} == 0)) || fault "coprs supplying nothing: ${idle[*]}"
     ((${#idle[@]} > 0)) || note "every copr supplies something"
+}
+
+# What an AppImage is pinned to and what its URL now serves are
+# only ever the same by accident, and nothing says so unasked.
+check_opt_upstream() {
+    local name pinned upstream behind=()
+    while read -r name; do
+        [[ -z "${name}" ]] && continue
+        pinned=$(opt_field "${name}" version)
+        upstream=$(opt_upstream_version \
+            "$(opt_field "${name}" url)")
+        if [[ -z "${upstream}" ]]; then
+            fault "${name}: upstream version unreadable"
+            continue
+        fi
+        [[ "${pinned}" == "${upstream}" ]] ||
+            behind+=("${name} ${pinned}, upstream ${upstream}")
+    done < <(opt_managed_names)
+    ((${#behind[@]} == 0)) ||
+        fault "behind upstream: ${behind[*]}"
+    ((${#behind[@]} > 0)) || note "every opt entry is current"
 }
 
 check_orphans() {
