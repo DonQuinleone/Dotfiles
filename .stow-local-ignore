@@ -5,6 +5,7 @@
 README\.md
 bootstrap\.sh
 get_packages\.sh
+opt\.sh
 packages\.json
 packages\.sh
 etc
