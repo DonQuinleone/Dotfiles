@@ -150,6 +150,7 @@
     "rpm-build",
     "rpmfusion-free-release",
     "rpmfusion-nonfree-release",
+    "screen",
     "sg3_utils",
     "slurp",
     "snapper",
