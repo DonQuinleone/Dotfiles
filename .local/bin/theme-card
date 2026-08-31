@@ -1,0 +1,157 @@
+#!/usr/bin/env bash
+# Draw a palette the way it will look, so a theme can be seen
+# before it is worn.
+# shellcheck source-path=SCRIPTDIR
+set -euo pipefail
+
+LIB=$(dirname -- "$(readlink -f -- "${BASH_SOURCE[0]}")")
+LIB=${LIB}/../share/theme/lib
+readonly LIB
+
+# shellcheck source=../share/theme/lib/paths.sh
+source "${LIB}/paths.sh"
+# shellcheck source=../share/theme/lib/colour.sh
+source "${LIB}/colour.sh"
+# shellcheck source=../share/theme/lib/palette.sh
+source "${LIB}/palette.sh"
+
+readonly CARD_WIDTH=480
+readonly CARD_HEIGHT=320
+
+readonly BAR_HEIGHT=46
+readonly PILL_WIDTH=34
+readonly PILL_HEIGHT=18
+readonly PILL_GAP=42
+readonly PILL_TOP=14
+readonly PILL_LEFT=18
+
+readonly WINDOW_LEFT=24
+readonly WINDOW_TOP=124
+readonly WINDOW_WIDTH=432
+readonly WINDOW_HEIGHT=112
+readonly WINDOW_RADIUS=10
+
+readonly SWATCH_TOP=278
+readonly SWATCH_RADIUS=15
+readonly SWATCH_GAP=54
+readonly SWATCH_LEFT=39
+
+readonly NAME_SIZE=27
+readonly MODE_SIZE=15
+readonly CODE_SIZE=15
+readonly CLOCK_SIZE=14
+readonly LINE_HEIGHT=28
+
+readonly -a SWATCHES=(
+    red orange yellow green cyan blue magenta accent
+)
+
+escape_xml() {
+    local text=${1//&/&amp;}
+    text=${text//</&lt;}
+    printf '%s' "${text//>/&gt;}"
+}
+
+rectangle() {
+    printf '<rect x="%s" y="%s" width="%s" height="%s" rx="%s"' \
+        "$1" "$2" "$3" "$4" "$5"
+    printf ' fill="%s"/>\n' "$6"
+}
+
+label() {
+    printf '<text x="%s" y="%s" font-family="%s" font-size="%s"' \
+        "$1" "$2" "$3" "$4"
+    printf ' fill="%s">%s</text>\n' "$5" "$(escape_xml "$6")"
+}
+
+draw_bar() {
+    local index=0 colour
+    rectangle 0 0 "${CARD_WIDTH}" "${BAR_HEIGHT}" 0 \
+        "${TOKENS[dark_background]}"
+    for index in 0 1 2; do
+        colour=${TOKENS[muted]}
+        (( index == 0 )) && colour=${TOKENS[accent]}
+        rectangle "$(( PILL_LEFT + index * PILL_GAP ))" \
+            "${PILL_TOP}" "${PILL_WIDTH}" "${PILL_HEIGHT}" \
+            "$(( PILL_HEIGHT / 2 ))" "${colour}"
+    done
+    printf '<text x="%s" y="%s" text-anchor="end"' \
+        "$(( CARD_WIDTH - PILL_LEFT ))" "$(( PILL_TOP + 14 ))"
+    printf ' font-family="%s" font-size="%s" fill="%s">%s</text>\n' \
+        "${TOKENS[theme_font_mono]}" "${CLOCK_SIZE}" \
+        "${TOKENS[dark_foreground]}" "09:41"
+}
+
+draw_window() {
+    local left=$(( WINDOW_LEFT + 18 )) top=$(( WINDOW_TOP + 34 ))
+    printf '<rect x="%s" y="%s" width="%s" height="%s" rx="%s"' \
+        "${WINDOW_LEFT}" "${WINDOW_TOP}" "${WINDOW_WIDTH}" \
+        "${WINDOW_HEIGHT}" "${WINDOW_RADIUS}"
+    printf ' fill="%s" stroke="%s" stroke-width="2"/>\n' \
+        "${TOKENS[lighter_background]}" "${TOKENS[accent]}"
+    label "${left}" "${top}" "${TOKENS[theme_font_mono]}" \
+        "${CODE_SIZE}" "${TOKENS[foreground]}" \
+        "theme set ${TOKENS[theme_slug]}"
+    label "${left}" "$(( top + LINE_HEIGHT ))" \
+        "${TOKENS[theme_font_mono]}" "${CODE_SIZE}" \
+        "${TOKENS[dark_foreground]}" "# every surface follows"
+    label "${left}" "$(( top + 2 * LINE_HEIGHT ))" \
+        "${TOKENS[theme_font_mono]}" "${CODE_SIZE}" \
+        "${TOKENS[green]}" "26 files rendered"
+}
+
+draw_swatches() {
+    local index=0 role
+    for role in "${SWATCHES[@]}"; do
+        printf '<circle cx="%s" cy="%s" r="%s" fill="%s"/>\n' \
+            "$(( SWATCH_LEFT + index * SWATCH_GAP ))" \
+            "${SWATCH_TOP}" "${SWATCH_RADIUS}" "${TOKENS[$role]}"
+        index=$(( index + 1 ))
+    done
+}
+
+draw_card() {
+    printf '<svg xmlns="http://www.w3.org/2000/svg"'
+    printf ' width="%s" height="%s" viewBox="0 0 %s %s">\n' \
+        "${CARD_WIDTH}" "${CARD_HEIGHT}" "${CARD_WIDTH}" \
+        "${CARD_HEIGHT}"
+    rectangle 0 0 "${CARD_WIDTH}" "${CARD_HEIGHT}" 0 \
+        "${TOKENS[background]}"
+    draw_bar
+    label "${WINDOW_LEFT}" 92 "${TOKENS[theme_font_ui]}" \
+        "${NAME_SIZE}" "${TOKENS[foreground]}" "${TOKENS[theme_name]}"
+    label "$(( WINDOW_LEFT + 2 ))" 112 "${TOKENS[theme_font_ui]}" \
+        "${MODE_SIZE}" "${TOKENS[dark_foreground]}" "${TOKENS[mode]}"
+    draw_window
+    draw_swatches
+    printf '</svg>\n'
+}
+
+card_for() {
+    local slug=$1 card=${CARDS}/$1.svg
+    local palette=${THEMES}/$1.toml
+    [[ -f $palette ]] || die "no theme called '${slug}'"
+    if [[ $card -nt $palette && $card -nt ${BASH_SOURCE[0]} ]]; then
+        printf '%s\n' "${card}"
+        return
+    fi
+    tokens_for "${slug}"
+    mkdir -p "${CARDS}"
+    draw_card >"${card}"
+    printf '%s\n' "${card}"
+}
+
+main() {
+    local slug
+    case ${1:-} in
+        "") die "needs a theme name, or --all" ;;
+        --all)
+            for slug in $(slugs); do
+                card_for "${slug}" >/dev/null
+            done
+            ;;
+        *) card_for "$1" ;;
+    esac
+}
+
+main "$@"

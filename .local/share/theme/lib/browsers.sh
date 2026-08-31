@@ -10,7 +10,9 @@ readonly -a FIREFOX_LINKS=(
     "firefox-chrome.css:theme.css:userChrome.css"
     "firefox-content.css:theme-content.css:userContent.css"
 )
-readonly FIREFOX_PREF=toolkit.legacyUserProfileCustomizations.stylesheets
+FIREFOX_PREF=toolkit.legacyUserProfileCustomizations
+FIREFOX_PREF+=.stylesheets
+readonly FIREFOX_PREF
 
 # The flag tells a running browser to reread its policy, but with
 # no browser to tell it starts a whole one that never exits, since

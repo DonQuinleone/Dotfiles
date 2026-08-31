@@ -1,5 +1,9 @@
 # shellcheck shell=bash
 
+ENTRY='^[[:space:]]*([A-Za-z0-9_]+)'
+ENTRY+='[[:space:]]*=[[:space:]]*(.*)$'
+readonly ENTRY
+
 readonly FONT_UI="IBM Plex Sans"
 readonly FONT_MONO="JetBrainsMono Nerd Font"
 readonly SIZE_UI=17
@@ -7,6 +11,14 @@ readonly SIZE_MONO=17
 readonly SIZE_BAR=16
 readonly WEIGHT_BODY=400
 readonly WEIGHT_BOLD=700
+
+readonly ICON_THEME=adwaita-accent
+readonly GTK_THEME_NAME=Adwaita
+
+# Application text stays at a sighted reader's size on purpose:
+# the magnifier does the enlarging, and inflating it here would
+# only cut how much text fits under the lens.
+readonly GTK_FONT_POINTS=10
 
 readonly TERMINAL_DARK_OPACITY=0.8
 readonly TERMINAL_LIGHT_OPACITY=0.97
@@ -32,6 +44,9 @@ readonly -a CONSTANT_TOKENS=(
     "theme_size_bar:${SIZE_BAR}"
     "theme_weight_body:${WEIGHT_BODY}"
     "theme_weight_bold:${WEIGHT_BOLD}"
+    "theme_icon_theme:${ICON_THEME}"
+    "theme_gtk_theme:${GTK_THEME_NAME}"
+    "theme_gtk_points:${GTK_FONT_POINTS}"
 )
 
 declare -A TOKENS=()
@@ -47,8 +62,7 @@ slugs() {
 read_palette() {
     local path=$1 line key value
     while IFS= read -r line; do
-        [[ $line =~ ^[[:space:]]*([A-Za-z0-9_]+)[[:space:]]*=[[:space:]]*(.*)$ ]] ||
-            continue
+        [[ $line =~ $ENTRY ]] || continue
         key=${BASH_REMATCH[1]}
         value=${BASH_REMATCH[2]}
         value=${value%"${value##*[![:space:]]}"}
@@ -109,9 +123,6 @@ tokens_for() {
 
     TOKENS[theme_slug]=${slug}
     TOKENS[theme_name]=${TOKENS[name]:-$slug}
-    TOKENS[theme_icon_theme]=${ICON_THEME}
-    TOKENS[theme_gtk_points]=${GTK_FONT_POINTS}
-    TOKENS[theme_gtk_theme]=${GTK_THEME_NAME}
     add_pairs CONSTANT_TOKENS
     add_pairs MOTION
     add_stripped

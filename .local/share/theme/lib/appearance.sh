@@ -1,12 +1,5 @@
 # shellcheck shell=bash
 
-readonly GTK_THEME_NAME=Adwaita
-
-# Application text stays at a sighted reader's size on purpose:
-# the magnifier does the enlarging, and inflating it here would
-# only cut how much text fits under the lens.
-readonly GTK_FONT_POINTS=10
-
 readonly GTK_PORTAL_UNIT=xdg-desktop-portal-gtk.service
 readonly GTK_PORTAL_DROP_IN=theme.conf
 

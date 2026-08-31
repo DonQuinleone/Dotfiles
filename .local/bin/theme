@@ -4,25 +4,20 @@
 # shellcheck source-path=SCRIPTDIR
 set -euo pipefail
 
-CONFIG=${XDG_CONFIG_HOME:-${HOME}/.config}
-STATE=${XDG_STATE_HOME:-${HOME}/.local/state}
-DATA=${XDG_DATA_HOME:-${HOME}/.local/share}
-readonly CONFIG STATE DATA
+BIN=$(dirname -- "$(readlink -f -- "${BASH_SOURCE[0]}")")
+readonly BIN
+readonly LIB=${BIN}/../share/theme/lib
+readonly CARD_TOOL=${BIN}/theme-card
 
-readonly THEMES=${CONFIG}/theme/themes
-readonly TEMPLATES=${CONFIG}/theme/templates
-readonly RENDERED=${STATE}/theme
-readonly CURRENT=${RENDERED}/current
+PICKER_LAYOUT='window { width: 1320px; }'
+PICKER_LAYOUT+='listview { columns: 4; lines: 3; spacing: 12px; }'
+PICKER_LAYOUT+='element { orientation: vertical; padding: 8px; }'
+PICKER_LAYOUT+='element-icon { size: 260px; }'
+PICKER_LAYOUT+='element-text { horizontal-align: 0.5; }'
+readonly PICKER_LAYOUT
 
-LIB=$(dirname -- "$(readlink -f -- "${BASH_SOURCE[0]}")")
-LIB=${LIB}/../share/theme/lib
-readonly LIB
-
-die() {
-    printf 'theme: %s\n' "$1" >&2
-    exit 1
-}
-
+# shellcheck source=../share/theme/lib/paths.sh
+source "${LIB}/paths.sh"
 # shellcheck source=../share/theme/lib/colour.sh
 source "${LIB}/colour.sh"
 # shellcheck source=../share/theme/lib/palette.sh
@@ -64,11 +59,47 @@ set_theme() {
     printf 'theme: %s (%d files)\n' "${slug}" "${written}"
 }
 
+picker_rows() {
+    local slug
+    while read -r slug; do
+        tokens_for "${slug}"
+        printf '%s\0icon\x1f%s\n' "${TOKENS[theme_name]}" \
+            "$("${CARD_TOOL}" "${slug}")"
+    done < <(slugs)
+}
+
+selected_row() {
+    local wanted=$1 slug index=0
+    while read -r slug; do
+        [[ $slug == "${wanted}" ]] && {
+            printf '%d\n' "${index}"
+            return
+        }
+        index=$(( index + 1 ))
+    done < <(slugs)
+    printf '0\n'
+}
+
+slug_named() {
+    local wanted=$1 slug
+    while read -r slug; do
+        tokens_for "${slug}"
+        [[ ${TOKENS[theme_name]} == "${wanted}" ]] || continue
+        printf '%s\n' "${slug}"
+        return
+    done < <(slugs)
+}
+
 pick() {
-    local chosen
-    chosen=$(slugs | rofi -dmenu -i -p Theme) || return 0
+    local chosen slug
+    command -v rofi >/dev/null 2>&1 || die "rofi is not installed"
+    chosen=$(picker_rows | rofi -dmenu -i -p Theme -show-icons \
+        -selected-row "$(selected_row "$(current)")" \
+        -theme-str "${PICKER_LAYOUT}") || return 0
     [[ -n $chosen ]] || return 0
-    set_theme "${chosen}"
+    slug=$(slug_named "${chosen}")
+    [[ -n $slug ]] || die "no theme named '${chosen}'"
+    set_theme "${slug}"
 }
 
 main() {

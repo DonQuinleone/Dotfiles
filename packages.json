@@ -101,6 +101,7 @@
     "kitty",
     "kubernetes1.34-client",
     "libdrm-devel",
+    "librsvg2",
     "libsecret",
     "libtool",
     "libuuid-devel",

@@ -1,7 +1,6 @@
 # shellcheck shell=bash
 
 readonly ICON_SOURCE=/usr/share/icons/Adwaita/scalable
-readonly ICON_THEME=adwaita-accent
 readonly ICON_SIZE=128
 readonly ICON_MIN_SIZE=8
 readonly ICON_MAX_SIZE=512
