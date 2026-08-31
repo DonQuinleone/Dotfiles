@@ -111,6 +111,7 @@
     "luajit",
     "mako",
     "mesa-libgbm-devel",
+    "most",
     "mpv",
     "msmtp",
     "ncdu",
