@@ -66,7 +66,7 @@ local rows = {
     { "SUPER",                "b",                     run(BROWSER),                                  "Open browser"           },
     { "SUPER",                "i",                     run(LLM),                                      "Open Claude Code"       },
     { "SUPER",                "f",                     run(FILES),                                    "Open file manager"      },
-    { "SUPER",                "s",                     run("fltapak run com.slack.Slack"),            "Open Slack"             },
+    { "SUPER",                "s",                     run("flatpak run com.slack.Slack"),            "Open Slack"             },
     { "SUPER",                "t",                     run("teamspeak3"),                             "Open TeamSpeak 3"       },
     { "SUPER",                "o",                     run("cpanel-sso"),                             "Open cPanel SSO"        },
     { "SUPER + SHIFT",        "o",                     run(JUMPBOX),                                  "Open jumpbox"           },
