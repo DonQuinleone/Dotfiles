@@ -20,7 +20,7 @@ monitors = [m for m in json.load(sys.stdin) if not m["disabled"]]
 if len(monitors) < 2:
     sys.exit(1)
 
-ordered = sorted(monitors, key=lambda m: (m["x"], m["y"]))
+ordered = sorted(monitors, key=lambda m: (m["x"], -m["y"]))
 focused = next(
     (i for i, m in enumerate(ordered) if m.get("focused")), 0)
 step = -1 if direction == "left" else 1
