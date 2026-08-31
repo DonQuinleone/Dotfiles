@@ -1,8 +1,8 @@
 foreground {{ foreground }}
 background {{ background }}
 background_opacity {{ terminal_opacity }}
-selection_foreground {{ selection_foreground }}
-selection_background {{ selection_background }}
+selection_foreground {{ background }}
+selection_background {{ accent }}
 
 cursor {{ cursor }}
 cursor_text_color {{ background }}
