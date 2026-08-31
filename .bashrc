@@ -108,6 +108,7 @@ export ANSIBLE_GALAXY_CACHE_DIR="$XDG_CACHE_HOME/ansible/galaxy_cache"
 export CLAUDE_CONFIG_DIR="$XDG_DATA_HOME/claude"
 
 export GOPATH="$XDG_DATA_HOME/go"
+export PATH="$GOPATH/bin:$PATH"
 
 export PYTHON_HISTORY="$XDG_STATE_HOME/python/history"
 [ -d "${PYTHON_HISTORY%/*}" ] || mkdir -p "${PYTHON_HISTORY%/*}"
