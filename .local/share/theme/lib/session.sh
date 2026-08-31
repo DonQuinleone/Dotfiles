@@ -9,11 +9,13 @@ readonly -a TEAMSPEAK_LINKS=(
     "teamspeak-chat.qss:current_chat.qss"
 )
 
+# waybar has no reload signal: SIGUSR2 and SIGHUP both kill
+# it, so the units are restarted instead of signalled.
 readonly -a RELOADS=(
     "makoctl:makoctl reload"
     "hyprctl:hyprctl reload"
     "kitty:pkill -SIGUSR1 kitty"
-    "waybar:pkill -SIGUSR2 waybar"
+    "waybar:systemctl --user restart waybar.target"
 )
 
 # TeamSpeak reads its stylesheet once at start, so there is no
