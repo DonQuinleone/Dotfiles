@@ -33,6 +33,8 @@ source "${LIB}/render.sh"
 source "${LIB}/browsers.sh"
 # shellcheck source=../share/theme/lib/icons.sh
 source "${LIB}/icons.sh"
+# shellcheck source=../share/theme/lib/appearance.sh
+source "${LIB}/appearance.sh"
 # shellcheck source=../share/theme/lib/session.sh
 source "${LIB}/session.sh"
 
@@ -52,6 +54,8 @@ set_theme() {
     apply_firefox
     apply_teamspeak
     apply_icons
+    announce_appearance
+    publish_gtk_theme
 
     printf '%s\n' "${slug}" >"${CURRENT}"
     follow_wallpaper

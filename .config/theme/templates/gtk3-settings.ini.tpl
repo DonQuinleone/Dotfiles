@@ -1,5 +1,5 @@
 [Settings]
-gtk-font-name={{ theme_font_ui }} 10
-gtk-icon-theme-name=adwaita-accent
-gtk-theme-name=Adwaita
+gtk-font-name={{ theme_font_ui }} {{ theme_gtk_points }}
+gtk-icon-theme-name={{ theme_icon_theme }}
+gtk-theme-name={{ theme_gtk_theme }}
 gtk-application-prefer-dark-theme={{ prefers_dark }}

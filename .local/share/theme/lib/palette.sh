@@ -109,6 +109,9 @@ tokens_for() {
 
     TOKENS[theme_slug]=${slug}
     TOKENS[theme_name]=${TOKENS[name]:-$slug}
+    TOKENS[theme_icon_theme]=${ICON_THEME}
+    TOKENS[theme_gtk_points]=${GTK_FONT_POINTS}
+    TOKENS[theme_gtk_theme]=${GTK_THEME_NAME}
     add_pairs CONSTANT_TOKENS
     add_pairs MOTION
     add_stripped
