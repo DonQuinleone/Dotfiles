@@ -78,6 +78,8 @@ local rows = {
     { "SUPER + SHIFT",        "t",                     layouts.set("master"),                         "Set master layout"      },
     { "SUPER + SHIFT",        "m",                     layouts.set("monocle"),                        "Set monocle layout"     },
     { "SUPER + SHIFT",        "s",                     layouts.set("scrolling"),                      "Set scrolling layout"   },
+    { "SUPER + ALT",          "h",                     layouts.orient("left"),                        "Master column left"     },
+    { "SUPER + ALT",          "l",                     layouts.orient("right"),                       "Master column right"    },
     { "SUPER + SHIFT",        "g",                     gaps.toggle,                                   "Toggle gaps"            },
     { "SUPER + SHIFT",        "b",                     run(BAR_TOGGLE),                               "Toggle bar"             },
 

@@ -11,6 +11,11 @@ local modes = {
       label = "Scrolling columns" },
 }
 
+local ORIENTATIONS = {
+    left = "orientationleft",
+    right = "orientationright",
+}
+
 local index_of = {}
 for index, mode in ipairs(modes) do
     index_of[mode.name] = index
@@ -142,6 +147,21 @@ function layouts.set(name)
             return
         end
         apply(workspace.name, mode)
+    end
+end
+
+function layouts.orient(side)
+    return function()
+        local workspace = hl.get_active_workspace()
+        if workspace == nil then
+            return
+        end
+        if chosen_layout(workspace) ~= "master" then
+            actions.notify("Master side needs the master layout")
+            return
+        end
+        hl.dispatch(hl.dsp.layout(ORIENTATIONS[side]))
+        actions.notify("Master column " .. side)
     end
 end
 
