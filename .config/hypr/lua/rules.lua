@@ -23,3 +23,14 @@ hl.window_rule({
     },
     no_focus = true,
 })
+
+hl.window_rule({
+    name = "float-slack-huddle",
+    match = {
+        class = "^com\\.slack\\.Slack$",
+        initial_title = "^Slack – Huddle preview$",
+    },
+    float = true,
+    size = "1200 800",
+    center = true,
+})
