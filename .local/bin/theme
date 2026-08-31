@@ -1,499 +1,83 @@
-#!/usr/bin/env python3
-"""Render every themed file from one palette and reload what is live."""
+#!/usr/bin/env bash
+# Render every themed file from one palette and reload what is
+# live.
+# shellcheck source-path=SCRIPTDIR
+set -euo pipefail
 
-import json
-import os
-import pathlib
-import re
-import shutil
-import subprocess
-import sys
-import tomllib
+CONFIG=${XDG_CONFIG_HOME:-${HOME}/.config}
+STATE=${XDG_STATE_HOME:-${HOME}/.local/state}
+DATA=${XDG_DATA_HOME:-${HOME}/.local/share}
+readonly CONFIG STATE DATA
 
-HOME = pathlib.Path.home()
-CONFIG = pathlib.Path(
-    os.environ.get("XDG_CONFIG_HOME", HOME / ".config"))
-STATE = pathlib.Path(
-    os.environ.get("XDG_STATE_HOME", HOME / ".local/state"))
-DATA = pathlib.Path(
-    os.environ.get("XDG_DATA_HOME", HOME / ".local/share"))
+readonly THEMES=${CONFIG}/theme/themes
+readonly TEMPLATES=${CONFIG}/theme/templates
+readonly RENDERED=${STATE}/theme
+readonly CURRENT=${RENDERED}/current
 
-THEMES = CONFIG / "theme/themes"
-TEMPLATES = CONFIG / "theme/templates"
-RENDERED = STATE / "theme"
-CURRENT = RENDERED / "current"
+LIB=$(dirname -- "$(readlink -f -- "${BASH_SOURCE[0]}")")
+LIB=${LIB}/../share/theme/lib
+readonly LIB
 
-WALLPAPERS = HOME / "Pictures/walls"
-WALLPAPER_CHOSEN = RENDERED / "wallpaper"
-
-GREETER_DIR = pathlib.Path("/var/lib/greeter-theme")
-GREETER_STYLE = GREETER_DIR / "style.css"
-GREETER_BACKGROUND = GREETER_DIR / "background"
-GREETER_SOURCE = RENDERED / "gtkgreet.css"
-
-FONT_UI = "IBM Plex Sans"
-FONT_MONO = "JetBrainsMono Nerd Font"
-SIZE_UI = 17
-SIZE_MONO = 17
-SIZE_BAR = 16
-WEIGHT_BODY = 400
-WEIGHT_BOLD = 700
-
-TERMINAL_DARK_OPACITY = "0.8"
-TERMINAL_LIGHT_OPACITY = "0.97"
-LIGHT_MODE_SUM = 382
-
-MOTION = {
-    "motion_quick": "150",
-    "motion_normal": "175",
-    "motion_slow": "200",
-    "motion_standard": "OutCubic",
-    "motion_enter": "OutBack",
-    "motion_exit": "OutCubic",
-    "motion_reduce": "false",
+die() {
+    printf 'theme: %s\n' "$1" >&2
+    exit 1
 }
 
-LINKS = (
-    ("btop.theme", "btop/themes/current.theme"),
-    ("lsd-colours.yaml", "lsd/colors.yaml"),
-    ("qt6ct.conf", "qt6ct/colors/current.conf"),
-    ("gtk3.css", "gtk-3.0/gtk.css"),
-    ("gtk3-settings.ini", "gtk-3.0/settings.ini"),
-    ("gtk4.css", "gtk-4.0/gtk.css"),
-    ("gtk4-settings.ini", "gtk-4.0/settings.ini"),
-    ("yazi-theme.toml", "yazi/theme.toml"),
-    ("imv.conf", "imv/config"),
-    ("rofi.rasi", "rofi/theme.rasi"),
-    ("mako.conf", "mako/config"),
-    ("hyprlock.conf", "hypr/hyprlock-colours.conf"),
-    ("waybar.css", "waybar/style.css"),
-    ("zathurarc", "zathura/zathurarc"),
-)
+# shellcheck source=../share/theme/lib/colour.sh
+source "${LIB}/colour.sh"
+# shellcheck source=../share/theme/lib/palette.sh
+source "${LIB}/palette.sh"
+# shellcheck source=../share/theme/lib/render.sh
+source "${LIB}/render.sh"
+# shellcheck source=../share/theme/lib/browsers.sh
+source "${LIB}/browsers.sh"
+# shellcheck source=../share/theme/lib/icons.sh
+source "${LIB}/icons.sh"
+# shellcheck source=../share/theme/lib/session.sh
+source "${LIB}/session.sh"
 
-BRAVE_POLICY = pathlib.Path(
-    "/etc/brave/policies/managed/theme-colour.json")
-BRAVE_BINARY = "brave-origin"
-BRAVE_REFRESH_TIMEOUT = 10
-
-FIREFOX_ROOT = CONFIG / "mozilla/firefox"
-FIREFOX_LINKS = (
-    ("firefox-chrome.css", "theme.css", "userChrome.css"),
-    ("firefox-content.css", "theme-content.css", "userContent.css"),
-)
-FIREFOX_PREF = ("toolkit.legacyUserProfileCustomizations"
-                ".stylesheets")
-
-ICON_SOURCE = pathlib.Path("/usr/share/icons/Adwaita/scalable")
-ICON_THEME = "adwaita-accent"
-ICON_SIZE = 128
-ICON_MIN_SIZE = 8
-ICON_MAX_SIZE = 512
-LUMA_WEIGHTS = (299, 587, 114)
-LUMA_TOTAL = 1000
-CHANNEL_MAX = 255
-
-# Adwaita writes its blue ramp into each drawing, so icons are
-# the one surface no setting can point at an accent. Each blue
-# is re-shaded to the accent at its own lightness, which keeps
-# the depth the artwork relies on.
-ICON_BLUES = (
-    "#14498a", "#1a5fb4", "#1c71d8", "#3584e4", "#438de6",
-    "#62a0ea", "#99c1f1", "#a4caee", "#afd4ff", "#b3d3f9",
-    "#c0d5ea", "#d7e8fc",
-)
-
-# The blue a folder body is drawn in, so the shade that becomes
-# the accent exactly; the rest ramp around it.
-ICON_ANCHOR = "#438de6"
-
-ICON_CONTEXTS = {
-    "actions": "Actions",
-    "apps": "Applications",
-    "categories": "Categories",
-    "devices": "Devices",
-    "emblems": "Emblems",
-    "mimetypes": "MimeTypes",
-    "places": "Places",
-    "status": "Status",
+current() {
+    [[ -f $CURRENT ]] || { printf 'none\n'; return; }
+    printf '%s\n' "$(<"${CURRENT}")"
 }
 
-ICON_BLUE_PATTERN = re.compile("|".join(ICON_BLUES), re.IGNORECASE)
-
-TEAMSPEAK_STYLES = HOME / ".local/opt/teamspeak3/styles"
-TEAMSPEAK_LINKS = (
-    ("teamspeak.qss", "current.qss"),
-    ("teamspeak-chat.qss", "current_chat.qss"),
-)
-
-RELOADS = (
-    ("makoctl", ("makoctl", "reload")),
-    ("hyprctl", ("hyprctl", "reload")),
-    ("kitty", ("pkill", "-SIGUSR1", "kitty")),
-    ("waybar", ("pkill", "-SIGUSR2", "waybar")),
-)
-
-MIX_TOKEN = re.compile(
-    r"\{\{\s*(mix|mix_strip)\s+(\w+)\s+(\w+)\s+"
-    r"([0-9.]+)%?\s*\}\}")
-NAME_TOKEN = re.compile(r"\{\{\s*(\w+)\s*\}\}")
-
-
-def die(message):
-    sys.exit("theme: " + message)
-
-
-def channels(colour):
-    bare = colour.lstrip("#")
-    return tuple(int(bare[at:at + 2], 16) for at in (0, 2, 4))
-
-
-def mix(start, end, amount):
-    fraction = max(0.0, min(1.0, float(amount) / 100.0))
-    blended = (
-        int(one * (1 - fraction) + other * fraction + 0.5)
-        for one, other in zip(channels(start), channels(end)))
-    return "#" + "".join("%02x" % value for value in blended)
-
-
-def slugs():
-    return sorted(path.stem for path in THEMES.glob("*.toml"))
-
-
-def palette_of(slug):
-    path = THEMES / (slug + ".toml")
-    if not path.is_file():
-        die("no theme called '%s' (have: %s)"
-            % (slug, ", ".join(slugs())))
-    return tomllib.load(open(path, "rb"))
-
-
-def tokens_for(slug):
-    palette = palette_of(slug)
-    tokens = {key: str(value) for key, value in palette.items()}
-
-    mode = tokens.get("mode")
-    if mode is None:
-        mode = ("light" if sum(channels(tokens["background"]))
-                > LIGHT_MODE_SUM else "dark")
-        tokens["mode"] = mode
-
-    tokens.setdefault("cursor", tokens["bright_foreground"])
-    tokens.setdefault("selection_background", tokens["selection"])
-    tokens.setdefault("selection_foreground",
-                      tokens["bright_foreground"])
-    tokens["prefers_dark"] = "true" if mode == "dark" else "false"
-    tokens["terminal_opacity"] = (
-        TERMINAL_DARK_OPACITY if mode == "dark"
-        else TERMINAL_LIGHT_OPACITY)
-
-    tokens["theme_slug"] = slug
-    tokens["theme_name"] = tokens.get("name", slug)
-    tokens["theme_font_ui"] = FONT_UI
-    tokens["theme_font_mono"] = FONT_MONO
-    tokens["theme_size_ui"] = str(SIZE_UI)
-    tokens["theme_size_mono"] = str(SIZE_MONO)
-    tokens["theme_size_bar"] = str(SIZE_BAR)
-    tokens["theme_weight_body"] = str(WEIGHT_BODY)
-    tokens["theme_weight_bold"] = str(WEIGHT_BOLD)
-    tokens.update(MOTION)
-
-    for key, value in list(tokens.items()):
-        if value.startswith("#"):
-            tokens[key + "_strip"] = value.lstrip("#")
-    return tokens
-
-
-def render(text, tokens):
-    def blend(match):
-        verb, start, end, amount = match.groups()
-        if start not in tokens or end not in tokens:
-            return match.group(0)
-        value = mix(tokens[start], tokens[end], amount)
-        return value.lstrip("#") if verb == "mix_strip" else value
-
-    def name(match):
-        return tokens.get(match.group(1), match.group(0))
-
-    return NAME_TOKEN.sub(name, MIX_TOKEN.sub(blend, text))
-
-
-def link(rendered_name, relative):
-    target = RENDERED / rendered_name
-    if not target.is_file():
-        return
-    path = CONFIG / relative
-    path.parent.mkdir(parents=True, exist_ok=True)
-    if path.is_symlink() and path.readlink() == target:
-        return
-    if path.exists() or path.is_symlink():
-        path.unlink()
-    path.symlink_to(target)
-
-
-def follow_wallpaper():
-    chooser = shutil.which("wallpaper")
-    if chooser is None:
-        return
-    subprocess.run((chooser, "theme"), check=False,
-                   stdout=subprocess.DEVNULL,
-                   stderr=subprocess.DEVNULL)
-
-
-def link_file(target, path):
-    path.parent.mkdir(parents=True, exist_ok=True)
-    if path.is_symlink() and path.readlink() == target:
-        return
-    if path.exists() or path.is_symlink():
-        path.unlink()
-    path.symlink_to(target)
-
-
-# Chromium reads its theme from managed policy, which is a
-# directory only root may write; the install step hands this
-# account ownership of it, and a switch is a no-op without that.
-def apply_brave(tokens):
-    if not os.access(BRAVE_POLICY.parent, os.W_OK):
-        return
-    scheme = "Dark" if tokens.get("mode") == "dark" else "Light"
-    colour = mix(tokens["background"], tokens["accent"], 30)
-    BRAVE_POLICY.write_text(json.dumps({
-        "BrowserThemeColor": colour,
-        "BrowserColorScheme": scheme,
-    }, indent=2) + "\n")
-    refresh_brave()
-
-
-# The flag tells a running browser to reread its policy, but with
-# no browser to tell it starts a whole one that never exits, since
-# there is no window to close. A browser that is not running reads
-# the policy at launch anyway, so it needs no telling.
-def refresh_brave():
-    if shutil.which(BRAVE_BINARY) is None:
-        return
-    running = subprocess.run(
-        ("pgrep", "-x", "brave"), check=False,
-        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    if running.returncode != 0:
-        return
-    try:
-        subprocess.run(
-            (BRAVE_BINARY, "--refresh-platform-policy",
-             "--no-startup-window"),
-            check=False, timeout=BRAVE_REFRESH_TIMEOUT,
-            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    except subprocess.TimeoutExpired:
-        pass
-
-
-def apply_firefox():
-    if not FIREFOX_ROOT.is_dir():
-        return
-    for profile in sorted(FIREFOX_ROOT.iterdir()):
-        marker = ((profile / "prefs.js").is_file()
-                  or (profile / "times.json").is_file())
-        if not marker:
-            continue
-        chrome = profile / "chrome"
-        for rendered, name, importer in FIREFOX_LINKS:
-            source = RENDERED / rendered
-            if not source.is_file():
-                continue
-            link_file(source, chrome / name)
-            sheet = chrome / importer
-            line = '@import url("%s");' % name
-            if not sheet.is_file() or line not in sheet.read_text():
-                sheet.write_text(line + "\n")
-        user_js = profile / "user.js"
-        pref = 'user_pref("%s", true);' % FIREFOX_PREF
-        existing = user_js.read_text() if user_js.is_file() else ""
-        if FIREFOX_PREF not in existing:
-            user_js.write_text(existing.rstrip("\n") + "\n"
-                               + pref + "\n" if existing else
-                               pref + "\n")
-
-
-# TeamSpeak reads its stylesheet once at start, so there is no
-# reload entry for it; a switch shows on its next launch.
-# Weighted the way the drawing is read rather than the way
-# contrast is measured: what matters is where a shade sits in
-# the ramp, not what it does against a background.
-def luma(colour):
-    weighted = sum(value * weight for value, weight
-                   in zip(channels(colour), LUMA_WEIGHTS))
-    return weighted // LUMA_TOTAL
-
-
-def icon_shade(blue, accent):
-    anchor = luma(ICON_ANCHOR)
-    value = luma(blue)
-    if value <= anchor:
-        return mix(accent, "#000000",
-                   (anchor - value) * 100 / anchor)
-    return mix(accent, "#ffffff",
-               (value - anchor) * 100 / (CHANNEL_MAX - anchor))
-
-
-def write_icon_index(theme_dir, directories):
-    lines = [
-        "[Icon Theme]",
-        "Name=" + ICON_THEME,
-        "Comment=Adwaita, re-shaded to the accent",
-        "Inherits=Adwaita,hicolor",
-        "Directories=" + ",".join(directories),
-    ]
-    for directory in directories:
-        context = ICON_CONTEXTS.get(directory.split("/")[-1],
-                                    "Legacy")
-        lines += [
-            "", "[%s]" % directory,
-            "Context=" + context,
-            "Size=%d" % ICON_SIZE,
-            "MinSize=%d" % ICON_MIN_SIZE,
-            "MaxSize=%d" % ICON_MAX_SIZE,
-            "Type=Scalable",
-        ]
-    (theme_dir / "index.theme").write_text("\n".join(lines) + "\n")
-
-
-# Re-shading the set is the one slow thing here and it turns on
-# nothing but the accent, so the accent it was shaded from is
-# recorded beside it and an unchanged one is not shaded twice.
-def apply_icons(tokens):
-    if not ICON_SOURCE.is_dir():
-        return
-    accent = tokens["accent"]
-    theme_dir = DATA / "icons" / ICON_THEME
-    stamp = theme_dir / "accent"
-    if stamp.is_file() and stamp.read_text().strip() == accent:
-        return
-
-    shades = {blue: icon_shade(blue, accent)
-              for blue in ICON_BLUES}
-    directories = []
-    if theme_dir.is_dir():
-        shutil.rmtree(theme_dir)
-    for source in sorted(ICON_SOURCE.rglob("*.svg")):
-        drawing = source.read_text(errors="surrogateescape")
-        if not ICON_BLUE_PATTERN.search(drawing):
-            continue
-        relative = source.relative_to(ICON_SOURCE)
-        target = theme_dir / relative
-        target.parent.mkdir(parents=True, exist_ok=True)
-        target.write_text(
-            ICON_BLUE_PATTERN.sub(
-                lambda found: shades[found.group(0).lower()],
-                drawing),
-            errors="surrogateescape")
-        if str(relative.parent) not in directories:
-            directories.append(str(relative.parent))
-
-    if not directories:
-        return
-    write_icon_index(theme_dir, directories)
-    stamp.write_text(accent + "\n")
-    if shutil.which("gtk-update-icon-cache") is None:
-        return
-    subprocess.run(
-        ("gtk-update-icon-cache", "--force", "--quiet",
-         str(theme_dir)),
-        check=False)
-
-
-def apply_teamspeak():
-    if not TEAMSPEAK_STYLES.is_dir():
-        return
-    for rendered, name in TEAMSPEAK_LINKS:
-        source = RENDERED / rendered
-        if not source.is_file():
-            continue
-        link_file(source, TEAMSPEAK_STYLES / name)
-
-
-# The greeter runs as its own user and cannot reach this
-# account's home, so its stylesheet and background are copied
-# where it can read them; the install step hands this account
-# ownership of that directory, and a switch is a no-op
-# without it.
-def apply_greeter():
-    if not os.access(GREETER_DIR, os.W_OK):
-        return
-    if GREETER_SOURCE.is_file():
-        shutil.copyfile(GREETER_SOURCE, GREETER_STYLE)
-    if not WALLPAPER_CHOSEN.is_file():
-        return
-    image = pathlib.Path(WALLPAPER_CHOSEN.read_text().strip())
-    if image.is_file():
-        shutil.copyfile(image, GREETER_BACKGROUND)
-
-
-def reload_live():
-    for binary, command in RELOADS:
-        if shutil.which(binary) is None:
-            continue
-        subprocess.run(command, check=False,
-                       stdout=subprocess.DEVNULL,
-                       stderr=subprocess.DEVNULL)
-
-
-def current():
-    if CURRENT.is_file():
-        return CURRENT.read_text().strip()
-    return None
-
-
-def set_theme(slug):
-    tokens = tokens_for(slug)
-    RENDERED.mkdir(parents=True, exist_ok=True)
-
-    written = 0
-    for template in sorted(TEMPLATES.glob("*.tpl")):
-        text = template.read_text(errors="surrogateescape")
-        (RENDERED / template.stem).write_text(
-            render(text, tokens), errors="surrogateescape")
-        written += 1
-
-    for rendered_name, relative in LINKS:
-        link(rendered_name, relative)
-
-    apply_brave(tokens)
-    apply_firefox()
-    apply_teamspeak()
-    apply_icons(tokens)
-
-    CURRENT.write_text(slug + "\n")
-    follow_wallpaper()
-    apply_greeter()
-    reload_live()
-    print("theme: %s (%d files)" % (slug, written))
-
-
-def pick():
-    choice = subprocess.run(
-        ("rofi", "-dmenu", "-i", "-p", "Theme"),
-        input="\n".join(slugs()), capture_output=True, text=True)
-    chosen = choice.stdout.strip()
-    if chosen:
-        set_theme(chosen)
-
-
-def main(argv):
-    if not argv or argv[0] == "list":
-        print("\n".join(slugs()))
-        return
-    verb = argv[0]
-    if verb == "current":
-        print(current() or "none")
-        return
-    if verb == "pick":
-        pick()
-        return
-    if verb == "set":
-        if len(argv) < 2:
-            die("set needs a theme name")
-        set_theme(argv[1])
-        return
-    die("unknown command '%s' (list, current, set, pick)" % verb)
-
-
-if __name__ == "__main__":
-    main(sys.argv[1:])
+set_theme() {
+    local slug=$1 written
+    tokens_for "${slug}"
+    mkdir -p "${RENDERED}"
+    written=$(render_templates)
+    link_rendered
+
+    apply_brave
+    apply_firefox
+    apply_teamspeak
+    apply_icons
+
+    printf '%s\n' "${slug}" >"${CURRENT}"
+    follow_wallpaper
+    apply_greeter
+    reload_live
+    printf 'theme: %s (%d files)\n' "${slug}" "${written}"
+}
+
+pick() {
+    local chosen
+    chosen=$(slugs | rofi -dmenu -i -p Theme) || return 0
+    [[ -n $chosen ]] || return 0
+    set_theme "${chosen}"
+}
+
+main() {
+    case ${1:-list} in
+        list) slugs ;;
+        current) current ;;
+        pick) pick ;;
+        set)
+            [[ $# -ge 2 ]] || die "set needs a theme name"
+            set_theme "$2"
+            ;;
+        *) die "unknown command '$1' (list, current, set, pick)" ;;
+    esac
+}
+
+main "$@"
