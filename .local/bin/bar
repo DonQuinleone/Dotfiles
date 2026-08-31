@@ -19,8 +19,27 @@ usage() {
     exit 2
 }
 
+readonly RUNTIME=${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/waybar
+
 unit() {
     printf 'waybar@%s.service' "$1"
+}
+
+# Whichever waybar starts first owns the StatusNotifierWatcher,
+# and tray apps only register once, so stopping that process
+# empties every tray until they are restarted. Hiding is left to
+# waybar's own SIGUSR1, which keeps the process alive, and the
+# flag file remembers the state that signal does not report.
+hidden_flag() {
+    printf '%s/%s.hidden' "$RUNTIME" "$1"
+}
+
+running() {
+    systemctl --user --quiet is-active "$(unit "$1")"
+}
+
+flip() {
+    systemctl --user kill -s SIGUSR1 "$(unit "$1")"
 }
 
 roles() {
@@ -32,15 +51,29 @@ valid() {
 }
 
 showing() {
-    systemctl --user --quiet is-active "$(unit "$1")"
+    running "$1" || return 1
+    [ ! -e "$(hidden_flag "$1")" ]
 }
 
 show() {
-    systemctl --user start "$(unit "$1")"
+    if ! running "$1"; then
+        systemctl --user start "$(unit "$1")"
+        return
+    fi
+    if showing "$1"; then
+        return
+    fi
+    flip "$1"
+    rm -f "$(hidden_flag "$1")"
 }
 
 hide() {
-    systemctl --user stop "$(unit "$1")"
+    if ! showing "$1"; then
+        return
+    fi
+    flip "$1"
+    mkdir -p "$RUNTIME"
+    : >"$(hidden_flag "$1")"
 }
 
 toggle() {

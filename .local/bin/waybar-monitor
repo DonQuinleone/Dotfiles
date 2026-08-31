@@ -24,6 +24,7 @@ output=$(hyprctl monitors -j | jq -r --arg want "$description" \
     'first(.[] | select(.description == $want) | .name) // empty')
 
 mkdir -p "$RUNTIME"
+rm -f "$RUNTIME/$role.hidden"
 generated=$RUNTIME/$role.json
 
 jq -n --arg config "$CONFIG" \
