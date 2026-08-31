@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+readonly BROWSER=/usr/bin/brave-origin-stable
+
+readonly FEATURES=(
+    AcceleratedVideoDecodeLinuxGL
+    AcceleratedVideoDecodeLinuxZeroCopyGL
+    AcceleratedVideoEncoder
+    WebRTCPipeWireCapturer
+)
+
+usage() {
+    printf 'usage: %s <url>\n' "${0##*/}" >&2
+    printf '\nOpens the URL in a window with no tab strip, no\n' >&2
+    printf 'address bar and no menus.\n' >&2
+    exit 2
+}
+
+url=${1:-}
+[ -n "$url" ] || usage
+[ $# -eq 1 ] || usage
+
+if [ ! -x "$BROWSER" ]; then
+    printf '%s: %s is missing\n' "${0##*/}" "$BROWSER" >&2
+    exit 1
+fi
+
+case $url in
+    http://*|https://*) ;;
+    *)
+        printf '%s: not an http(s) url: %s\n' \
+            "${0##*/}" "$url" >&2
+        exit 1
+        ;;
+esac
+
+features=$(
+    IFS=,
+    printf '%s' "${FEATURES[*]}"
+)
+
+exec "$BROWSER" \
+    --ozone-platform=wayland \
+    --enable-features="$features" \
+    --app="$url"
