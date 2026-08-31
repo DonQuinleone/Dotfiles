@@ -1,0 +1,11 @@
+# Slack, TeamSpeak, mail, calendar and ClickUp on the lower LG,
+# one to a workspace slot.
+name    Comms
+order   30
+needs   lower
+
+slot    lower 1 run flatpak run com.slack.Slack
+slot    lower 2 run teamspeak3
+slot    lower 3 run firefox --new-window 'https://mail.google.com/mail/u/0/#inbox'
+slot    lower 4 run firefox --new-window 'https://calendar.google.com/calendar/u/0/r'
+slot    lower 5 run clickup

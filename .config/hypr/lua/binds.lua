@@ -81,6 +81,7 @@ local rows = {
     { "SUPER + SHIFT",        "s",                     layouts.set("scrolling"),                      "Set scrolling layout"   },
     { "SUPER + ALT",          "h",                     layouts.orient("left"),                        "Master column left"     },
     { "SUPER + ALT",          "l",                     layouts.orient("right"),                       "Master column right"    },
+    { "SUPER",                "r",                     run("scene pick"),                             "Recall a scene"         },
     { "SUPER + SHIFT",        "g",                     gaps.toggle,                                   "Toggle gaps"            },
     { "SUPER + SHIFT",        "b",                     run(BAR_TOGGLE),                               "Toggle bar here"        },
     { "SUPER + CTRL + SHIFT", "b",                     run(BAR_TOGGLE_ALL),                           "Toggle all bars"        },

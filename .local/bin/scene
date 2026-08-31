@@ -1,0 +1,253 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+HERE=$(dirname "$(readlink -f "$0")")
+readonly HERE
+readonly SCENES=${XDG_CONFIG_HOME:-$HOME/.config}/hypr/scenes
+readonly SUFFIX=.scene
+readonly DEFAULT_ORDER=50
+readonly WINDOW_TIMEOUT=20
+readonly POLL_SECONDS=0.2
+
+die() {
+    printf '%s: %s\n' "${0##*/}" "$1" >&2
+    exit 1
+}
+
+usage() {
+    printf 'usage: %s list|pick\n' "${0##*/}" >&2
+    printf '       %s load [--replace] <scene>\n' "${0##*/}" >&2
+    exit 2
+}
+
+path_for() {
+    local file=$SCENES/$1$SUFFIX
+    [ -r "$file" ] || die "no scene called $1"
+    printf '%s\n' "$file"
+}
+
+field() {
+    awk -v key="$2" \
+        '$1 == key { $1 = ""; sub(/^ /, ""); print; exit }' "$1"
+}
+
+label_of() {
+    local label
+    label=$(field "$1" name)
+    printf '%s\n' "${label:-$(basename "$1" "$SUFFIX")}"
+}
+
+order_of() {
+    local order
+    order=$(field "$1" order)
+    printf '%s\n' "${order:-$DEFAULT_ORDER}"
+}
+
+available() {
+    local needs connected role
+    needs=$(field "$1" needs)
+    [ -n "$needs" ] || return 0
+    connected=$("${HERE}/monitor-run" connected)
+    for role in $needs; do
+        grep -Fxq -- "$role" <<<"$connected" || return 1
+    done
+}
+
+list() {
+    local file name mark
+    for file in "$SCENES"/*"$SUFFIX"; do
+        [ -e "$file" ] || continue
+        name=$(basename "$file" "$SUFFIX")
+        mark=yes
+        available "$file" || mark=no
+        printf '%s\t%s\t%s\t%s\n' \
+            "$(order_of "$file")" "$name" "$(label_of "$file")" \
+            "$mark"
+    done | sort -n -k1,1 | cut -f2-
+}
+
+pick() {
+    local rows choice
+    rows=$(list | awk -F'\t' '$3 == "yes" { print $1 "\t" $2 }')
+    [ -n "$rows" ] || die "no scene fits the connected monitors"
+    set +e
+    choice=$(cut -f2 <<<"$rows" | rofi -dmenu -i -format i -p Scene)
+    local status=$?
+    set -e
+    [ "$status" -eq 0 ] && [ -n "$choice" ] || return 0
+    load no "$(sed -n "$((choice + 1))p" <<<"$rows" | cut -f1)"
+}
+
+# Window addresses are heap pointers and get reused the moment a
+# window closes, so a scene that replaces windows cannot spot the
+# new one by address. stableId only ever counts up.
+window_ids() {
+    hyprctl clients -j | jq -r '.[].stableId' | sort
+}
+
+address_of() {
+    hyprctl clients -j | jq -r --arg id "$1" \
+        '.[] | select(.stableId == $id) | .address'
+}
+
+on_workspace() {
+    hyprctl clients -j | jq -r --arg w "$1" \
+        '.[] | select(.workspace.name == $w) | .address'
+}
+
+workspace_for() {
+    local base
+    base=$("${HERE}/monitor-run" base "$1")
+    printf '%d\n' "$((base + $2 - 1))"
+}
+
+dispatch() {
+    hyprctl dispatch "$1" >/dev/null
+}
+
+clear_workspace() {
+    local address deadline
+    while read -r address; do
+        dispatch "hl.dsp.window.close({ window = 'address:$address' })"
+    done < <(on_workspace "$1")
+    deadline=$(($(date +%s) + WINDOW_TIMEOUT))
+    while [ "$(date +%s)" -le "$deadline" ]; do
+        if [ -z "$(on_workspace "$1")" ]; then
+            return 0
+        fi
+        sleep "$POLL_SECONDS"
+    done
+    printf '  %s still holds windows\n' "$1" >&2
+}
+
+place() {
+    local workspace=$1 launch=$2 before new deadline
+    before=$(window_ids)
+    setsid -f bash -c "$launch" >/dev/null 2>&1 || true
+    deadline=$(($(date +%s) + WINDOW_TIMEOUT))
+    new=
+    while [ "$(date +%s)" -le "$deadline" ]; do
+        new=$(comm -13 <(printf '%s\n' "$before") \
+            <(window_ids) | head -1)
+        if [ -n "$new" ]; then
+            break
+        fi
+        sleep "$POLL_SECONDS"
+    done
+    if [ -z "$new" ]; then
+        printf '  no window appeared for: %s\n' "$launch" >&2
+        return 0
+    fi
+    dispatch "hl.dsp.window.move({ workspace = '$workspace',
+        window = 'address:$(address_of "$new")', follow = false })"
+}
+
+launch_for() {
+    case $1 in
+        web) printf 'webapp %q\n' "$2" ;;
+        run) printf '%s\n' "$2" ;;
+        *) die "unknown slot kind: $1" ;;
+    esac
+}
+
+parse_into() {
+    local file=$1 directive rest
+    if printf '%s\n' "${visited[@]:-}" | grep -Fxq -- "$file"; then
+        return 0
+    fi
+    visited+=("$file")
+    while read -r directive rest; do
+        case $directive in
+            '' | \#*) ;;
+            name | order | needs) ;;
+            include) parse_into "$(path_for "$rest")" ;;
+            bar) bars+=("$rest") ;;
+            orient) orients+=("$rest") ;;
+            slot) slots+=("$rest") ;;
+            *) die "unknown directive in $file: $directive" ;;
+        esac
+    done <"$file"
+}
+
+load() {
+    local replace=$1 scene=$2 file
+    file=$(path_for "$scene")
+    available "$file" \
+        || die "$scene needs monitors that are not connected"
+
+    local -a slots=() orients=() bars=() visited=()
+    parse_into "$file"
+
+    local resume busy
+    resume=$(hyprctl -j activeworkspace | jq -r .name)
+    busy=$(hyprctl clients -j | jq -r '.[].workspace.name' | sort -u)
+
+    local entry role slot kind payload workspace
+    local -a cleared=()
+    for entry in "${slots[@]:-}"; do
+        [ -n "$entry" ] || continue
+        read -r role slot kind payload <<<"$entry"
+        workspace=$(workspace_for "$role" "$slot")
+        if [ "$replace" = yes ]; then
+            if ! printf '%s\n' "${cleared[@]:-}" \
+                | grep -Fxq -- "$workspace"; then
+                clear_workspace "$workspace"
+                cleared+=("$workspace")
+            fi
+        elif grep -Fxq -- "$workspace" <<<"$busy"; then
+            printf '  %s slot %s already has windows, skipped\n' \
+                "$role" "$slot"
+            continue
+        fi
+        place "$workspace" "$(launch_for "$kind" "$payload")"
+    done
+
+    local side
+    for entry in "${orients[@]:-}"; do
+        [ -n "$entry" ] || continue
+        read -r role slot side <<<"$entry"
+        workspace=$(workspace_for "$role" "$slot")
+        dispatch "hl.dsp.focus({ workspace = '$workspace' })"
+        sleep "$POLL_SECONDS"
+        dispatch "hl.dsp.layout('orientation$side')"
+    done
+
+    local state
+    for entry in "${bars[@]:-}"; do
+        [ -n "$entry" ] || continue
+        read -r role state <<<"$entry"
+        case $state in
+            on) "${HERE}/bar" show "$role" ;;
+            off) "${HERE}/bar" hide "$role" ;;
+            *) die "bar wants on or off, got: $state" ;;
+        esac
+    done
+
+    dispatch "hl.dsp.focus({ workspace = '$resume' })"
+}
+
+[ -d "$SCENES" ] || die "no scenes directory at $SCENES"
+
+case ${1:-} in
+    list)
+        [ $# -eq 1 ] || usage
+        list
+        ;;
+    pick)
+        [ $# -eq 1 ] || usage
+        pick
+        ;;
+    load)
+        shift
+        replace=no
+        if [ "${1:-}" = --replace ]; then
+            replace=yes
+            shift
+        fi
+        [ $# -eq 1 ] || usage
+        load "$replace" "$1"
+        ;;
+    *)
+        usage
+        ;;
+esac

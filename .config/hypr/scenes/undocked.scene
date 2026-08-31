@@ -1,0 +1,22 @@
+# The laptop on its own. Left empty on purpose: fill it in with
+# whatever you want undocked.
+#
+# Directives:
+#   name    <label shown in the picker>
+#   order   <sort position, lower comes first, default 50>
+#   needs   <role>...   monitors that must be connected
+#   include <scene>     pull in another scene's slots
+#   bar     <role> on|off
+#   orient  <role> <slot> left|right    which side master sits
+#   slot    <role> <slot> web <url>     chromeless browser window
+#   slot    <role> <slot> run <command> anything else
+#
+# Roles come from monitor-run roles. The first slot line for a
+# workspace becomes its master window. A run command is handed to
+# a shell, so quote anything holding a # or a space.
+name    Undocked
+order   40
+needs   laptop
+
+# slot  laptop 1 run kitty
+# slot  laptop 2 run firefox --new-window 'https://example.com/'

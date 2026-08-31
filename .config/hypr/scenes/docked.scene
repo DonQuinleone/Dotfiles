@@ -1,0 +1,8 @@
+# The whole desk. The MSI is deliberately left alone, so its
+# workspaces come up empty.
+name    Docked
+order   10
+needs   upper lower
+
+include monitoring
+include comms
