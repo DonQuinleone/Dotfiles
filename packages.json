@@ -182,7 +182,8 @@
   "flatpak": [
     "com.slack.Slack",
     "com.yubico.yubioath",
-    "org.localsend.localsend_app"
+    "org.localsend.localsend_app",
+    "net.cozic.joplin_desktop"
   ],
   "opt": {
     "clickup": {
