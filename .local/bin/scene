@@ -120,8 +120,27 @@ clear_workspace() {
     printf '  %s still holds windows\n' "$1" >&2
 }
 
+existing_window() {
+    hyprctl clients -j | jq -r --arg pattern "$1" \
+        'first(.[] | select(.class | test($pattern)) | .address)
+         // empty'
+}
+
+move_window() {
+    dispatch "hl.dsp.window.move({ workspace = '$1',
+        window = 'address:$2', follow = false })"
+}
+
 place() {
-    local workspace=$1 launch=$2 before new deadline
+    local workspace=$1 launch=$2 matcher=${3:-} before new deadline
+    if [ -n "$matcher" ]; then
+        local found
+        found=$(existing_window "$matcher")
+        if [ -n "$found" ]; then
+            move_window "$workspace" "$found"
+            return 0
+        fi
+    fi
     before=$(window_ids)
     setsid -f bash -c "$launch" >/dev/null 2>&1 || true
     deadline=$(($(date +%s) + WINDOW_TIMEOUT))
@@ -138,16 +157,7 @@ place() {
         printf '  no window appeared for: %s\n' "$launch" >&2
         return 0
     fi
-    dispatch "hl.dsp.window.move({ workspace = '$workspace',
-        window = 'address:$(address_of "$new")', follow = false })"
-}
-
-launch_for() {
-    case $1 in
-        web) printf 'webapp %q\n' "$2" ;;
-        run) printf '%s\n' "$2" ;;
-        *) die "unknown slot kind: $1" ;;
-    esac
+    move_window "$workspace" "$(address_of "$new")"
 }
 
 parse_into() {
@@ -182,7 +192,7 @@ load() {
     resume=$(hyprctl -j activeworkspace | jq -r .name)
     busy=$(hyprctl clients -j | jq -r '.[].workspace.name' | sort -u)
 
-    local entry role slot kind payload workspace
+    local entry role slot kind payload workspace launch matcher
     local -a cleared=()
     for entry in "${slots[@]:-}"; do
         [ -n "$entry" ] || continue
@@ -199,7 +209,17 @@ load() {
                 "$role" "$slot"
             continue
         fi
-        place "$workspace" "$(launch_for "$kind" "$payload")"
+        matcher=
+        case $kind in
+            web) launch=$(printf 'webapp %q' "$payload") ;;
+            run) launch=$payload ;;
+            app)
+                matcher=${payload%% *}
+                launch=${payload#* }
+                ;;
+            *) die "unknown slot kind: $kind" ;;
+        esac
+        place "$workspace" "$launch" "$matcher"
     done
 
     local side

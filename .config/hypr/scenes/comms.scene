@@ -1,11 +1,13 @@
 # Slack, TeamSpeak, mail, calendar and ClickUp on the lower LG,
-# one to a workspace slot.
+# one to a workspace slot. The single-instance apps are matched
+# by window class so a running one is moved rather than launched
+# again, which they ignore.
 name    Comms
 order   30
 needs   lower
 
-slot    lower 1 run flatpak run com.slack.Slack
-slot    lower 2 run teamspeak3
+slot    lower 1 app ^com\.slack\.Slack$ flatpak run com.slack.Slack
+slot    lower 2 app ^TeamSpeak teamspeak3
 slot    lower 3 run firefox --new-window 'https://mail.google.com/mail/u/0/#inbox'
 slot    lower 4 run firefox --new-window 'https://calendar.google.com/calendar/u/0/r'
-slot    lower 5 run clickup
+slot    lower 5 app ^clickup$ clickup
