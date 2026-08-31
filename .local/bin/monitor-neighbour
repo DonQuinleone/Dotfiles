@@ -12,11 +12,26 @@ case "$DIRECTION" in
 esac
 
 hyprctl -j monitors | python3 -c '
+import glob
 import json
 import sys
 
+
+# Hyprland leaves the internal panel enabled when the lid shuts,
+# so clamshell mode has to be read from the hardware instead.
+def lid_shut():
+    for path in glob.glob("/proc/acpi/button/lid/*/state"):
+        with open(path) as handle:
+            return "closed" in handle.read()
+    return False
+
+
 direction = sys.argv[1]
 monitors = [m for m in json.load(sys.stdin) if not m["disabled"]]
+if lid_shut():
+    open_lid = [m for m in monitors
+                if not m["name"].startswith("eDP")]
+    monitors = open_lid or monitors
 if len(monitors) < 2:
     sys.exit(1)
 
