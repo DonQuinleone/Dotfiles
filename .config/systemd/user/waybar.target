@@ -1,0 +1,9 @@
+[Unit]
+Description=Status bars
+PartOf=desktop-session.target
+After=desktop-session.target
+Wants=waybar@main.service waybar@upper.service
+Wants=waybar@lower.service waybar@laptop.service
+
+[Install]
+WantedBy=desktop-session.target

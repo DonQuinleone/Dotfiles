@@ -28,7 +28,8 @@ local BINDS      = TERM .. " -o font_size=16"
 local JUMPBOX    = TERM .. " jumpbox"
 local BLUETOOTH  = TERM .. " bluetoothctl"
 
-local BAR_TOGGLE = "systemctl --user kill -s SIGUSR1 waybar.service"
+local BAR_TOGGLE = "bar toggle"
+local BAR_TOGGLE_ALL = "bar all"
 
 local BASTION    = "op item get ITEM_ID"
 .. " --reveal --fields password | wl-copy"
@@ -81,7 +82,8 @@ local rows = {
     { "SUPER + ALT",          "h",                     layouts.orient("left"),                        "Master column left"     },
     { "SUPER + ALT",          "l",                     layouts.orient("right"),                       "Master column right"    },
     { "SUPER + SHIFT",        "g",                     gaps.toggle,                                   "Toggle gaps"            },
-    { "SUPER + SHIFT",        "b",                     run(BAR_TOGGLE),                               "Toggle bar"             },
+    { "SUPER + SHIFT",        "b",                     run(BAR_TOGGLE),                               "Toggle bar here"        },
+    { "SUPER + CTRL + SHIFT", "b",                     run(BAR_TOGGLE_ALL),                           "Toggle all bars"        },
 
     { "SUPER + CTRL",         "h",                     actions.resize(-RESIZE_STEP, 0),               "Resize narrower"        },
     { "SUPER + CTRL",         "j",                     actions.resize(0, RESIZE_STEP),                "Resize taller"          },

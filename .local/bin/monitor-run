@@ -1,0 +1,83 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+readonly RUNS=${XDG_STATE_HOME:-$HOME/.local/state}/hypr/runs.tsv
+
+declare -rA COLUMNS=(
+    [description]=2
+    [base]=3
+    [count]=4
+)
+
+usage() {
+    printf 'usage: %s roles|connected|focused\n' "${0##*/}" >&2
+    printf '       %s %s <role>\n' \
+        "${0##*/}" "${!COLUMNS[*]}" >&2
+    printf '       %s role <description>\n' "${0##*/}" >&2
+    exit 2
+}
+
+die() {
+    printf '%s: %s\n' "${0##*/}" "$1" >&2
+    exit 1
+}
+
+[ -r "$RUNS" ] || die "no run table at $RUNS"
+
+lookup() {
+    local keycol=$1 outcol=$2 key=$3 value
+    value=$(awk -F'\t' -v key="$key" -v keycol="$keycol" \
+        -v outcol="$outcol" \
+        '$keycol == key { print $outcol; exit }' "$RUNS")
+    [ -n "$value" ] || die "unknown monitor: $key"
+    printf '%s\n' "$value"
+}
+
+present() {
+    hyprctl monitors -j | jq -r '.[].description'
+}
+
+connected() {
+    local here role description
+    here=$(present)
+    while IFS=$'\t' read -r role description _ _; do
+        grep -Fxq -- "$description" <<<"$here" || continue
+        printf '%s\n' "$role"
+    done <"$RUNS"
+}
+
+focused() {
+    local description
+    description=$(hyprctl monitors -j \
+        | jq -r '.[] | select(.focused) | .description')
+    [ -n "$description" ] || die "no focused monitor"
+    lookup 2 1 "$description"
+}
+
+command=${1:-}
+
+case $command in
+    roles)
+        [ $# -eq 1 ] || usage
+        cut -f1 "$RUNS"
+        ;;
+    connected)
+        [ $# -eq 1 ] || usage
+        connected
+        ;;
+    focused)
+        [ $# -eq 1 ] || usage
+        focused
+        ;;
+    role)
+        [ $# -eq 2 ] || usage
+        lookup 2 1 "$2"
+        ;;
+    description | base | count)
+        [ $# -eq 2 ] || usage
+        lookup 1 "${COLUMNS[$command]}" "$2"
+        ;;
+    *)
+        usage
+        ;;
+esac

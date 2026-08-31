@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+HERE=$(dirname "$(readlink -f "$0")")
+readonly HERE
+readonly CONFIG=${XDG_CONFIG_HOME:-$HOME/.config}/waybar/config.jsonc
+readonly RUNTIME=${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/waybar
+
+usage() {
+    printf 'usage: %s <role>\n' "${0##*/}" >&2
+    exit 2
+}
+
+role=${1:-}
+[ -n "$role" ] || usage
+[ $# -eq 1 ] || usage
+
+description=$("${HERE}/monitor-run" description "$role")
+
+# A panel with no serial is advertised with a trailing space that
+# hyprctl trims, so waybar never matches it by description. The
+# connector name is exact whenever the monitor is plugged in.
+output=$(hyprctl monitors -j | jq -r --arg want "$description" \
+    'first(.[] | select(.description == $want) | .name) // empty')
+
+mkdir -p "$RUNTIME"
+generated=$RUNTIME/$role.json
+
+jq -n --arg config "$CONFIG" \
+    --arg output "${output:-$description}" \
+    '{ include: [$config], output: $output }' >"$generated"
+
+exec waybar -c "$generated"

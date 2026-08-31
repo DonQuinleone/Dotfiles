@@ -1,0 +1,113 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+HERE=$(dirname "$(readlink -f "$0")")
+readonly HERE
+
+declare -rA SIGNALS=(
+    [record]=1
+    [dnd]=2
+    [caffeine]=3
+)
+
+usage() {
+    printf 'usage: %s toggle [<role>]\n' "${0##*/}" >&2
+    printf '       %s show|hide <role>\n' "${0##*/}" >&2
+    printf '       %s all\n' "${0##*/}" >&2
+    printf '       %s signal %s\n' \
+        "${0##*/}" "${!SIGNALS[*]}" >&2
+    exit 2
+}
+
+unit() {
+    printf 'waybar@%s.service' "$1"
+}
+
+roles() {
+    "${HERE}/monitor-run" roles
+}
+
+valid() {
+    "${HERE}/monitor-run" description "$1" >/dev/null
+}
+
+showing() {
+    systemctl --user --quiet is-active "$(unit "$1")"
+}
+
+show() {
+    systemctl --user start "$(unit "$1")"
+}
+
+hide() {
+    systemctl --user stop "$(unit "$1")"
+}
+
+toggle() {
+    if showing "$1"; then
+        hide "$1"
+        return
+    fi
+    show "$1"
+}
+
+any_showing() {
+    local role
+    while read -r role; do
+        if showing "$role"; then
+            return 0
+        fi
+    done < <(roles)
+    return 1
+}
+
+each() {
+    local action=$1 role
+    while read -r role; do
+        "$action" "$role"
+    done < <(roles)
+}
+
+toggle_all() {
+    if any_showing; then
+        each hide
+        return
+    fi
+    each show
+}
+
+signal() {
+    local offset=${SIGNALS[$1]:-} role
+    [ -n "$offset" ] || usage
+    while read -r role; do
+        systemctl --user kill -s "SIGRTMIN+${offset}" \
+            "$(unit "$role")" 2>/dev/null || true
+    done < <(roles)
+}
+
+command=${1:-}
+
+case $command in
+    toggle)
+        [ $# -le 2 ] || usage
+        role=${2:-$("${HERE}/monitor-run" focused)}
+        valid "$role"
+        toggle "$role"
+        ;;
+    show | hide)
+        [ $# -eq 2 ] || usage
+        valid "$2"
+        "$command" "$2"
+        ;;
+    all)
+        [ $# -eq 1 ] || usage
+        toggle_all
+        ;;
+    signal)
+        [ $# -eq 2 ] || usage
+        signal "$2"
+        ;;
+    *)
+        usage
+        ;;
+esac

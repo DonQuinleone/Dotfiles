@@ -10,7 +10,7 @@ active() {
 
 set_mode() {
     makoctl mode "$1" "$MODE" > /dev/null
-    bar-signal dnd
+    bar signal dnd
 }
 
 report() {

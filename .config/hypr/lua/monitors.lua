@@ -4,6 +4,7 @@ local RUN_STRIDE = 10
 local MONITORS = {
     {
         description = "Microstep MPG321UX OLED 0x01010101",
+        role = "main",
         mode = "3840x2160@60.00",
         position = "0x720",
         scale = 1.5,
@@ -11,6 +12,7 @@ local MONITORS = {
     },
     {
         description = "LG Electronics BL650 201NTFAP0155",
+        role = "upper",
         mode = "1920x1080@60.00",
         position = "2560x0",
         scale = 1,
@@ -18,6 +20,7 @@ local MONITORS = {
     },
     {
         description = "LG Electronics BL650 201NTJJP0156",
+        role = "lower",
         mode = "1920x1080@60.00",
         position = "2560x1080",
         scale = 1,
@@ -25,6 +28,7 @@ local MONITORS = {
     },
     {
         description = "Chimei Innolux Corporation N160JCA-GT1",
+        role = "laptop",
         mode = "1920x1200@60.00",
         position = "0x2160",
         scale = 1,
@@ -108,7 +112,8 @@ local function publish_runs()
         return
     end
     for index, monitor in ipairs(MONITORS) do
-        file:write(monitor.description, "\t",
+        file:write(monitor.role, "\t",
+            monitor.description, "\t",
             tostring((index - 1) * RUN_STRIDE + 1), "\t",
             tostring(WORKSPACES_PER_MONITOR), "\n")
     end

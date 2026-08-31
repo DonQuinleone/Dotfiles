@@ -1,0 +1,14 @@
+[Unit]
+Description=Status bar on the %i monitor
+PartOf=waybar.target
+After=desktop-session.target
+
+[Service]
+Type=exec
+ExecStart=%h/.local/bin/waybar-monitor %i
+Restart=on-failure
+RestartSec=2
+Slice=session.slice
+
+[Install]
+WantedBy=waybar.target

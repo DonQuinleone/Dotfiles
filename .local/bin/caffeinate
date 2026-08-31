@@ -16,14 +16,14 @@ start() {
         --why="$REASON" sleep infinity &
     printf '%s\n' "$!" > "$PIDFILE"
     notify-send -a caffeinate -t 2000 "Staying awake"
-    bar-signal caffeine
+    bar signal caffeine
 }
 
 stop() {
     [ -r "$PIDFILE" ] && kill "$(cat "$PIDFILE")" 2>/dev/null
     rm -f "$PIDFILE"
     notify-send -a caffeinate -t 2000 "Sleeping normally"
-    bar-signal caffeine
+    bar signal caffeine
 }
 
 report() {
