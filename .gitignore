@@ -4,9 +4,6 @@ HANDOFF.md
 # Employer-internal Work helper, must never enter this repo
 .local/share/claude/skills/work/
 
-# Personal identity include, never committed
-.config/git/personal.inc
-
 # Rendered by theme into the stowed links
 .config/rofi/theme.rasi
 .config/waybar/style.css
