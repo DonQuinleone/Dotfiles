@@ -1,0 +1,100 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+readonly RUNTIME=${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/share-picker
+readonly CACHE=$RUNTIME/selection
+readonly LOCK=$RUNTIME/lock
+
+# Chromium asks for one ScreenCast session to preview a share and
+# another to send it, so a single share prompts two or three
+# times. Holding the lock across the prompt queues the later
+# sessions, and they replay this answer instead of asking again.
+readonly REPLAY_SECONDS=15
+
+readonly REGION_LABEL='Region: draw an area'
+
+die() {
+    printf '%s: %s\n' "${0##*/}" "$1" >&2
+    exit 1
+}
+
+for tool in rofi hyprctl jq; do
+    command -v "$tool" >/dev/null 2>&1 || die "$tool is missing"
+done
+
+flags=
+if [ "${1:-}" = "--allow-token" ]; then
+    flags=r
+fi
+
+emit() {
+    printf '[SELECTION]%s/%s\n' "$flags" "$1"
+}
+
+fresh() {
+    [ -r "$CACHE" ] || return 1
+    local age
+    age=$(($(date +%s) - $(stat -c %Y "$CACHE")))
+    [ "$age" -lt "$REPLAY_SECONDS" ]
+}
+
+screens() {
+    hyprctl monitors -j \
+        | jq -r '.[] | "screen:\(.name)\tScreen: \(.name) "
+            + "(\(.description))"'
+}
+
+windows() {
+    [ -n "${XDPH_WINDOW_SHARING_LIST:-}" ] || return 0
+    printf '%s' "$XDPH_WINDOW_SHARING_LIST" | awk '
+        BEGIN { RS = "\\[HA>\\]"; FS = "\\[H[CTE]>\\]" }
+        NF >= 3 && $1 != "" {
+            printf "window:%s\tWindow: %s - %s\n", $1, $2, $3
+        }'
+}
+
+region() {
+    command -v slurp >/dev/null 2>&1 || die "slurp is missing"
+    local geometry x y width height output
+    geometry=$(slurp -f '%x %y %w %h') || return 1
+    read -r x y width height <<<"$geometry"
+    output=$(hyprctl monitors -j | jq -r \
+        --argjson x "$x" --argjson y "$y" \
+        'first(.[] | select(
+            .x <= $x and $x < .x + .width / .scale and
+            .y <= $y and $y < .y + .height / .scale) | .name)')
+    [ -n "$output" ] && [ "$output" != null ] \
+        || die "no monitor holds that region"
+    printf 'region:%s@%d,%d,%d,%d\n' \
+        "$output" "$x" "$y" "$width" "$height"
+}
+
+mkdir -p "$RUNTIME"
+exec 9>"$LOCK"
+flock 9
+
+if fresh; then
+    emit "$(cat "$CACHE")"
+    exit 0
+fi
+
+mapfile -t rows < <(screens; windows)
+rows+=($'region\t'"$REGION_LABEL")
+
+set +e
+index=$(printf '%s\n' "${rows[@]}" | cut -f2- \
+    | rofi -dmenu -i -format i -p Share)
+status=$?
+set -e
+
+[ "$status" -eq 0 ] || exit 0
+[ -n "$index" ] || exit 0
+
+selection=${rows[index]%%$'\t'*}
+
+if [ "$selection" = region ]; then
+    selection=$(region) || exit 0
+fi
+
+printf '%s' "$selection" >"$CACHE"
+emit "$selection"
