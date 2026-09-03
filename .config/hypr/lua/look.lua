@@ -77,6 +77,7 @@ hl.config({
         on_focus_under_fullscreen = 1,
         key_press_enables_dpms = true,
         mouse_move_enables_dpms = true,
+        middle_click_paste = false,
     },
     binds = {
         disable_keybind_grabbing = true,
