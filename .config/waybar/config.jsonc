@@ -8,8 +8,8 @@
         "custom/caffeine#left", "clock", "custom/caffeine#right"
     ],
     "modules-right": [
-        "custom/record", "tray", "custom/dnd",
-        "custom/tailscale", "battery"
+        "custom/dictate", "custom/record", "tray",
+        "custom/dnd", "custom/tailscale", "battery"
     ],
 
     "hyprland/workspaces": {
@@ -58,6 +58,14 @@
         "interval": "once",
         "signal": 3,
         "on-click": "caffeinate toggle"
+    },
+
+    "custom/dictate": {
+        "exec": "dictate waybar",
+        "return-type": "json",
+        "interval": "once",
+        "signal": 4,
+        "on-click": "dictate toggle"
     },
 
     "custom/record": {

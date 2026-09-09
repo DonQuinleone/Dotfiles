@@ -19,3 +19,4 @@ HANDOFF.md
 .config/yazi/theme.toml
 .config/imv/config
 .config/zathura/zathurarc
+__pycache__/

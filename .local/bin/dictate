@@ -1,0 +1,91 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+HERE=$(dirname "$(readlink -f "$0")")
+readonly HERE
+readonly ENGINE="${HERE}/../lib/dictate/engine.py"
+readonly PREFIX="${HOME}/.local/opt/dictate"
+readonly PYTHON="${PREFIX}/venv/bin/python"
+
+readonly RUNTIME="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
+readonly PIDFILE="${RUNTIME}/dictate.pid"
+readonly LOGFILE="${RUNTIME}/dictate.log"
+readonly GLYPH='󰍬'
+
+export HF_HOME="${HF_HOME:-${HOME}/.local/share/dictate/hf}"
+
+die() {
+    notify-send -a dictate -t 4000 "Dictation unavailable" "$1"
+    printf 'dictate: %s\n' "$1" >&2
+    exit 1
+}
+
+muted() {
+    [ "$(pactl get-source-mute @DEFAULT_SOURCE@ 2>/dev/null)" \
+        = "Mute: yes" ]
+}
+
+running() {
+    [ -r "$PIDFILE" ] || return 1
+    kill -0 "$(cat "$PIDFILE")" 2>/dev/null
+}
+
+# The engine keeps running after the signal: it transcribes the
+# last segment and types the result, so the pidfile goes now
+# rather than when the process finally exits.
+stop() {
+    kill -TERM "$(cat "$PIDFILE")" 2>/dev/null || true
+    rm -f "$PIDFILE"
+    notify-send -a dictate -t 1500 "Transcribing"
+    bar signal dictate
+}
+
+start() {
+    [ -x "$PYTHON" ] || die "run 'dictate setup' first"
+    command -v wtype >/dev/null || die "wtype is not installed"
+    ! muted || die "the microphone is muted"
+    "$PYTHON" "$ENGINE" >/dev/null 2>>"$LOGFILE" &
+    printf '%s\n' "$!" > "$PIDFILE"
+    notify-send -a dictate -t 1500 "Listening"
+    bar signal dictate
+}
+
+report() {
+    running || { printf '{"text":""}\n'; return; }
+    printf '{"text":"%s","tooltip":"Dictating"}\n' "$GLYPH"
+}
+
+setup() {
+    mkdir -p "$PREFIX" "$HF_HOME"
+    [ -x "$PYTHON" ] || python3 -m venv "${PREFIX}/venv"
+    "${PREFIX}/venv/bin/pip" install --quiet --upgrade pip
+    "${PREFIX}/venv/bin/pip" install --quiet faster-whisper
+    "$PYTHON" - <<'PRELOAD'
+import os
+from faster_whisper import WhisperModel
+
+WhisperModel(os.environ.get("DICTATE_MODEL", "small.en"),
+             device="cpu", compute_type="int8")
+print("model ready")
+PRELOAD
+}
+
+case "${1:-toggle}" in
+    toggle)
+        if running; then stop; else start; fi
+        ;;
+    status)
+        running && echo dictating || echo idle
+        ;;
+    waybar)
+        report
+        ;;
+    setup)
+        setup
+        ;;
+    *)
+        printf 'usage: %s toggle|status|waybar|setup\n' \
+            "${0##*/}" >&2
+        exit 2
+        ;;
+esac

@@ -1,0 +1,125 @@
+#!/usr/bin/env python3
+
+import os
+import pathlib
+import subprocess
+import sys
+import tempfile
+
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+
+import engine
+
+SPEECH_LEVEL = 3000
+passed = 0
+failed = 0
+
+
+def check(label, condition):
+    global passed, failed
+    if condition:
+        print(f"ok   {label}")
+        passed += 1
+        return
+    print(f"FAIL {label}")
+    failed += 1
+
+
+def frames(segmenter, level, milliseconds):
+    import numpy
+
+    count = milliseconds // engine.FRAME_MS
+    block = numpy.full(
+        engine.FRAME_SAMPLES, level, dtype=numpy.int16).tobytes()
+    for _ in range(count):
+        segmenter.add(block)
+
+
+def calibrated():
+    segmenter = engine.Segmenter()
+    frames(segmenter, 0, engine.FRAME_MS * engine.CALIBRATION_FRAMES)
+    return segmenter
+
+
+def test_short_pause_does_not_cut():
+    segmenter = calibrated()
+    frames(segmenter, SPEECH_LEVEL, 6000)
+    frames(segmenter, 0, 900)
+    check("a 900ms pause does not cut", not segmenter.ready())
+
+
+def test_long_pause_cuts():
+    segmenter = calibrated()
+    frames(segmenter, SPEECH_LEVEL, 6000)
+    frames(segmenter, 0, 1500)
+    check("a 1500ms pause cuts", segmenter.ready())
+
+
+def test_short_segment_does_not_cut():
+    segmenter = calibrated()
+    frames(segmenter, SPEECH_LEVEL, 1000)
+    frames(segmenter, 0, 1500)
+    check("a segment under the minimum does not cut",
+          not segmenter.ready())
+
+
+def test_long_segment_forces_a_cut():
+    segmenter = calibrated()
+    frames(segmenter, SPEECH_LEVEL, engine.MAX_SEGMENT_MS + 300)
+    check("a segment at the ceiling cuts without a pause",
+          segmenter.ready())
+
+
+def test_silence_alone_is_not_speech():
+    segmenter = calibrated()
+    frames(segmenter, 0, 4000)
+    check("silence alone is not speech", not segmenter.has_speech())
+
+
+def test_take_resets_the_buffer():
+    segmenter = calibrated()
+    frames(segmenter, SPEECH_LEVEL, 6000)
+    segmenter.take()
+    check("take resets the buffer", segmenter.duration_ms() == 0
+          and not segmenter.has_speech())
+
+
+def test_empty_text_runs_no_command():
+    with tempfile.TemporaryDirectory() as workspace:
+        marker = pathlib.Path(workspace) / "marker"
+        command = ["touch", str(marker)]
+        engine.emit("", command)
+        check("empty text runs no output command",
+              not marker.exists())
+        engine.emit("hello", command)
+        check("text runs the output command", marker.exists())
+
+
+def test_end_to_end_without_a_microphone():
+    sample = pathlib.Path(__file__).resolve().parent / "sample.pcm"
+    if not sample.exists():
+        print("skip end-to-end (no sample.pcm)")
+        return
+    with tempfile.TemporaryDirectory() as workspace:
+        result = subprocess.run(
+            [sys.executable, str(pathlib.Path(__file__).resolve()
+                                 .parent / "engine.py")],
+            env={**os.environ,
+                 "DICTATE_RECORD": f"cat {sample}",
+                 "DICTATE_OUTPUT": "cat"},
+            capture_output=True, text=True, cwd=workspace)
+        text = result.stdout.strip().lower()
+        check("end-to-end transcribes the sample",
+              "country" in text)
+
+
+def main():
+    for name, function in sorted(globals().items()):
+        if name.startswith("test_"):
+            function()
+    print(f"\n{passed} passed, {failed} failed")
+    return 1 if failed else 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
