@@ -69,6 +69,7 @@ local rows = {
     { "SUPER",                "s",                     run("flatpak run com.slack.Slack"),            "Open Slack"             },
     { "SUPER",                "t",                     run("teamspeak3"),                             "Open TeamSpeak 3"       },
     { "SUPER",                "o",                     run("cpanel-sso"),                             "Open cPanel SSO"        },
+    { "SUPER + SHIFT",        "d",                     run(TERM .. " -e dyn"),                        "Open Tickets"            },
     { "SUPER + SHIFT",        "o",                     run(JUMPBOX),                                  "Open jumpbox"           },
     { "SUPER + CTRL",         "o",                     run(BASTION),                                  "Paste Bastion password" },
     { "SUPER",                "a",                     run(ACTIVITY),                                 "Open activity monitor"  },
