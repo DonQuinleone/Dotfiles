@@ -34,3 +34,11 @@ hl.window_rule({
     size = "1200 800",
     center = true,
 })
+
+hl.window_rule({
+    name = "float-writ-capture",
+    match = { class = "^writ-capture$" },
+    float = true,
+    size = "800 100",
+    center = true,
+})
