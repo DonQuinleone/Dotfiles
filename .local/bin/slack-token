@@ -1,0 +1,133 @@
+#!/usr/bin/env python3
+"""Print a wee-slack session token for the flatpak Slack app.
+
+Slack rotates the token whenever you sign in or out of a team, so
+this is meant to be re-run and the result re-registered. Output is
+the `<xoxc-token>:<d-cookie>` string wee-slack's `/slack register`
+expects, one line per signed-in team:
+
+    slack-token                 active team only
+    slack-token --all           every signed-in team, labelled
+
+The token lives in Slack's Local Storage; the `d` cookie is
+decrypted with the Safe Storage secret from the host keyring, which
+the flatpak shares (org.freedesktop.secrets=talk)."""
+
+import argparse
+import hashlib
+import json
+import re
+import shutil
+import sqlite3
+import sys
+import tempfile
+from pathlib import Path
+
+import secretstorage
+
+try:
+    from Cryptodome.Cipher import AES
+except ImportError:
+    from Crypto.Cipher import AES
+
+SLACK = Path.home() / ".var/app/com.slack.Slack/config/Slack"
+LEVELDB = SLACK / "Local Storage/leveldb"
+COOKIES = SLACK / "Cookies"
+SALT = b"saltysalt"
+KEY_LENGTH = 16
+ITERATIONS = 1
+DOMAIN_HASH_LENGTH = 32
+SAFE_STORAGE_LABELS = ("Slack Safe Storage", "Chrome Safe Storage")
+CONFIG_PATTERN = rb'\{"teams":.*?"lastActiveTeamId"[^}]*\}'
+TOKEN_PATTERN = rb"xoxc-[0-9A-Za-z-]+"
+
+
+def die(message):
+    print(f"slack-token: {message}", file=sys.stderr)
+    sys.exit(1)
+
+
+def keyring_password():
+    bus = secretstorage.dbus_init()
+    collection = secretstorage.get_default_collection(bus)
+    if collection.is_locked():
+        collection.unlock()
+    for item in collection.get_all_items():
+        if item.get_label() in SAFE_STORAGE_LABELS:
+            return item.get_secret()
+    die("no Slack/Chrome Safe Storage secret in the keyring")
+
+
+def decrypt_cookie(encrypted, password):
+    key = hashlib.pbkdf2_hmac(
+        "sha1", password, SALT, ITERATIONS, KEY_LENGTH
+    )
+    cipher = AES.new(key, AES.MODE_CBC, IV=b" " * 16)
+    plain = cipher.decrypt(encrypted[3:])
+    plain = plain[: -plain[-1]]
+    return plain[DOMAIN_HASH_LENGTH:].decode("utf-8")
+
+
+def read_d_cookie(password):
+    with tempfile.TemporaryDirectory() as tmp:
+        copy = Path(tmp) / "Cookies"
+        shutil.copy(COOKIES, copy)
+        con = sqlite3.connect(f"file:{copy}?immutable=1", uri=True)
+        row = con.execute(
+            "SELECT encrypted_value FROM cookies WHERE "
+            "host_key = '.slack.com' AND name = 'd'"
+        ).fetchone()
+        con.close()
+    if not row:
+        die("no d cookie for .slack.com; sign in to Slack first")
+    return decrypt_cookie(row[0], password)
+
+
+def read_leveldb_blob():
+    if not LEVELDB.is_dir():
+        die(f"no Slack Local Storage at {LEVELDB}")
+    logs = sorted(LEVELDB.glob("*.log"))
+    ldbs = sorted(LEVELDB.glob("*.ldb"))
+    return b"".join(path.read_bytes() for path in logs + ldbs)
+
+
+def read_teams():
+    blob = read_leveldb_blob()
+    matches = re.findall(CONFIG_PATTERN, blob, re.S)
+    if matches:
+        config = json.loads(matches[-1].decode("utf-8", "replace"))
+        teams = [
+            team for team in config["teams"].values()
+            if not team["id"].startswith("E")
+        ]
+        return teams, config.get("lastActiveTeamId")
+    token = re.search(TOKEN_PATTERN, blob)
+    if not token:
+        die("no token found; sign in to Slack first")
+    fallback = {
+        "name": "slack",
+        "id": "",
+        "token": token.group().decode(),
+    }
+    return [fallback], ""
+
+
+def main():
+    parser = argparse.ArgumentParser(add_help=True)
+    parser.add_argument("--all", action="store_true")
+    args = parser.parse_args()
+
+    cookie = read_d_cookie(keyring_password())
+    teams, active = read_teams()
+    if not args.all:
+        chosen = next(
+            (t for t in teams if t["id"] == active), teams[0]
+        )
+        print(f"{chosen['token']}:{cookie}")
+        return
+    for team in teams:
+        print(f"{team['name']}\t{team['token']}:{cookie}")
+
+
+if __name__ == "__main__":
+    main()

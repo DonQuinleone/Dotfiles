@@ -332,7 +332,7 @@ apply_opt_installs() {
     local name
     for name in "${OPT_ADD[@]}" "${OPT_UPDATE[@]}"; do
         say "installing ${name} $(opt_field "${name}" version)"
-        install_appimage "${name}"
+        install_opt_entry "${name}"
     done
 }
 

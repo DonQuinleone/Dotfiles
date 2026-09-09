@@ -138,6 +138,9 @@
     "power-profiles-daemon",
     "python3-ansible-lint",
     "python3-pip",
+    "python3-pycryptodomex",
+    "python3-secretstorage",
+    "python3-websocket-client",
     "qrencode",
     "qt5-qtwayland",
     "qt6-qtimageformats",
@@ -173,6 +176,7 @@
     "waybar",
     "wayland-protocols-devel",
     "webkit2gtk4.1-devel",
+    "weechat",
     "wf-recorder",
     "wiremix",
     "wireshark",
@@ -200,6 +204,12 @@
         "--ozone-platform-hint=auto",
         "--enable-wayland-ime"
       ]
+    },
+    "inc": {
+      "format": "binary",
+      "url": "https://github.com/incident-io/inc/releases/download/v0.4.5/inc_0.4.5_linux_amd64.tar.gz",
+      "version": "0.4.5",
+      "sha256": "f92328dba1699a545ce12ef0089f151a6b9e9cb127e75a455a83dc8f6a9d9b69"
     },
     "teamspeak3": {
       "managed": false

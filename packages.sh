@@ -28,7 +28,6 @@ readonly PROTECTED_PATTERNS=(
 # file it leaves behind is one the manifest can account for.
 readonly OPT_ROOT=${HOME}/.local/opt
 readonly OPT_VERSION_STAMP=.version
-readonly OPT_FORMATS=(appimage)
 
 # Endpoint and remote-management agents are mandated on this
 # machine and are not the manifest's to remove.
@@ -108,14 +107,6 @@ opt_field() {
 opt_flags() {
     jq -r --arg name "$1" '.opt[$name].flags // [] | .[]' \
         "${MANIFEST}"
-}
-
-opt_format_valid() {
-    local format
-    for format in "${OPT_FORMATS[@]}"; do
-        [[ "${format}" == "$1" ]] && return 0
-    done
-    return 1
 }
 
 opt_directory() {

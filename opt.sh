@@ -4,6 +4,21 @@ readonly OPT_STAGE=${OPT_ROOT}/.stage
 readonly LAUNCHER_DIR=${HOME}/.local/bin
 readonly DESKTOP_DIR=${HOME}/.local/share/applications
 
+declare -rA OPT_INSTALLERS=(
+    [appimage]=install_appimage
+    [binary]=install_binary
+)
+
+opt_format_valid() {
+    [[ -v OPT_INSTALLERS["$1"] ]]
+}
+
+install_opt_entry() {
+    local name=$1 format
+    format=$(opt_field "${name}" format)
+    "${OPT_INSTALLERS[${format}]}" "${name}"
+}
+
 # Extracted rather than run where it landed: an AppImage mounts
 # itself through libfuse2, which Fedora no longer ships.
 install_appimage() {
@@ -19,8 +34,45 @@ install_appimage() {
     rm -rf "${directory}"
     mv "${OPT_STAGE}/squashfs-root" "${directory}"
     rm -rf "${OPT_STAGE}"
-    write_launcher "${name}"
+    write_launcher "${name}" "${directory}/AppRun"
     write_desktop_entry "${name}"
+}
+
+# A command-line release is either the executable itself or a
+# tar.gz carrying it alongside its docs, and only the bytes say
+# which; neither shape brings a desktop entry.
+install_binary() {
+    local name=$1 directory download staged root
+    directory=$(opt_directory "${name}")
+    download=${OPT_STAGE}/download
+    root=${OPT_STAGE}/root
+    rm -rf "${OPT_STAGE}"
+    mkdir -p "${root}"
+    fetch_verified "${name}" "${download}"
+    staged=$(staged_executable "${name}" "${download}")
+    install -m 755 "${staged}" "${root}/${name}"
+    opt_field "${name}" version >"${root}/${OPT_VERSION_STAMP}"
+    rm -rf "${directory}"
+    mv "${root}" "${directory}"
+    rm -rf "${OPT_STAGE}"
+    write_launcher "${name}" "${directory}/${name}"
+}
+
+staged_executable() {
+    local name=$1 download=$2 unpacked=${OPT_STAGE}/unpacked found
+    is_tarball "${download}" || {
+        printf '%s\n' "${download}"
+        return 0
+    }
+    mkdir -p "${unpacked}"
+    tar -xzf "${download}" -C "${unpacked}"
+    found=$(find "${unpacked}" -type f -perm -u+x -print -quit)
+    [[ -n "${found}" ]] || die "${name} archive holds no executable"
+    printf '%s\n' "${found}"
+}
+
+is_tarball() {
+    tar -tzf "$1" >/dev/null 2>&1
 }
 
 # The hash is the whole pin: the download URL serves whatever
@@ -44,12 +96,12 @@ extract_appimage() {
 # Electron reaches for XWayland unless it is told otherwise, so
 # the flags the manifest states are baked into the launcher.
 write_launcher() {
-    local name=$1 flag
+    local name=$1 target=$2 flag
     local launcher=${LAUNCHER_DIR}/${name}
     mkdir -p "${LAUNCHER_DIR}"
     {
         printf '#!/usr/bin/env bash\n'
-        printf 'exec "%s/AppRun"' "$(opt_directory "${name}")"
+        printf 'exec "%s"' "${target}"
         while read -r flag; do
             [[ -z "${flag}" ]] && continue
             printf ' \\\n    %s' "${flag}"

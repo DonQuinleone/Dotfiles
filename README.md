@@ -48,14 +48,19 @@ floor of base-system packages, and the endpoint agents this
 machine is required to run.
 
 Software that ships as neither an rpm nor a flatpak is declared
-under `opt`. Each entry is extracted into `~/.local/opt` and
-gets a launcher in `~/.local/bin` and its own desktop entry,
-rewritten to point at both. ClickUp is one: an AppImage served
-from a URL that always hands back the current release, so the
-entry pins a version and a sha256 and the install refuses
-anything else, which is also how a new release announces
-itself. An entry marked `"managed": false` is declared only so
-the sweep of `~/.local/opt` leaves it alone, which is how
+under `opt`, where each entry names the `format` it arrives in.
+An `appimage` is extracted into `~/.local/opt` and gets a
+launcher in `~/.local/bin` and its own desktop entry, rewritten
+to point at both. ClickUp is one: an AppImage served from a URL
+that always hands back the current release, so the entry pins a
+version and a sha256 and the install refuses anything else,
+which is also how a new release announces itself. A `binary` is
+a command-line tool, downloaded either bare or as a tar.gz with
+one executable inside, and gets the same directory and launcher
+but no desktop entry. `inc`, the incident.io CLI for declaring
+and running incidents from the terminal, is one, pinned to a
+release tag. An entry marked `"managed": false` is declared
+only so the sweep of `~/.local/opt` leaves it alone, which is how
 TeamSpeak, installed by hand long before any of this, survives.
 
 Nothing is applied before you have seen it. Both commands print
