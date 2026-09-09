@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+readonly NOTIFY_MS=2000
+
+text=$(rofi -dmenu -l 0 -p Capture) || exit 0
+[ -n "${text//[[:space:]]/}" ] || exit 0
+
+printf '%s\n' "$text" | writ capture
+notify-send -a writ -t "$NOTIFY_MS" 'Captured' "$text"

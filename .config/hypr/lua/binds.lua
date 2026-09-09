@@ -24,7 +24,6 @@ local ACTIVITY   = TERM .. " -o font_size=20 btop"
 local LLM        = TERM .. " claude --dangerously-skip-permissions"
 local PICKER     = "rofi -show drun"
 local AGENDA     = TERM .. " -e writ --screen tasks"
-local CAPTURE    = TERM .. " --class writ-capture -e writ capture"
 local BINDS      = TERM .. " -o font_size=16"
     .. " nvim ~/.dotfiles/.config/hypr/lua/binds.lua"
 local JUMPBOX    = TERM .. " jumpbox"
@@ -73,7 +72,7 @@ local rows = {
     { "SUPER",                "o",                     run("cpanel-sso"),                             "Open cPanel SSO"        },
     { "SUPER + SHIFT",        "d",                     run(TERM .. " -e dyn"),                        "Open Tickets"            },
     { "SUPER + SHIFT",        "a",                     run(AGENDA),                                   "Open agenda"            },
-    { "SUPER + SHIFT",        "i",                     run(CAPTURE),                                  "Capture a to-do"        },
+    { "SUPER + SHIFT",        "i",                     run("writ-capture"),                           "Capture a to-do"        },
     { "SUPER + SHIFT",        "o",                     run(JUMPBOX),                                  "Open jumpbox"           },
     { "SUPER + CTRL",         "o",                     run(BASTION),                                  "Paste Bastion password" },
     { "SUPER",                "a",                     run(ACTIVITY),                                 "Open activity monitor"  },
