@@ -1,0 +1,166 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+readonly SELF=ts-bypass
+readonly CGROUP_ROOT=/sys/fs/cgroup
+readonly TAILNET_V4=100.64.0.0/10
+readonly TAILNET_V6=fd7a:115c:a1e0::/48
+
+# Tailscale's own escape hatch: ip rule 5210 sends anything
+# carrying this mark to table main, skipping its table 52.
+readonly BYPASS_MARK=0x00080000
+readonly MARK_MASK=0xff0000
+readonly MARK_KEEP=0xff00ffff
+
+cgroup=""
+table=""
+include_tailnet=0
+verbose=0
+declare -a wrapped=()
+
+die() {
+    printf '%s: %s\n' "$SELF" "$1" >&2
+    exit 1
+}
+
+usage() {
+    cat <<EOF
+Usage: $SELF [-a|--all] [-v] [--] COMMAND [ARG...]
+
+Run COMMAND with its traffic leaving by the physical default
+gateway instead of the tailnet, without taking Tailscale
+down. Only sockets opened by COMMAND and its children are
+affected; the rest of the machine keeps using the tailnet.
+
+  -a, --all   Bypass for tailnet addresses too ($TAILNET_V4).
+              Off by default, so MagicDNS and direct node
+              access still work inside COMMAND.
+  -v          Print the packet counters before tearing the
+              rules down, to confirm traffic was diverted.
+
+Needs sudo for the nftables rules, which are removed on
+exit. Names are resolved by systemd-resolved, which sits
+outside the cgroup, so split DNS still applies: pass a
+literal address when the answer matters.
+EOF
+}
+
+parse_args() {
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            -a|--all) include_tailnet=1; shift ;;
+            -v|--verbose) verbose=1; shift ;;
+            -h|--help) usage; exit 0 ;;
+            --) shift; break ;;
+            -*) die "unknown option: $1" ;;
+            *) break ;;
+        esac
+    done
+    [[ $# -gt 0 ]] || { usage >&2; exit 2; }
+    wrapped=("$@")
+}
+
+require_bypass_rule() {
+    local pattern
+    pattern=$(printf 'fwmark 0x%x/%s lookup main' \
+        "$((BYPASS_MARK))" "$MARK_MASK")
+    ip rule show | grep -q "$pattern" \
+        || die "Tailscale's bypass rule is absent; is tailscaled up?"
+}
+
+delegated_root() {
+    local path
+    path=$(awk -F: '$1 == "0" { print $3 }' /proc/self/cgroup)
+    while [[ -n "$path" && "$path" != "/" ]]; do
+        if [[ "$path" == */user@$(id -u).service ]]; then
+            printf '%s\n' "${path#/}"
+            return
+        fi
+        path="${path%/*}"
+    done
+    die "no delegated user cgroup above $(awk -F: '$1 == "0" \
+        { print $3 }' /proc/self/cgroup)"
+}
+
+guard_lines() {
+    local family="$1" tailnet="$2" linklocal="$3"
+    local -a lines=('oifname "lo" return')
+
+    if [[ -n "$linklocal" ]]; then
+        lines+=("$family daddr $linklocal return")
+    fi
+    if [[ $include_tailnet -eq 0 ]]; then
+        lines+=("$family daddr $tailnet return")
+    fi
+    printf '%s\n' "${lines[@]}" | sed '2,$s/^/        /'
+}
+
+family_ruleset() {
+    local family="$1" tailnet="$2" linklocal="$3"
+    local level guards
+    level=$(awk -F/ '{ print NF }' <<<"$cgroup")
+    guards=$(guard_lines "$family" "$tailnet" "$linklocal")
+
+    cat <<EOF
+table $family $table {
+    chain mangle_out {
+        type route hook output priority mangle; policy accept;
+        socket cgroupv2 level $level "$cgroup" jump mark_it
+    }
+    chain mark_it {
+        $guards
+        counter meta mark set meta mark and $MARK_KEEP \
+            or $BYPASS_MARK
+    }
+    chain nat_out {
+        type nat hook postrouting priority srcnat; policy accept;
+        meta mark and $MARK_MASK == $BYPASS_MARK \
+            $family saddr $tailnet counter masquerade
+    }
+}
+EOF
+}
+
+install_rules() {
+    {
+        family_ruleset ip "$TAILNET_V4" ""
+        family_ruleset ip6 "$TAILNET_V6" fe80::/10
+    } | sudo nft -f - || die "could not install nftables rules"
+}
+
+# shellcheck disable=SC2329
+cleanup() {
+    if [[ -n "$table" && $verbose -eq 1 ]]; then
+        sudo nft list table ip "$table" >&2 || true
+    fi
+    if [[ -n "$table" ]]; then
+        sudo nft delete table ip "$table" 2>/dev/null || true
+        sudo nft delete table ip6 "$table" 2>/dev/null || true
+    fi
+    [[ -n "$cgroup" ]] && rmdir "$CGROUP_ROOT/$cgroup" 2>/dev/null
+    return 0
+}
+
+run_in_cgroup() {
+    local path="$CGROUP_ROOT/$cgroup"
+    bash -c 'printf "%s\n" "$$" > "$1/cgroup.procs"; shift
+             exec "$@"' "$SELF" "$path" "${wrapped[@]}"
+}
+
+main() {
+    parse_args "$@"
+    require_bypass_rule
+
+    table="${SELF//-/_}_$$"
+    cgroup="$(delegated_root)/$SELF-$$"
+    mkdir "$CGROUP_ROOT/$cgroup" \
+        || die "cannot create cgroup $cgroup"
+    install_rules
+
+    local status=0
+    run_in_cgroup || status=$?
+    exit "$status"
+}
+
+trap cleanup EXIT INT TERM
+main "$@"
