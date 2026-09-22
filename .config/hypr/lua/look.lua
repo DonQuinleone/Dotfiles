@@ -73,7 +73,7 @@ hl.config({
         disable_hyprland_logo = true,
         force_default_wallpaper = 0,
         allow_session_lock_restore = true,
-        focus_on_activate = true,
+        focus_on_activate = false,
         on_focus_under_fullscreen = 1,
         key_press_enables_dpms = true,
         mouse_move_enables_dpms = true,
