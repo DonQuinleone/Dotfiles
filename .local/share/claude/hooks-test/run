@@ -111,13 +111,6 @@ run_write_hook() {
   run_hook "$hook" "$payload"
 }
 
-run_bash_hook() {
-  local -r command=$1
-  local payload
-  payload=$(tool_payload PreToolUse Bash command "$command")
-  run_hook commit-gate "$payload"
-}
-
 run_notify_hook() {
   local -r stubs=$1 payload=$2
   : >"$NOTIFY_LOG"
@@ -269,73 +262,6 @@ test_style_check_runs_standalone() {
     "$last_stderr" "$path:1:"
 }
 
-test_commit_accepts_conventional_subject() {
-  run_bash_hook 'git commit -m "feat(hooks): add the commit gate"'
-  assert_status 'commit: conventional subject allowed' 0
-}
-
-test_commit_accepts_combined_short_flags() {
-  run_bash_hook 'git commit -am "fix: tidy the parser"'
-  assert_status 'commit: -am parsed' 0
-}
-
-test_commit_rejects_capitalised_subject() {
-  run_bash_hook 'git commit -m "Fix: capitalised subject"'
-  assert_status 'commit: capitalised subject blocked' "$BLOCK_STATUS"
-  assert_output_contains 'commit: convention named' \
-    "$last_stderr" 'Conventional Commits'
-}
-
-test_commit_rejects_missing_type() {
-  run_bash_hook "git commit -m 'added a thing'"
-  assert_status 'commit: missing type blocked' "$BLOCK_STATUS"
-}
-
-test_commit_rejects_long_subject() {
-  local -r opening='feat: a subject that is deliberately far too '
-  local -r closing='long to fit inside seventy-two characters'
-  run_bash_hook "git commit -m '$opening$closing'"
-  assert_status 'commit: long subject blocked' "$BLOCK_STATUS"
-  assert_output_contains 'commit: length named' \
-    "$last_stderr" 'wrap at 72'
-}
-
-test_commit_rejects_unsigned_flag() {
-  run_bash_hook 'git commit --no-gpg-sign -m "fix: unsigned commit"'
-  assert_status 'commit: unsigned flag blocked' "$BLOCK_STATUS"
-  assert_output_contains 'commit: signing named' \
-    "$last_stderr" --no-gpg-sign
-}
-
-test_commit_rejects_attribution_trailer() {
-  run_bash_hook 'git commit -F - <<EOF
-feat(hooks): add a gate
-
-Co-Authored-By: Someone <someone@example.com>
-EOF'
-  assert_status 'commit: trailer blocked' "$BLOCK_STATUS"
-  assert_output_contains 'commit: trailer named' "$last_stderr" trailer
-}
-
-test_commit_rejects_message_file_trailer() {
-  local path
-  path=$(fixture message.txt 'docs: describe the hooks
-
-Assisted-by: a robot')
-  run_bash_hook "git commit -F $path"
-  assert_status 'commit: -F file read' "$BLOCK_STATUS"
-}
-
-test_commit_allows_editor_flow() {
-  run_bash_hook 'git commit --amend --no-edit'
-  assert_status 'commit: editor flow allowed' 0
-}
-
-test_commit_ignores_other_commands() {
-  run_bash_hook 'ls -la'
-  assert_status 'commit: unrelated command ignored' 0
-}
-
 test_notify_sends_notification_message() {
   local stubs
   stubs=$(stub_dir notify-stubs notify-send)
@@ -436,16 +362,6 @@ readonly TESTS=(
   test_style_allows_aligned_comment_table
   test_style_skips_unknown_extension
   test_style_check_runs_standalone
-  test_commit_accepts_conventional_subject
-  test_commit_accepts_combined_short_flags
-  test_commit_rejects_capitalised_subject
-  test_commit_rejects_missing_type
-  test_commit_rejects_long_subject
-  test_commit_rejects_unsigned_flag
-  test_commit_rejects_attribution_trailer
-  test_commit_rejects_message_file_trailer
-  test_commit_allows_editor_flow
-  test_commit_ignores_other_commands
   test_notify_sends_notification_message
   test_notify_reports_project_on_stop
   test_notify_keeps_quiet_after_a_short_turn

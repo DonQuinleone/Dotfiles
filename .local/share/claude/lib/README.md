@@ -1,9 +1,8 @@
 # Claude Code hooks
 
-Four hooks for the global Claude Code configuration. They keep
-written files shellcheck-clean and on-house-style, hold `git
-commit` to Conventional Commits, and put a desktop notification
-on the two events worth interrupting for.
+Three hooks for the global Claude Code configuration. They keep
+written files shellcheck-clean and on-house-style, and put a
+desktop notification on the two events worth interrupting for.
 
 Each hook is a standalone bash script that reads the hook event
 JSON on stdin, so it can be run by hand with a payload piped
@@ -71,23 +70,6 @@ columns, all subject to the exceptions above.
 | customize | customise | gray | grey |
 | program | program (kept) | | |
 
-### `commit-gate`
-
-`PreToolUse`, matching `Bash`, and it returns immediately unless
-the command contains `git commit`. It reads the message from
-`-m`, `-am`, `--message=`, `-F`, `--file=` or a heredoc body,
-and rejects the call with exit 2 when:
-
-- the subject is not `type(scope): subject` with a lowercase
-  first word, per Conventional Commits;
-- the subject is over 72 characters;
-- the message carries a `Co-Authored-By:`, `Generated-by` or
-  `Assisted-by` trailer;
-- the command passes `--no-gpg-sign`.
-
-A `git commit` with no extractable message is the editor flow
-and is allowed through, since the message does not exist yet.
-
 ### `notify`
 
 `Notification` and `Stop`. It sends the notification through
@@ -143,7 +125,6 @@ every script in the tree, the runner included.
 ```
 hooks/shellcheck-on-write   PostToolUse: Write|Edit|MultiEdit
 hooks/style-lint            PostToolUse: Write|Edit
-hooks/commit-gate           PreToolUse: Bash
 hooks/notify                Notification, Stop
 lib/hook-input.sh           stdin payload helpers
 lib/style-check.sh          the prose and width checker
