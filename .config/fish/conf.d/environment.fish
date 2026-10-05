@@ -10,6 +10,8 @@ set -gx PAGER most
 set -gx GNUPGHOME $XDG_DATA_HOME/gnupg
 set -gx NPM_CONFIG_CACHE $XDG_CACHE_HOME/npm
 
+set -gx KUBECONFIG ~/.config/kube/config
+
 # The session names the keyring's agent in SSH_AUTH_SOCK, and
 # its keys answer without a passphrase. A bare tty has no
 # session to inherit it from, so gpg-agent's ssh support stands
@@ -21,6 +23,8 @@ end
 # fish_add_path defaults to a universal variable, which would persist
 # in fish_variables outside this repository.
 fish_add_path --global --path --append $HOME/.local/bin
+fish_add_path --global --path --append $HOME/.bun/bin
+fish_add_path --global --path --append $HOME/.cache/.bun/bin
 
 set -gx ANSIBLE_CONFIG $XDG_CONFIG_HOME/ansible/ansible.cfg
 set -gx ANSIBLE_HOME $XDG_DATA_HOME/ansible
