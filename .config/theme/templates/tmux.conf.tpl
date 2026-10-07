@@ -1,4 +1,4 @@
-set -g status-style "bg=default,fg={{ dark_foreground }}"
+set -g status-style "bg={{ dark_background }},fg={{ dark_foreground }}"
 set -g status-left \
     "#{?#{==:#{pane_title},insert},#[fg={{ green }}] ● ,#{?#{==:#{pane_title},normal},#[fg={{ blue }}] ● , ● }}"
 set -g status-right \
