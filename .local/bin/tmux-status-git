@@ -10,6 +10,6 @@ branch=$(git -C "${directory}" branch --show-current 2>/dev/null) ||
     exit 0
 [[ -n ${branch} ]] || exit 0
 
-printf '#[fg=%s,bg=%s]#[fg=%s,bg=%s] #[fg=%s] %s #[fg=%s,bg=%s] ' \
+printf '#[fg=%s,bg=%s]#[fg=%s,bg=%s]  #[fg=%s]%s #[fg=%s,bg=%s] ' \
     "${segment}" "${bar}" "${icon}" "${segment}" "${text}" \
     "${branch}" "${segment}" "${bar}"
