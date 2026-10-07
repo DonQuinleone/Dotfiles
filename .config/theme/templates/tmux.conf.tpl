@@ -1,6 +1,6 @@
 set -g status-style "bg={{ dark_background }},fg={{ dark_foreground }}"
 set -g status-left \
-    "#[fg={{ background }},bg={{ accent }},bold] 󰒋 #h #[fg={{ accent }},bg={{ dark_background }}] "
+    "#[fg={{ background }},bg=#{?#{@mode_colour},#{@mode_colour},{{ accent }}},bold] 󰒋 #h #[fg=#{?#{@mode_colour},#{@mode_colour},{{ accent }}},bg={{ dark_background }}] "
 set -g status-right \
     "#(tmux-status-git '{{ lighter_background }}' '{{ dark_background }}' '{{ dark_foreground }}' '{{ accent }}' '#{pane_current_path}')#[fg={{ lighter_background }},bg={{ dark_background }}]#[fg={{ foreground }},bg={{ lighter_background }}] %a %d %b #[fg={{ accent }},bg={{ lighter_background }}]#[fg={{ background }},bg={{ accent }},bold] %H:%M "
 set -g window-status-separator ""
