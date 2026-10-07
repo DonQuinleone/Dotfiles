@@ -17,9 +17,15 @@ export INPUTRC="$XDG_CONFIG_HOME/readline/inputrc"
 unset -f command_not_found_handle
 
 FZF_WALKER_SKIP=".git,node_modules,target,.cache,claude"
-FZF_ALT_C_OPTS="--walker-skip ${FZF_WALKER_SKIP} --walker-root=$HOME"
-FZF_ALT_C_OPTS+=" --tmux center,70%,60%"
-export FZF_ALT_C_OPTS
+# Alt-C offers zoxide's most-visited directories first, then
+# everything visible under home and the dotfiles.
+# shellcheck disable=SC2089,SC2090 # fzf hands the string to sh
+export FZF_ALT_C_COMMAND="{ zoxide query -l 2>/dev/null; \
+    find ~ ~/.dotfiles -mindepth 1 \
+    \\( -name '.*' -o -name node_modules \\) \
+    -prune -o -type d -print; } | awk '!seen[\$0]++'"
+export FZF_ALT_C_OPTS="--tmux center,70%,60%"
 export FZF_CTRL_T_OPTS="--walker-skip ${FZF_WALKER_SKIP}"
 unset FZF_WALKER_SKIP
 command -v fzf >/dev/null 2>&1 && eval "$(fzf --bash)"
+command -v zoxide >/dev/null 2>&1 && eval "$(zoxide init bash)"
