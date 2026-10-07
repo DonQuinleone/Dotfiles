@@ -194,12 +194,6 @@
     "net.cozic.joplin_desktop"
   ],
   "opt": {
-    "blesh": {
-      "format": "archive",
-      "url": "https://github.com/akinomyoga/ble.sh/releases/download/nightly/ble-nightly-20260908+d81fd54.tar.xz",
-      "version": "nightly-20260908+d81fd54",
-      "sha256": "7a2445f138e7f099dd5dee749391a8b045646d1b8a605975885be5b34b6b5f7e"
-    },
     "clickup": {
       "format": "appimage",
       "url": "https://desktop.clickup.com/linux",

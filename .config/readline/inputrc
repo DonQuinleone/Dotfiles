@@ -1,0 +1,16 @@
+set editing-mode vi
+set show-mode-in-prompt on
+set keyseq-timeout 10
+
+set colored-stats on
+set colored-completion-prefix on
+set show-all-if-ambiguous on
+set menu-complete-display-prefix on
+set completion-ignore-case on
+
+$if Bash
+TAB: menu-complete
+"\e[Z": menu-complete-backward
+$endif
+
+$include ~/.local/state/theme/readline.inputrc

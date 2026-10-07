@@ -11,8 +11,8 @@ theme_load() {
         source "$THEME_DIR/fzf-opts.sh"
         export FZF_DEFAULT_OPTS="$FZF_THEME_OPTS"
     fi
-    # shellcheck disable=SC1091
-    [[ ! ${BLE_VERSION-} ]] || source "$THEME_DIR/blesh-colours.sh"
+    [[ ! -r "$THEME_DIR/readline.inputrc" ]] ||
+        bind -f "$THEME_DIR/readline.inputrc"
 }
 
 # A theme switch re-renders the palette while running shells

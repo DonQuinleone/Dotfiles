@@ -6,7 +6,6 @@ readonly DESKTOP_DIR=${HOME}/.local/share/applications
 
 declare -rA OPT_INSTALLERS=(
     [appimage]=install_appimage
-    [archive]=install_archive
     [binary]=install_binary
 )
 
@@ -126,23 +125,6 @@ write_desktop_entry() {
     sed -e "s|^Exec=[^ ]*|Exec=${LAUNCHER_DIR}/${name}|" \
         -e "s|^Icon=.*|Icon=${icon}|" \
         "${entry}" >"${DESKTOP_DIR}/${name}.desktop"
-}
-
-# A shell library is sourced rather than run, so its whole tree
-# lands as released, without a launcher.
-install_archive() {
-    local name=$1 directory download root
-    directory=$(opt_directory "${name}")
-    download=${OPT_STAGE}/download
-    root=${OPT_STAGE}/root
-    rm -rf "${OPT_STAGE}"
-    mkdir -p "${root}"
-    fetch_verified "${name}" "${download}"
-    tar -xf "${download}" --strip-components=1 -C "${root}"
-    opt_field "${name}" version >"${root}/${OPT_VERSION_STAMP}"
-    rm -rf "${directory}"
-    mv "${root}" "${directory}"
-    rm -rf "${OPT_STAGE}"
 }
 
 remove_opt_entry() {

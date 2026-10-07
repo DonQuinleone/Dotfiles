@@ -10,6 +10,10 @@ export HISTFILESIZE=100000
 export HISTCONTROL=ignoreboth
 shopt -s histappend
 
+export INPUTRC="$XDG_CONFIG_HOME/readline/inputrc"
+
 # PackageKit's handler blocks on a D-Bus package search before the
 # shell will print "command not found".
 unset -f command_not_found_handle
+
+command -v fzf >/dev/null 2>&1 && eval "$(fzf --bash)"
