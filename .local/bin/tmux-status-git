@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+# Prints a status-bar segment naming the branch of the given
+# directory, and nothing at all outside a repository, which a
+# tmux format conditional cannot do around a #() result.
+set -euo pipefail
+
+segment=$1 bar=$2 text=$3 icon=$4 directory=$5
+
+branch=$(git -C "${directory}" branch --show-current 2>/dev/null) ||
+    exit 0
+[[ -n ${branch} ]] || exit 0
+
+printf '#[fg=%s,bg=%s]#[fg=%s,bg=%s] #[fg=%s] %s #[fg=%s,bg=%s] ' \
+    "${segment}" "${bar}" "${icon}" "${segment}" "${text}" \
+    "${branch}" "${segment}" "${bar}"

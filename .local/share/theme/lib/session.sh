@@ -15,6 +15,7 @@ readonly -a RELOADS=(
     "makoctl:makoctl reload"
     "hyprctl:hyprctl reload"
     "kitty:pkill -SIGUSR1 kitty"
+    "tmux:tmux source-file ${CONFIG}/tmux/tmux.conf"
     "waybar:systemctl --user restart waybar.target"
 )
 
