@@ -77,3 +77,13 @@ prompt_build() {
 
 [[ " ${PROMPT_COMMAND[*]-} " == *" prompt_git_refresh "* ]] ||
     PROMPT_COMMAND+=(prompt_git_refresh)
+
+prompt_badge_refresh() {
+    [[ ${TMUX_PANE-} ]] || return 0
+    [[ ${PROMPT_GIT} == "${PROMPT_BADGE_SENT-}" ]] && return 0
+    PROMPT_BADGE_SENT=$PROMPT_GIT
+    (tmux-badge "${TMUX_PANE}" >/dev/null 2>&1 &)
+}
+
+[[ " ${PROMPT_COMMAND[*]-} " == *" prompt_badge_refresh "* ]] ||
+    PROMPT_COMMAND+=(prompt_badge_refresh)

@@ -16,6 +16,7 @@ readonly -a RELOADS=(
     "hyprctl:hyprctl reload"
     "kitty:pkill -SIGUSR1 kitty"
     "tmux:tmux source-file ${RENDERED}/tmux.conf"
+    "tmux-badge:tmux-badge all"
     "waybar:systemctl --user restart waybar.target"
 )
 

@@ -1,0 +1,73 @@
+#!/usr/bin/env bash
+# Shows the git branch and window number of a session's active
+# pane as the logo of the kitty window holding it, where they
+# float over a corner of the pane instead of costing a row.
+set -euo pipefail
+
+readonly THEME_DIR=${XDG_STATE_HOME:-${HOME}/.local/state}/theme
+readonly BADGES=${XDG_CACHE_HOME:-${HOME}/.cache}/tmux-badge
+readonly BADGE_POINT_SIZE=24
+readonly BADGE_MARGIN_PX=2
+
+session_value() {
+    local line
+    line=$(tmux show-environment -t "$1" "$2" 2>/dev/null) || return 1
+    [[ $line == -* ]] && return 1
+    printf '%s' "${line#*=}"
+}
+
+markup_escape() {
+    local text=${1//&/\&amp;}
+    text=${text//</\&lt;}
+    printf '%s' "${text//>/\&gt;}"
+}
+
+badge_markup() {
+    local branch=$1 index=$2 markup
+    markup="<span foreground=\"#${THEME_ACCENT}\">${index}</span>"
+    [[ $branch ]] || { printf '%s' "${markup}"; return; }
+    printf '<span foreground="#%s">%s</span>  %s' \
+        "${THEME_FG_DIM}" "$(markup_escape "${branch}")" "${markup}"
+}
+
+badge_image() {
+    local branch=$1 index=$2 theme image font
+    theme=$(<"${THEME_DIR}/current")
+    image=${BADGES}/${theme}/${branch//\//_}-${index}.png
+    [[ -f $image ]] && { printf '%s' "${image}"; return; }
+    # shellcheck disable=SC1091
+    source "${THEME_DIR}/shell-colours.sh"
+    font=$(sed -n 's/^font_family //p' "${THEME_DIR}/kitty.conf")
+    mkdir -p "$(dirname "${image}")"
+    pango-view -q --markup \
+        --font="${font} ${BADGE_POINT_SIZE}" \
+        --background=transparent --margin="${BADGE_MARGIN_PX}" \
+        -t "$(badge_markup "${branch}" "${index}")" -o "${image}"
+    printf '%s' "${image}"
+}
+
+badge_session() {
+    local target=$1 window_id listen index path branch image
+    window_id=$(session_value "${target}" KITTY_WINDOW_ID) || return 0
+    listen=$(session_value "${target}" KITTY_LISTEN_ON) || return 0
+    read -r index path < <(tmux display -p -t "${target}" \
+        '#{window_index} #{pane_current_path}')
+    branch=$(git -C "${path}" branch --show-current 2>/dev/null) ||
+        branch=''
+    image=$(badge_image "${branch}" "${index}")
+    kitten @ --to "${listen}" set-window-logo --no-response \
+        --match "id:${window_id}" "${image}" 2>/dev/null || true
+}
+
+badge_all() {
+    local session
+    while read -r session; do
+        badge_session "${session}"
+    done < <(tmux list-sessions -F '#S' 2>/dev/null)
+}
+
+case ${1:-} in
+    all) badge_all ;;
+    '') printf 'usage: tmux-badge all|TARGET\n' >&2; exit 2 ;;
+    *) badge_session "$1" ;;
+esac
