@@ -18,16 +18,25 @@ local function run(command)
 end
 
 local TERM       = "kitty"
-local FILES      = TERM .. " yazi"
+
+local function terminal(command, options)
+    local line = TERM
+    if options then
+        line = line .. " " .. options
+    end
+    return line .. " tmux-run " .. command
+end
+
+local FILES      = terminal("yazi")
 local BROWSER    = "firefox"
-local ACTIVITY   = TERM .. " -o font_size=20 btop"
-local LLM        = TERM .. " claude --dangerously-skip-permissions"
+local ACTIVITY   = terminal("btop", "-o font_size=20")
+local LLM        = terminal("claude --dangerously-skip-permissions")
 local PICKER     = "rofi -show drun"
-local AGENDA     = TERM .. " -e writ --screen tasks"
-local BINDS      = TERM .. " -o font_size=16"
-    .. " nvim ~/.dotfiles/.config/hypr/lua/binds.lua"
-local JUMPBOX    = TERM .. " jumpbox"
-local BLUETOOTH  = TERM .. " bluetoothctl"
+local AGENDA     = terminal("writ --screen tasks")
+local BINDS      = terminal("nvim ~/.dotfiles/.config/hypr/lua/binds.lua",
+    "-o font_size=16")
+local JUMPBOX    = terminal("jumpbox")
+local BLUETOOTH  = terminal("bluetoothctl")
 
 local BAR_TOGGLE = "bar toggle"
 local BAR_TOGGLE_ALL = "bar all"
@@ -70,7 +79,6 @@ local rows = {
     { "SUPER",                "s",                     run("flatpak run com.slack.Slack"),            "Open Slack"             },
     { "SUPER",                "t",                     run("teamspeak3"),                             "Open TeamSpeak 3"       },
     { "SUPER",                "o",                     run("cpanel-sso"),                             "Open cPanel SSO"        },
-    { "SUPER + SHIFT",        "d",                     run(TERM .. " -e dyn"),                        "Open Tickets"            },
     { "SUPER + SHIFT",        "a",                     run(AGENDA),                                   "Open agenda"            },
     { "SUPER + SHIFT",        "i",                     run("writ-capture"),                           "Capture a to-do"        },
     { "SUPER + SHIFT",        "o",                     run(JUMPBOX),                                  "Open jumpbox"           },

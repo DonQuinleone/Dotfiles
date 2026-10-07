@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# A terminal opened from inside a tmux pane inherits TMUX, and
+# tmux then refuses to nest, although the new window is its own
+# terminal and no nesting is involved.
+unset TMUX
+
+exec tmux new-session -- "$@"
