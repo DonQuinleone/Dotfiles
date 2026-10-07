@@ -9,7 +9,8 @@
     ],
     "modules-right": [
         "custom/dictate", "custom/record", "tray",
-        "custom/dnd", "custom/tailscale", "battery"
+        "custom/dnd", "custom/tailscale", "battery",
+        "hyprland/window"
     ],
 
     "hyprland/workspaces": {
@@ -33,6 +34,13 @@
             "37": "7", "38": "8", "39": "9",
             "default": "·"
         }
+    },
+
+    // The title is only shown when it is a tmux window number.
+    "hyprland/window": {
+        "format": "{title}",
+        "separate-outputs": true,
+        "rewrite": { "^(?!\\d+$).*$": "" }
     },
 
     "clock": {

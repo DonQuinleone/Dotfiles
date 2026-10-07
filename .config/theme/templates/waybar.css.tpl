@@ -29,6 +29,7 @@ window#waybar {
 #custom-dnd,
 #custom-record,
 #custom-tailscale,
+#window,
 #tray {
     padding: 7px 2px;
     background-color: transparent;
@@ -44,7 +45,7 @@ window#waybar {
 }
 
 #workspaces button {
-    padding: 6px 6px 0 6px;
+    padding: 7px 6px 5px;
     margin: 0;
     color: {{ dark_foreground }};
     background-color: transparent;
