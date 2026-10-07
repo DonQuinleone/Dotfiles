@@ -1,5 +1,5 @@
 ---
-paths: ["**/*.sh", "**/*.bash", "**/bin/**", "**/.bashrc", "**/*.fish"]
+paths: ["**/*.sh", "**/*.bash", "**/bin/**", "**/.bashrc"]
 ---
 
 # Shell scripts

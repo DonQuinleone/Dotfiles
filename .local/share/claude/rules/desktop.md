@@ -2,9 +2,9 @@
 
 - Every tool that supports colour follows the active desktop
   theme, applied by `theme set`: the shell, Hyprland, Ghostty,
-  the bash and fish prompts, GTK, Qt, TeamSpeak and Neovim all
-  read the same palette, so a tool that hardcodes its own colours
-  is a bug. Ember (background `#1B1B1B`, foreground `#E7E7E7`,
+  the bash prompt, GTK, Qt, TeamSpeak and Neovim all read the
+  same palette, so a tool that hardcodes its own colours is a
+  bug. Ember (background `#1B1B1B`, foreground `#E7E7E7`,
   accent `#DC6F00`) is the default of seventeen.
 - Keep `$HOME` clean: configure tools to store config, cache and
   state in XDG locations whenever they allow it. `~/.claude` must
