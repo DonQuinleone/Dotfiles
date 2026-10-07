@@ -1,7 +1,12 @@
 set editing-mode vi
 set show-mode-in-prompt on
+$if term=tmux
 set vi-ins-mode-string "\1\e]2;insert\a\e[1 q\2"
 set vi-cmd-mode-string "\1\e]2;normal\a\e[2 q\2"
+$else
+set vi-ins-mode-string "\1\e[1 q\2"
+set vi-cmd-mode-string "\1\e[2 q\2"
+$endif
 set keyseq-timeout 10
 
 set colored-stats on

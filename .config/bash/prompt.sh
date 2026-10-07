@@ -2,7 +2,7 @@
 
 : "${THEME_ACCENT:=DC6F00}" "${THEME_FG_DIM:=C0C0C0}"
 
-readonly PROMPT_RESET=$'\e[0m'
+PROMPT_RESET=$'\e[0m'
 
 prompt_supports_truecolor() {
     case "${COLORTERM:-}" in
@@ -18,12 +18,12 @@ prompt_sgr() {
 }
 
 prompt_build() {
-    if ! prompt_supports_truecolor; then
-        PS1='\u \W\n\$ '
-        return
-    fi
     local host=''
     [[ ${SSH_TTY-} || ${SSH_CONNECTION-} ]] && host='@\h'
+    if ! prompt_supports_truecolor; then
+        PS1="\\u${host} \\W\\n\\$ "
+        return
+    fi
     PS1="\\[$(prompt_sgr ACCENT)\\]\\u${host} "
     PS1+="\\[$(prompt_sgr FG_DIM)\\]\\W\\[${PROMPT_RESET}\\]\\n"
     PS1+="\\[$(prompt_sgr ACCENT)\\]\\$\\[${PROMPT_RESET}\\] "

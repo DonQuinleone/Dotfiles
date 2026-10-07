@@ -27,4 +27,5 @@ theme_refresh() {
 }
 
 theme_refresh
-PROMPT_COMMAND="theme_refresh${PROMPT_COMMAND:+; $PROMPT_COMMAND}"
+[[ " ${PROMPT_COMMAND[*]-} " == *" theme_refresh "* ]] ||
+    PROMPT_COMMAND+=(theme_refresh)

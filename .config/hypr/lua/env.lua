@@ -16,7 +16,7 @@ end
 
 local envs = {
     { "PATH", path },
-    { "TERMINAL", "kitty" },
+    { "TERMINAL", "kitty-tmux" },
     { "EDITOR", "nvim" },
     { "XCURSOR_THEME", "Adwaita" },
     { "XCURSOR_SIZE", CURSOR_SIZE },

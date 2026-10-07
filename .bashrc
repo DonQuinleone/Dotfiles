@@ -6,15 +6,15 @@ export XDG_DATA_HOME="$HOME/.local/share"
 export XDG_CACHE_HOME="$HOME/.cache"
 export XDG_STATE_HOME="$HOME/.local/state"
 
-BASH_CONFIG="$XDG_CONFIG_HOME/bash"
+bash_config="$XDG_CONFIG_HOME/bash"
 
 # shellcheck source=.config/bash/environment.sh
-source "$BASH_CONFIG/environment.sh"
+source "$bash_config/environment.sh"
 
 [[ $- == *i* ]] || return
 
 for module in interactive aliases prompt theme; do
     # shellcheck disable=SC1090
-    source "$BASH_CONFIG/$module.sh"
+    source "$bash_config/$module.sh"
 done
-unset module
+unset module bash_config

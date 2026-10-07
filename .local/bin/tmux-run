@@ -6,4 +6,6 @@ set -euo pipefail
 # terminal and no nesting is involved.
 unset TMUX
 
-exec tmux new-session -- "$@"
+# Closing the window only detaches the client; the session is
+# the window's, so it goes with it.
+exec tmux new-session -- "$@" \; set-option destroy-unattached on

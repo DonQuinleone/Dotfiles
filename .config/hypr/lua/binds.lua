@@ -33,8 +33,8 @@ local ACTIVITY   = terminal("btop", "-o font_size=20")
 local LLM        = terminal("claude --dangerously-skip-permissions")
 local PICKER     = "rofi -show drun"
 local AGENDA     = terminal("writ --screen tasks")
-local BINDS      = terminal("nvim ~/.dotfiles/.config/hypr/lua/binds.lua",
-    "-o font_size=16")
+local BINDS      = terminal(
+    "nvim ~/.dotfiles/.config/hypr/lua/binds.lua", "-o font_size=16")
 local JUMPBOX    = terminal("jumpbox")
 local BLUETOOTH  = terminal("bluetoothctl")
 

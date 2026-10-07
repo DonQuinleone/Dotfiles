@@ -16,4 +16,8 @@ export INPUTRC="$XDG_CONFIG_HOME/readline/inputrc"
 # shell will print "command not found".
 unset -f command_not_found_handle
 
+FZF_WALKER_SKIP=".git,node_modules,target,.cache,claude"
+export FZF_ALT_C_OPTS="--walker-skip ${FZF_WALKER_SKIP}"
+export FZF_CTRL_T_OPTS="--walker-skip ${FZF_WALKER_SKIP}"
+unset FZF_WALKER_SKIP
 command -v fzf >/dev/null 2>&1 && eval "$(fzf --bash)"
