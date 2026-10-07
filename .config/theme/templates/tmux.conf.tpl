@@ -1,8 +1,4 @@
 set -g status-style "bg={{ dark_background }},fg={{ dark_foreground }}"
-set -g status-left "#{?#{==:#{pane_title},insert},"
-set -ga status-left "#[fg={{ green }}] ● ,"
-set -ga status-left "#{?#{==:#{pane_title},normal},"
-set -ga status-left "#[fg={{ blue }}] ● , ● }}"
 set -g status-right "#(tmux-status-git '{{ dark_foreground }}' "
 set -ga status-right "'{{ accent }}' #{q:pane_current_path})"
 set -ga status-right "#[fg={{ dark_foreground }}]%a %d %b  "
