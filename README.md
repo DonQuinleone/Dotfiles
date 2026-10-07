@@ -59,7 +59,10 @@ a command-line tool, downloaded either bare or as a tar.gz with
 one executable inside, and gets the same directory and launcher
 but no desktop entry. `inc`, the incident.io CLI for declaring
 and running incidents from the terminal, is one, pinned to a
-release tag. An entry marked `"managed": false` is declared
+release tag. An `archive` is a tree that is sourced rather than
+run, unpacked whole with no launcher; ble.sh, the line editor
+bash loads for highlighting and suggestions, is one, pinned to a
+dated nightly build. An entry marked `"managed": false` is declared
 only so the sweep of `~/.local/opt` leaves it alone, which is how
 TeamSpeak, installed by hand long before any of this, survives.
 
