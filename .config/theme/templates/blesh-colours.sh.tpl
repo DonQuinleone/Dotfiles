@@ -17,12 +17,12 @@ ble-face syntax_comment=fg={{ dark_foreground }}
 ble-face syntax_glob=fg={{ accent }}
 ble-face syntax_brace=fg={{ accent }}
 ble-face syntax_tilde=fg={{ accent }}
+ble-face filename_other=fg={{ foreground }},underline
+ble-face filename_ls_colors=underline
 ble-face filename_directory=fg={{ blue }},underline
 ble-face filename_directory_sticky=fg={{ blue }},underline
 ble-face filename_executable=fg={{ green }},underline
-ble-face filename_other=fg={{ foreground }},underline
 ble-face filename_link=fg={{ cyan }},underline
-ble-face filename_ls_colors=underline
 ble-face region=bg={{ selection }}
 ble-face region_target=bg={{ accent }},fg={{ background }}
 ble-face region_match=bg={{ yellow }},fg={{ background }}
