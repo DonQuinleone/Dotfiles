@@ -1,5 +1,6 @@
 set -g status-style "bg=default,fg={{ dark_foreground }}"
-set -g status-left ""
+set -g status-left \
+    "#{?#{==:#{pane_title},insert},#[fg={{ green }}] ● ,#{?#{==:#{pane_title},normal},#[fg={{ blue }}] ● , ● }}"
 set -g status-right \
     "#(tmux-status-git '{{ dark_foreground }}' '{{ accent }}' '#{pane_current_path}')#[fg={{ dark_foreground }}]%a %d %b  #[fg={{ foreground }}]%H:%M "
 set -g window-status-separator ""
