@@ -29,7 +29,6 @@ window#waybar {
 #custom-dnd,
 #custom-record,
 #custom-tailscale,
-#window,
 #tray {
     padding: 7px 2px;
     background-color: transparent;
