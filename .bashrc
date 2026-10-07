@@ -5,6 +5,15 @@ export XDG_DATA_HOME="$HOME/.local/share"
 export XDG_CACHE_HOME="$HOME/.cache"
 export XDG_STATE_HOME="$HOME/.local/state"
 
+# Loaded first and attached last, as ble.sh asks, so everything
+# between is in place before it takes over the line.
+BLESH="$HOME/.local/opt/blesh/ble.sh"
+if [[ $- == *i* && -r "$BLESH" ]]; then
+    # shellcheck disable=SC1090
+    source -- "$BLESH" --attach=none \
+        --rcfile "$XDG_CONFIG_HOME/blesh/init.sh"
+fi
+
 export EDITOR=nvim
 export VISUAL=nvim
 export PAGER=most
@@ -79,7 +88,7 @@ prompt_build_ps1() {
     PS1+="$(prompt_colour "${on_background}")\\$ \[\e[0m\]"
 }
 
-PROMPT_COMMAND=prompt_build_ps1
+[[ ${BLE_VERSION-} ]] || PROMPT_COMMAND=prompt_build_ps1
 
 alias ..="cd .."
 alias 2..="cd ../.."
@@ -150,8 +159,13 @@ __theme_refresh() {
     stamp=$(stat -c %Y "${__theme_file}" 2>/dev/null)
     [ "${stamp}" = "${__theme_stamp:-}" ] && return 0
     __theme_stamp="${stamp}"
+    # shellcheck disable=SC1090,SC1091
     [ -r "${__theme_file}" ] &&
         . "${__theme_file}"
+    [ -r "${__theme_file%/*}/fzf-opts.sh" ] || return 0
+    # shellcheck disable=SC1091
+    . "${__theme_file%/*}/fzf-opts.sh"
+    export FZF_DEFAULT_OPTS="${FZF_THEME_OPTS}"
 }
 __theme_refresh
 case "${PROMPT_COMMAND:-}" in
@@ -159,3 +173,5 @@ case "${PROMPT_COMMAND:-}" in
 *) PROMPT_COMMAND="__theme_refresh${PROMPT_COMMAND:+; ${PROMPT_COMMAND}}" ;;
 esac
 # <<< theme <<<
+
+[[ ! ${BLE_VERSION-} ]] || ble-attach
