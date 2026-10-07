@@ -3,9 +3,6 @@
 : "${THEME_ACCENT:=DC6F00}" "${THEME_FG_DIM:=C0C0C0}"
 
 PROMPT_RESET=$'\e[0m'
-PROMPT_HIDE=$'\001'
-PROMPT_SHOW=$'\002'
-PROMPT_GIT_ICON=''
 PROMPT_GIT_HASH_LENGTH=7
 
 prompt_supports_truecolor() {
@@ -21,9 +18,16 @@ prompt_sgr() {
         "0x${hex:0:2}" "0x${hex:2:2}" "0x${hex:4:2}"
 }
 
-prompt_hidden_sgr() {
-    printf '%s%s%s' \
-        "${PROMPT_HIDE}" "$(prompt_sgr "$1")" "${PROMPT_SHOW}"
+prompt_build() {
+    local host=''
+    [[ ${SSH_TTY-} || ${SSH_CONNECTION-} ]] && host='@\h'
+    if ! prompt_supports_truecolor; then
+        PS1="\\u${host} \\W\\n\\$ "
+        return
+    fi
+    PS1="\\[$(prompt_sgr ACCENT)\\]\\u${host} "
+    PS1+="\\[$(prompt_sgr FG_DIM)\\]\\W\\[${PROMPT_RESET}\\]\\n"
+    PS1+="\\[$(prompt_sgr ACCENT)\\]\\$\\[${PROMPT_RESET}\\] "
 }
 
 # Reads HEAD itself: asking git costs a fork and about twenty
@@ -50,38 +54,14 @@ prompt_git_head() {
     return 0
 }
 
-prompt_git_refresh() {
-    local branch
-    PROMPT_GIT=''
-    prompt_git_head branch || return 0
-    PROMPT_GIT="${PROMPT_GIT_STYLE_ICON} ${PROMPT_GIT_ICON} "
-    PROMPT_GIT+="${PROMPT_GIT_STYLE_TEXT}${branch}"
-}
-
-prompt_build() {
-    local host=''
-    [[ ${SSH_TTY-} || ${SSH_CONNECTION-} ]] && host='@\h'
-    PROMPT_GIT_STYLE_ICON=''
-    PROMPT_GIT_STYLE_TEXT=''
-    if ! prompt_supports_truecolor; then
-        PS1="\\u${host} \\W\${PROMPT_GIT}\\n\\$ "
-        return
-    fi
-    PROMPT_GIT_STYLE_ICON=$(prompt_hidden_sgr ACCENT)
-    PROMPT_GIT_STYLE_TEXT=$(prompt_hidden_sgr FG_DIM)
-    PS1="\\[$(prompt_sgr ACCENT)\\]\\u${host} "
-    PS1+="\\[$(prompt_sgr FG_DIM)\\]\\W\${PROMPT_GIT}"
-    PS1+="\\[${PROMPT_RESET}\\]\\n"
-    PS1+="\\[$(prompt_sgr ACCENT)\\]\\$\\[${PROMPT_RESET}\\] "
-}
-
-[[ " ${PROMPT_COMMAND[*]-} " == *" prompt_git_refresh "* ]] ||
-    PROMPT_COMMAND+=(prompt_git_refresh)
-
+# The badge in the kitty window corner shows the branch, so it
+# is redrawn when the branch under the prompt changes.
 prompt_badge_refresh() {
+    local branch=''
     [[ ${TMUX_PANE-} ]] || return 0
-    [[ ${PROMPT_GIT} == "${PROMPT_BADGE_SENT-}" ]] && return 0
-    PROMPT_BADGE_SENT=$PROMPT_GIT
+    prompt_git_head branch || branch=''
+    [[ $branch == "${PROMPT_BADGE_SENT-}" ]] && return 0
+    PROMPT_BADGE_SENT=$branch
     (tmux-badge "${TMUX_PANE}" >/dev/null 2>&1 &)
 }
 
