@@ -23,6 +23,10 @@ export ANSIBLE_HOME="$XDG_DATA_HOME/ansible"
 export ANSIBLE_LOCAL_TEMP="$XDG_CACHE_HOME/ansible/tmp"
 export ANSIBLE_SSH_CONTROL_PATH_DIR="$XDG_CACHE_HOME/ansible/cp"
 export ANSIBLE_GALAXY_CACHE_DIR="$XDG_CACHE_HOME/ansible/galaxy_cache"
+export ANSIBLE_REMOTE_TEMP="$XDG_CACHE_HOME/ansible/tmp"
+
+export KUBECONFIG="$XDG_CONFIG_HOME/kube/config"
+export KUBECACHEDIR="$XDG_CACHE_HOME/kube"
 
 export CLAUDE_CONFIG_DIR="$XDG_DATA_HOME/claude"
 
