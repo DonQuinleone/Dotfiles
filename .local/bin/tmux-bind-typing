@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+# Typing while scrolled back should land at the prompt, so every
+# key a command line is made of leaves copy mode and is then sent
+# on to the pane as the byte it stands for.
+set -euo pipefail
+
+bind_key() {
+    local key=$1 char=$2 hex
+    hex=$(printf '%02x' "'${char}")
+    tmux bind -T copy-mode "${key}" \
+        "send -X cancel ; send-keys -H ${hex}"
+}
+
+typed=$(printf '%s' {a..z} {A..Z} {0..9})
+typed+='`~!@#$%^&*()-_=+[]{}\|:,.<>/?"'"'"
+for (( i = 0; i < ${#typed}; i++ )); do
+    char=${typed:i:1}
+    bind_key "${char}" "${char}"
+done
+bind_key '\;' ';'
+bind_key Space ' '
