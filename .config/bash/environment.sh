@@ -30,6 +30,7 @@ export KUBECACHEDIR="$XDG_CACHE_HOME/kube"
 
 export CLAUDE_CONFIG_DIR="$XDG_DATA_HOME/claude"
 
+export PYTHONPYCACHEPREFIX="$XDG_CACHE_HOME/python"
 export PYTHON_HISTORY="$XDG_STATE_HOME/python/history"
 [ -d "${PYTHON_HISTORY%/*}" ] || mkdir -p "${PYTHON_HISTORY%/*}"
 
