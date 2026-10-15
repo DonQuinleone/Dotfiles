@@ -12,6 +12,11 @@ vim.keymap.set("n", "N", "Nzzzv")
 
 vim.keymap.set("x", "<leader>p", [["_dP]])
 
+for _, clicks in ipairs({ "", "2-", "3-", "4-" }) do
+    local button = "<" .. clicks .. "MiddleMouse>"
+    vim.keymap.set({ "n", "v", "i" }, button, "<Nop>")
+end
+
 vim.keymap.set({"n", "v"}, "<leader>y", [["+y]])
 vim.keymap.set("n", "<leader>Y", [["+Y]])
 
