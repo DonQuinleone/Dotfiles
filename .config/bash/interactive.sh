@@ -29,3 +29,4 @@ export FZF_CTRL_T_OPTS="--walker-skip ${FZF_WALKER_SKIP}"
 unset FZF_WALKER_SKIP
 command -v fzf >/dev/null 2>&1 && eval "$(fzf --bash)"
 command -v zoxide >/dev/null 2>&1 && eval "$(zoxide init bash)"
+command -v direnv >/dev/null 2>&1 && eval "$(direnv hook bash)"
