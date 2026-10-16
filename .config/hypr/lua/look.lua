@@ -1,3 +1,5 @@
+local state = require("state")
+
 local GAP_INNER = 6
 local GAP_OUTER = 12
 local BORDER_WIDTH = 4
@@ -87,10 +89,7 @@ hl.config({
     },
 })
 
-local state = os.getenv("XDG_STATE_HOME")
-    or (os.getenv("HOME") .. "/.local/state")
-
-local rendered = io.open(state .. "/theme/hyprland.lua")
+local rendered = io.open(state.root .. "/theme/hyprland.lua")
 if rendered ~= nil then
     local chunk = (loadstring or load)(rendered:read("*a"))
     rendered:close()

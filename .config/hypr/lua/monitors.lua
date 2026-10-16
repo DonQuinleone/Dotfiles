@@ -1,3 +1,5 @@
+local state = require("state")
+
 local WORKSPACES_PER_MONITOR = 9
 local RUN_STRIDE = 10
 
@@ -104,10 +106,7 @@ function monitors.workspace_for(slot)
 end
 
 local function publish_runs()
-    local state = os.getenv("XDG_STATE_HOME")
-        or (os.getenv("HOME") .. "/.local/state")
-    os.execute("mkdir -p '" .. state .. "/hypr'")
-    local file = io.open(state .. "/hypr/runs.tsv", "w")
+    local file = state.writer("hypr/runs.tsv")
     if file == nil then
         return
     end

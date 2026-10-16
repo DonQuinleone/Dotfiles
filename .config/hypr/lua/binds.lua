@@ -2,6 +2,7 @@ local actions = require("actions")
 local monitors = require("monitors")
 local gaps = require("gaps")
 local layouts = require("layouts")
+local state = require("state")
 
 local RESIZE_STEP = 60
 local WORKSPACES_PER_MONITOR = 9
@@ -201,12 +202,7 @@ for _, row in ipairs(rows) do
     hl.bind(combination(row[1], row[2]), row[3], options_of(row))
 end
 
-local state = os.getenv("XDG_STATE_HOME")
-    or (os.getenv("HOME") .. "/.local/state")
-
-os.execute("mkdir -p '" .. state .. "/hypr'")
-
-local sheet = io.open(state .. "/hypr/binds.tsv", "w")
+local sheet = state.writer("hypr/binds.tsv")
 if sheet ~= nil then
     for _, row in ipairs(rows) do
         local description = description_of(row)
