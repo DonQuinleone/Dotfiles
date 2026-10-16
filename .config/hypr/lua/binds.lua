@@ -163,8 +163,9 @@ for index = 1, monitors.WORKSPACES_PER_MONITOR do
     end, "Send window to workspace " .. index })
 end
 
--- hyprland.lua puts this config's own module folder first.
-local OWN_MODULES = package.path:match("^[^;]+")
+local CONFIG_HOME = os.getenv("XDG_CONFIG_HOME") or ""
+local OWN_MODULES = (CONFIG_HOME ~= "" and CONFIG_HOME
+    or os.getenv("HOME") .. "/.config") .. "/hypr/lua/?.lua"
 
 local function private_rows()
     local path = package.searchpath("private", OWN_MODULES)
