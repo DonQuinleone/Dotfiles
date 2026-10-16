@@ -3,15 +3,10 @@ local CURSOR_SIZE = "48"
 local home = os.getenv("HOME")
 local path = os.getenv("PATH") or "/usr/local/bin:/usr/bin"
 
-local home_directories = {
-    home .. "/.local/share/mise/shims",
-    home .. "/.local/bin",
-}
+local local_bin = home .. "/.local/bin"
 
-for _, directory in ipairs(home_directories) do
-    if not path:find(directory, 1, true) then
-        path = directory .. ":" .. path
-    end
+if not path:find(local_bin, 1, true) then
+    path = local_bin .. ":" .. path
 end
 
 local envs = {
@@ -24,7 +19,6 @@ local envs = {
     { "QT_QPA_PLATFORM", "wayland;xcb" },
     { "QT_QPA_PLATFORMTHEME", "qt6ct" },
     { "QT_WAYLAND_DISABLE_WINDOWDECORATION", "1" },
-    { "MOZ_ENABLE_WAYLAND", "1" },
     { "MOZ_DISABLE_LANGPACKS", "1" },
     { "GNUPGHOME", home .. "/.local/share/gnupg" },
     { "CLAUDE_CONFIG_DIR", home .. "/.local/share/claude" },

@@ -34,20 +34,3 @@ hl.window_rule({
     size = "1200 800",
     center = true,
 })
-
-hl.window_rule({
-    name = "wispr-flow-bubble",
-    match = {
-        class = "^wispr-flow$",
-        initial_title = "^(Status|Flow Status Indicator)$",
-    },
-    float = true,
-    pin = true,
-    move = "monitor_w/2-window_w/2 monitor_h-window_h",
-    no_focus = true,
-    no_blur = true,
-    no_shadow = true,
-    border_size = 0,
-    rounding = 0,
-    no_anim = true,
-})
