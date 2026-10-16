@@ -10,3 +10,4 @@ packages\.json
 packages\.sh
 etc
 userscripts
+^/\.envrc

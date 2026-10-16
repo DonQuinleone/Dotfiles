@@ -17,3 +17,8 @@
 
 [includeIf "hasconfig:remote.*.url:ssh://git@forge.example.com:*/**"]
 	path = example.inc
+
+[includeIf "gitdir:~/.dotfiles/"]
+	path = personal.inc
+[includeIf "gitdir:~/repos/personal/"]
+	path = personal.inc
