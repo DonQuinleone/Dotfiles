@@ -406,8 +406,6 @@ apply_plan() {
 main() {
     parse_arguments "$@"
     preflight
-    # shellcheck source=private.sh
-    source "${REPO}/private.sh"
     # shellcheck source=packages.sh
     source "${LIBRARY}"
     # shellcheck source=opt.sh

@@ -1,5 +1,8 @@
 # shellcheck shell=bash
 
+# shellcheck source=private.sh
+source "$(dirname -- "${BASH_SOURCE[0]}")/private.sh"
+
 # The manifest is the only list: get_packages.sh reconciles the
 # machine against it, adding what is declared and removing what
 # is not, so the file and the machine cannot drift apart.
