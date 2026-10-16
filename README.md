@@ -57,9 +57,7 @@ version and a sha256 and the install refuses anything else,
 which is also how a new release announces itself. A `binary` is
 a command-line tool, downloaded either bare or as a tar.gz with
 one executable inside, and gets the same directory and launcher
-but no desktop entry. `inc`, the incident.io CLI for declaring
-and running incidents from the terminal, is one, pinned to a
-release tag. An entry marked `"managed": false` is declared
+but no desktop entry. An entry marked `"managed": false` is declared
 only so the sweep of `~/.local/opt` leaves it alone, which is how
 TeamSpeak, installed by hand long before any of this, survives.
 
