@@ -1,0 +1,59 @@
+#!/usr/bin/env bash
+
+set -uo pipefail
+
+readonly WINDOW='class:^(TeamSpeak 3)$'
+readonly KEY_DELAY_SECONDS=${DELAY:-0.3}
+readonly TS3_POLLER_HOLD_SECONDS=0.15
+readonly WINDOW_POLL_SECONDS=0.5
+readonly WINDOW_POLL_ATTEMPTS=60
+readonly SETTLE_SECONDS=2
+readonly KEYCODE_KP_MINUS=74
+readonly KEYCODE_KP_ASTERISK=55
+
+dispatch() {
+    hyprctl dispatch "$1" >/dev/null
+}
+
+running() {
+    hyprctl clients | grep -q 'class: TeamSpeak 3'
+}
+
+wait_for_window() {
+    for _ in $(seq "$WINDOW_POLL_ATTEMPTS"); do
+        running && return 0
+        sleep "$WINDOW_POLL_SECONDS"
+    done
+    echo "ts3: TeamSpeak window did not appear" >&2
+    return 1
+}
+
+send() {
+    local shortcut="{ mods = '$1', key = '$2', window = '$WINDOW' }"
+    dispatch "hl.dsp.send_shortcut($shortcut)" || {
+        echo "ts3: failed to send $1 + $2" >&2
+        return 1
+    }
+    sleep "$KEY_DELAY_SECONDS"
+}
+
+tap() {
+    ydotool key "$1:1"
+    sleep "$TS3_POLLER_HOLD_SECONDS"
+    ydotool key "$1:0"
+    sleep "$KEY_DELAY_SECONDS"
+}
+
+if running; then
+    dispatch "hl.dsp.focus({ window = '$WINDOW' })"
+    exit 0
+fi
+
+dispatch "hl.dsp.exec_cmd('teamspeak3')"
+wait_for_window || exit 1
+sleep "$SETTLE_SECONDS"
+
+tap "$KEYCODE_KP_MINUS"
+tap "$KEYCODE_KP_ASTERISK"
+send ALT b
+send "" k
