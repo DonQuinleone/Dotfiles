@@ -1,6 +1,3 @@
-local REPEAT_DELAY_MS = 600
-local REPEAT_RATE_HZ = 25
-local FOLLOW_MOUSE_ALWAYS = 1
 local TOUCHPAD_SCROLL_FACTOR = 0.6
 local ALT_ON_BOTH_SIDES = "lv3:ralt_alt"
 
@@ -20,14 +17,8 @@ hl.config({
     input = {
         kb_layout = "gb",
         kb_options = ALT_ON_BOTH_SIDES,
-        repeat_delay = REPEAT_DELAY_MS,
-        repeat_rate = REPEAT_RATE_HZ,
-        follow_mouse = FOLLOW_MOUSE_ALWAYS,
         focus_on_close = 1,
         touchpad = {
-            natural_scroll = false,
-            tap_to_click = true,
-            disable_while_typing = true,
             scroll_factor = TOUCHPAD_SCROLL_FACTOR,
         },
     },
