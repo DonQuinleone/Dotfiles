@@ -1,9 +1,6 @@
 .claude/
 HANDOFF.md
 
-# Employer-internal Work helper, must never enter this repo
-.local/share/claude/skills/work/
-
 # Rendered by theme into the stowed links
 .config/rofi/theme.rasi
 .config/waybar/style.css
