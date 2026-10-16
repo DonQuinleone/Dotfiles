@@ -9,17 +9,16 @@ package manifest the machine is built from.
 
 Fedora 44 and GNU Stow.
 
-    git clone \
-      ssh://git@forge.example.com/user/dotfiles.git \
-      ~/.dotfiles
+    git clone git@github.com:DonQuinleone/Dotfiles.git ~/.dotfiles
     ~/.dotfiles/get_packages.sh
     ~/.dotfiles/bootstrap.sh
     theme set ember
     sudo ~/.dotfiles/etc/install.sh
 
-`bootstrap.sh` stows the package into `$HOME`. Both it and
-`get_packages.sh` are idempotent, so re-running either after a
-pull is safe.
+`bootstrap.sh` stows the package into `$HOME`, then stows a
+private companion repo on top when one is cloned to
+`~/.dotfiles-priv`. Both it and `get_packages.sh` are idempotent,
+so re-running either after a pull is safe.
 
 `etc/install.sh` is the one step that needs root, and the only
 part of the repo that is not stowed: it installs the greeter's
