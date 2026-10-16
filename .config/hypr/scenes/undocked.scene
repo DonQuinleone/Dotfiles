@@ -6,6 +6,7 @@
 #   order   <sort position, lower comes first, default 50>
 #   needs   <role>...   monitors that must be connected
 #   include <scene>     pull in another scene's slots
+#   optional <scene>    the same, skipped when that scene is absent
 #   bar     <role> on|off
 #   orient  <role> <slot> left|right    which side master sits
 #   slot    <role> <slot> web <url>     chromeless browser window

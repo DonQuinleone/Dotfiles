@@ -4,5 +4,5 @@ name    Docked
 order   10
 needs   upper lower
 
-include monitoring
+optional monitoring
 include comms

@@ -160,6 +160,12 @@ place() {
     move_window "$workspace" "$(address_of "$new")"
 }
 
+optional_into() {
+    local file=$SCENES/$1$SUFFIX
+    [ -r "$file" ] || return 0
+    parse_into "$file"
+}
+
 parse_into() {
     local file=$1 directive rest
     if printf '%s\n' "${visited[@]:-}" | grep -Fxq -- "$file"; then
@@ -171,6 +177,7 @@ parse_into() {
             '' | \#*) ;;
             name | order | needs) ;;
             include) parse_into "$(path_for "$rest")" ;;
+            optional) optional_into "$rest" ;;
             bar) bars+=("$rest") ;;
             orient) orients+=("$rest") ;;
             slot) slots+=("$rest") ;;
