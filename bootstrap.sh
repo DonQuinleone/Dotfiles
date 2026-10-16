@@ -26,10 +26,16 @@ install -d -m 700 "$HOME/.local/share/gnupg"
 # there afterwards, rendered themes among them, lands in git.
 # Restowing only tidies folders the package still has, so a link
 # left by a file whose whole folder has gone would block the stow.
+# Podman's storage is unreadable to its owner, and an unreadable
+# folder elsewhere only means a dead link may survive.
 find "$HOME" -xdev -path "$HOME/.local/share/containers" -prune \
-    -o -xtype l -lname '*.dotfiles*' -print -exec rm -- {} +
+    -o -xtype l \( -lname '.dotfiles/*' -o -lname '*/.dotfiles/*' \
+    -o -lname '.dotfiles-priv/*' -o -lname '*/.dotfiles-priv/*' \) \
+    -print -exec rm -- {} + ||
+    printf 'bootstrap: some dead links may remain\n' >&2
 
 stow --dir "$REPO" --target "$HOME" --restow --no-folding --verbose .
 
 [ -d "$PRIVATE_REPO" ] || exit 0
-stow --dir "$PRIVATE_REPO" --target "$HOME" --restow --no-folding --verbose .
+stow --dir "$PRIVATE_REPO" --target "$HOME" \
+    --restow --no-folding --verbose .
