@@ -108,7 +108,6 @@
     "podman",
     "power-profiles-daemon",
     "python3-pip",
-    "python3-pycryptodomex",
     "qt5-qtwayland",
     "qt6-qtimageformats",
     "qt6ct",
