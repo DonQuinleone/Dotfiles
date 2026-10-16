@@ -24,6 +24,11 @@ install -d -m 700 "$HOME/.local/share/gnupg"
 # Without --no-folding, stow turns a directory holding only
 # stowed files into a link to the repo, and anything written
 # there afterwards, rendered themes among them, lands in git.
+# Restowing only tidies folders the package still has, so a link
+# left by a file whose whole folder has gone would block the stow.
+find "$HOME" -xdev -path "$HOME/.local/share/containers" -prune \
+    -o -xtype l -lname '*.dotfiles*' -print -exec rm -- {} +
+
 stow --dir "$REPO" --target "$HOME" --restow --no-folding --verbose .
 
 [ -d "$PRIVATE_REPO" ] || exit 0
