@@ -38,6 +38,10 @@ local MONITORS = {
     },
 }
 
+local function first_workspace(index)
+    return (index - 1) * RUN_STRIDE + 1
+end
+
 hl.monitor({
     output = "",
     mode = "preferred",
@@ -74,7 +78,7 @@ local function apply(joining, leaving)
     local here = present(joining, leaving)
     for index, monitor in ipairs(MONITORS) do
         local connected = here[monitor.description] == true
-        local first = (index - 1) * RUN_STRIDE + 1
+        local first = first_workspace(index)
         for offset = 0, WORKSPACES_PER_MONITOR - 1 do
             hl.workspace_rule({
                 workspace = tostring(first + offset),
@@ -88,7 +92,9 @@ end
 
 apply()
 
-local monitors = {}
+local monitors = {
+    WORKSPACES_PER_MONITOR = WORKSPACES_PER_MONITOR,
+}
 
 function monitors.workspace_for(slot)
     local focused
@@ -99,7 +105,7 @@ function monitors.workspace_for(slot)
     end
     for index, monitor in ipairs(MONITORS) do
         if monitor.description == focused then
-            return tostring((index - 1) * RUN_STRIDE + slot)
+            return tostring(first_workspace(index) + slot - 1)
         end
     end
     return "r~" .. slot
@@ -113,7 +119,7 @@ local function publish_runs()
     for index, monitor in ipairs(MONITORS) do
         file:write(monitor.role, "\t",
             monitor.description, "\t",
-            tostring((index - 1) * RUN_STRIDE + 1), "\t",
+            tostring(first_workspace(index)), "\t",
             tostring(WORKSPACES_PER_MONITOR), "\n")
     end
     file:close()

@@ -5,7 +5,6 @@ local layouts = require("layouts")
 local state = require("state")
 
 local RESIZE_STEP = 60
-local WORKSPACES_PER_MONITOR = 9
 
 local held = { repeating = true }
 local locked = { locked = true }
@@ -162,7 +161,7 @@ local rows = {
     { "SUPER + SHIFT",        "mouse:272",             window.resize(),                       mouse,  "Resize window"          },
 }
 
-for index = 1, WORKSPACES_PER_MONITOR do
+for index = 1, monitors.WORKSPACES_PER_MONITOR do
     table.insert(rows, { "SUPER", index, function()
         hl.dispatch(focus({
             workspace = monitors.workspace_for(index),
