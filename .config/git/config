@@ -1,7 +1,5 @@
-[user]
-	name = DonQuinleone
-	email = work@example.com
-	signingKey = F7CF4AF67EC68F7E
+[include]
+	path = private.inc
 [commit]
 	gpgSign = true
 [tag]
@@ -14,9 +12,6 @@
 	defaultBranch = master
 [push]
 	autoSetupRemote = true
-
-[includeIf "hasconfig:remote.*.url:ssh://git@forge.example.com:*/**"]
-	path = example.inc
 
 [includeIf "gitdir:~/.dotfiles/"]
 	path = personal.inc
