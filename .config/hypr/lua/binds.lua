@@ -33,15 +33,10 @@ local LLM        = terminal("claude --dangerously-skip-permissions")
 local PICKER     = "rofi -show drun"
 local BINDS      = terminal(
     "nvim ~/.dotfiles/.config/hypr/lua/binds.lua", "-o font_size=16")
-local JUMPBOX    = terminal("jumpbox")
 local BLUETOOTH  = terminal("bluetoothctl")
 
 local BAR_TOGGLE = "bar toggle"
 local BAR_TOGGLE_ALL = "bar all"
-
-local BASTION    = "op item get ITEM_ID"
-.. " --reveal --fields password | wl-copy --sensitive"
-.. " && wtype -M ctrl -M shift -k v -m shift -m ctrl"
 
 local SLACK_MUTE = {
     mods = "CTRL SHIFT",
@@ -75,9 +70,6 @@ local rows = {
     { "SUPER",                "i",                     run(LLM),                                      "Open Claude Code"       },
     { "SUPER",                "s",                     run("flatpak run com.slack.Slack"),            "Open Slack"             },
     { "SUPER",                "t",                     run("ts3"),                                    "Open TeamSpeak 3"       },
-    { "SUPER",                "o",                     run("cpanel-sso"),                             "Open cPanel SSO"        },
-    { "SUPER + SHIFT",        "o",                     run(JUMPBOX),                                  "Open jumpbox"           },
-    { "SUPER + CTRL",         "o",                     run(BASTION),                                  "Paste Bastion password" },
     { "SUPER",                "a",                     run(ACTIVITY),                                 "Open activity monitor"  },
     { "SUPER",                "v",                     run("clipboard-history"),                      "Open clipboard history" },
     { "SUPER",                "y",                     run("flatpak run com.yubico.yubioath"),        "Open Yubikey Auth"      },
@@ -166,6 +158,17 @@ for index = 1, monitors.WORKSPACES_PER_MONITOR do
         layouts.send_to_workspace(
             monitors.workspace_for(index))()
     end, "Send window to workspace " .. index })
+end
+
+local function private_rows()
+    if package.searchpath("private", package.path) == nil then
+        return {}
+    end
+    return require("private")({ run = run, terminal = terminal })
+end
+
+for _, row in ipairs(private_rows()) do
+    table.insert(rows, row)
 end
 
 local function combination(mods, key)
