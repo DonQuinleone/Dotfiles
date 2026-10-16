@@ -2,10 +2,8 @@
 
 I am a systems engineer.
 
-The full rules live in `rules/`: `git.md`, `shell.md`,
-`style.md`, `writing.md`, `docs-images.md`, `sourcehut.md`,
-`tracker.md`, `desktop.md`, `workflow.md`. Read the ones bearing
-on the work before starting it.
+The full rules live in `rules/`, one file per topic. Read the
+ones bearing on the work before starting it.
 
 These apply to every turn:
 
