@@ -160,16 +160,15 @@ for index = 1, monitors.WORKSPACES_PER_MONITOR do
     end, "Send window to workspace " .. index })
 end
 
-local PRIVATE_BINDS = debug.getinfo(1, "S").source:sub(2):match("(.*)/")
-    .. "/private.lua"
+-- hyprland.lua puts this config's own module folder first.
+local OWN_MODULES = package.path:match("^[^;]+")
 
 local function private_rows()
-    local file = io.open(PRIVATE_BINDS)
-    if file == nil then
+    local path = package.searchpath("private", OWN_MODULES)
+    if path == nil then
         return {}
     end
-    file:close()
-    return dofile(PRIVATE_BINDS)({ run = run, terminal = terminal })
+    return dofile(path)({ run = run, terminal = terminal })
 end
 
 for _, row in ipairs(private_rows()) do
