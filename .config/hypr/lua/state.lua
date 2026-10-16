@@ -1,6 +1,8 @@
 local state = {}
 
-state.root = os.getenv("XDG_STATE_HOME")
+local configured = os.getenv("XDG_STATE_HOME") or ""
+
+state.root = configured ~= "" and configured
     or (os.getenv("HOME") .. "/.local/state")
 
 function state.writer(relative)
