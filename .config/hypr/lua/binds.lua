@@ -27,12 +27,10 @@ local function terminal(command, options)
     return line .. " tmux-run " .. command
 end
 
-local FILES      = terminal("yazi")
 local BROWSER    = "firefox"
 local ACTIVITY   = terminal("btop", "-o font_size=20")
 local LLM        = terminal("claude --dangerously-skip-permissions")
 local PICKER     = "rofi -show drun"
-local AGENDA     = terminal("writ --screen tasks")
 local BINDS      = terminal(
     "nvim ~/.dotfiles/.config/hypr/lua/binds.lua", "-o font_size=16")
 local JUMPBOX    = terminal("jumpbox")
@@ -75,12 +73,9 @@ local rows = {
     { "SUPER",                "space",                 run(PICKER),                                   "Open launcher"          },
     { "SUPER",                "b",                     run(BROWSER),                                  "Open browser"           },
     { "SUPER",                "i",                     run(LLM),                                      "Open Claude Code"       },
-    { "SUPER",                "f",                     run(FILES),                                    "Open file manager"      },
     { "SUPER",                "s",                     run("flatpak run com.slack.Slack"),            "Open Slack"             },
     { "SUPER",                "t",                     run("teamspeak3"),                             "Open TeamSpeak 3"       },
     { "SUPER",                "o",                     run("cpanel-sso"),                             "Open cPanel SSO"        },
-    { "SUPER + SHIFT",        "a",                     run(AGENDA),                                   "Open agenda"            },
-    { "SUPER + SHIFT",        "i",                     run("writ-capture"),                           "Capture a to-do"        },
     { "SUPER + SHIFT",        "o",                     run(JUMPBOX),                                  "Open jumpbox"           },
     { "SUPER + CTRL",         "o",                     run(BASTION),                                  "Paste Bastion password" },
     { "SUPER",                "a",                     run(ACTIVITY),                                 "Open activity monitor"  },
