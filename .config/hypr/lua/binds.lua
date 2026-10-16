@@ -160,11 +160,16 @@ for index = 1, monitors.WORKSPACES_PER_MONITOR do
     end, "Send window to workspace " .. index })
 end
 
+local PRIVATE_BINDS = debug.getinfo(1, "S").source:sub(2):match("(.*)/")
+    .. "/private.lua"
+
 local function private_rows()
-    if package.searchpath("private", package.path) == nil then
+    local file = io.open(PRIVATE_BINDS)
+    if file == nil then
         return {}
     end
-    return require("private")({ run = run, terminal = terminal })
+    file:close()
+    return dofile(PRIVATE_BINDS)({ run = run, terminal = terminal })
 end
 
 for _, row in ipairs(private_rows()) do
