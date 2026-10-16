@@ -42,7 +42,7 @@ local BAR_TOGGLE = "bar toggle"
 local BAR_TOGGLE_ALL = "bar all"
 
 local BASTION    = "op item get ITEM_ID"
-.. " --reveal --fields password | wl-copy"
+.. " --reveal --fields password | wl-copy --sensitive"
 .. " && wtype -M ctrl -M shift -k v -m shift -m ctrl"
 
 local SLACK_MUTE = {
