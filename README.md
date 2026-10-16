@@ -10,6 +10,8 @@ package manifest the machine is built from.
 Fedora 44 and GNU Stow.
 
     git clone git@github.com:DonQuinleone/Dotfiles.git ~/.dotfiles
+    git clone git@github.com:DonQuinleone/Dotfiles-Priv.git \
+      ~/.dotfiles-priv
     ~/.dotfiles/get_packages.sh
     ~/.dotfiles/bootstrap.sh
     theme set ember
