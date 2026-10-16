@@ -8,7 +8,6 @@ declare -rA SIGNALS=(
     [record]=1
     [dnd]=2
     [caffeine]=3
-    [dictate]=4
 )
 
 usage() {

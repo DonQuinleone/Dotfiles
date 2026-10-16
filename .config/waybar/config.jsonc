@@ -8,7 +8,7 @@
         "custom/caffeine#left", "clock", "custom/caffeine#right"
     ],
     "modules-right": [
-        "custom/dictate", "custom/record", "tray",
+        "custom/record", "tray",
         "custom/dnd", "custom/tailscale", "battery"
     ],
 
@@ -58,14 +58,6 @@
         "interval": "once",
         "signal": 3,
         "on-click": "caffeinate toggle"
-    },
-
-    "custom/dictate": {
-        "exec": "dictate waybar",
-        "return-type": "json",
-        "interval": "once",
-        "signal": 4,
-        "on-click": "dictate toggle"
     },
 
     "custom/record": {

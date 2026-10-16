@@ -128,7 +128,6 @@ local rows = {
     { "SUPER + CTRL + SHIFT", "p",                     run("screenshot save-region"),                 "Save region"            },
     { "SUPER + ALT",          "p",                     run("screenshot annotate"),                    "Annotate region"        },
     { "SUPER + ALT",          "r",                     run("record"),                                 "Toggle recording"       },
-    { "SUPER",                "d",                     run("dictate toggle"),                         "Toggle dictation"       },
 
     { "",                     "Print",                 run("screenshot copy-region"),                 "Copy region"            },
     { "SHIFT",                "Print",                 run("screenshot copy-screen"),                 "Copy screen"            },
