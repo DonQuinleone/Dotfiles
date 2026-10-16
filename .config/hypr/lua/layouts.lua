@@ -1,7 +1,5 @@
 local actions = require("actions")
 
-local FLOAT_RULE_PREFIX = "float-workspace-"
-
 local modes = {
     { name = "master", tiled = "master",
       label = "Master stack" },
@@ -22,30 +20,6 @@ for index, mode in ipairs(modes) do
 end
 
 local chosen = {}
-local float_rules = {}
-
-local function float_rule(workspace)
-    if not float_rules[workspace] then
-        float_rules[workspace] = hl.window_rule({
-            name = FLOAT_RULE_PREFIX .. workspace,
-            match = { workspace = workspace },
-            float = true,
-            enabled = false,
-        })
-    end
-    return float_rules[workspace]
-end
-
-local function float_windows(workspace, floating)
-    float_rule(workspace):set_enabled(floating)
-    local action = floating and "enable" or "disable"
-    for _, window in ipairs(hl.get_workspace_windows(workspace)) do
-        hl.dispatch(hl.dsp.window.float({
-            action = action,
-            window = window,
-        }))
-    end
-end
 
 local function selector(window)
     return "address:" .. window.address
@@ -107,7 +81,6 @@ local function apply(workspace, mode)
         workspace = workspace,
         layout = mode.tiled,
     })
-    float_windows(workspace, mode.floats == true)
     stack_windows(workspace, mode.stacked == true)
     chosen[workspace] = mode.name
     actions.notify("Layout: " .. mode.label)
