@@ -2,7 +2,7 @@
 set -euo pipefail
 
 readonly STATE="${XDG_STATE_HOME:-$HOME/.local/state}/theme"
-readonly WALLS="${XDG_PICTURES_DIR:-$HOME/Pictures}/walls"
+readonly WALLS="${XDG_PICTURES_DIR:-$HOME/pictures}/walls"
 readonly CHOSEN="${STATE}/wallpaper"
 readonly THUMBNAIL_THEME='
 listview { lines: 3; columns: 4; spacing: 10px; }

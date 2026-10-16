@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-readonly SAVE_DIR="${XDG_PICTURES_DIR:-$HOME/Pictures}/screenshots"
+readonly SAVE_DIR="${XDG_PICTURES_DIR:-$HOME/pictures}/screenshots"
 readonly APP=screenshot
 
 stamp() {
