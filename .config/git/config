@@ -20,5 +20,7 @@
 
 [includeIf "gitdir:~/.dotfiles/"]
 	path = personal.inc
+[includeIf "gitdir:~/.dotfiles-priv/"]
+	path = personal.inc
 [includeIf "gitdir:~/repos/personal/"]
 	path = personal.inc
