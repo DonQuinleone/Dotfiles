@@ -44,6 +44,8 @@ local SLACK_MUTE = {
     window = "class:^(com\\.slack\\.Slack)$",
 }
 
+local PRIVATE_ROWS = {}
+
 local rows = {
     { "SUPER",                "h",                     focus({ direction = "left" }),                 "Focus left"             },
     { "SUPER",                "j",                     actions.focus_step("down"),                    "Focus down"             },
@@ -70,6 +72,7 @@ local rows = {
     { "SUPER",                "i",                     run(LLM),                                      "Open Claude Code"       },
     { "SUPER",                "s",                     run("flatpak run com.slack.Slack"),            "Open Slack"             },
     { "SUPER",                "t",                     run("ts3"),                                    "Open TeamSpeak 3"       },
+    PRIVATE_ROWS,
     { "SUPER",                "a",                     run(ACTIVITY),                                 "Open activity monitor"  },
     { "SUPER",                "v",                     run("clipboard-history"),                      "Open clipboard history" },
     { "SUPER",                "y",                     run("flatpak run com.yubico.yubioath"),        "Open Yubikey Auth"      },
@@ -171,9 +174,20 @@ local function private_rows()
     return dofile(path)({ run = run, terminal = terminal })
 end
 
-for _, row in ipairs(private_rows()) do
-    table.insert(rows, row)
+local function expand(row)
+    if row ~= PRIVATE_ROWS then
+        return { row }
+    end
+    return private_rows()
 end
+
+local bound = {}
+for _, row in ipairs(rows) do
+    for _, entry in ipairs(expand(row)) do
+        table.insert(bound, entry)
+    end
+end
+rows = bound
 
 local function combination(mods, key)
     if mods == nil or mods == "" then
