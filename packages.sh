@@ -31,11 +31,19 @@ readonly OPT_VERSION_STAMP=.version
 
 # Endpoint and remote-management agents are mandated on this
 # machine and are not the manifest's to remove.
-readonly PACKAGES_CONFIG=${XDG_CONFIG_HOME:-$HOME/.config}/packages
-readonly PROTECTED_AGENTS_FILE=${PACKAGES_CONFIG}/protected-agents
+# The private repo's copy covers a first run, before bootstrap.sh
+# has stowed it.
+readonly PROTECTED_AGENTS_FILES=(
+    "${XDG_CONFIG_HOME:-$HOME/.config}/packages/protected-agents"
+    "${HOME}/.dotfiles-priv/.config/packages/protected-agents"
+)
 PROTECTED_AGENTS=()
-[[ -r "${PROTECTED_AGENTS_FILE}" ]] &&
-    mapfile -t PROTECTED_AGENTS <"${PROTECTED_AGENTS_FILE}"
+for agents_file in "${PROTECTED_AGENTS_FILES[@]}"; do
+    [[ -r "${agents_file}" ]] || continue
+    mapfile -t PROTECTED_AGENTS <"${agents_file}"
+    break
+done
+unset agents_file
 readonly PROTECTED_AGENTS
 
 manifest_require() {

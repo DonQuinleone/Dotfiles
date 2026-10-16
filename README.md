@@ -17,8 +17,9 @@ Fedora 44 and GNU Stow.
 
 `bootstrap.sh` stows the package into `$HOME`, then stows a
 private companion repo on top when one is cloned to
-`~/.dotfiles-priv`. Both it and `get_packages.sh` are idempotent,
-so re-running either after a pull is safe.
+`~/.dotfiles-priv`. Clone that first, since `get_packages.sh`
+reads the packages it must never remove from it. Both scripts
+are idempotent, so re-running either after a pull is safe.
 
 `etc/install.sh` is the one step that needs root, and the only
 part of the repo that is not stowed: it installs the greeter's
