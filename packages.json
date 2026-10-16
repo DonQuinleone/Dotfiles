@@ -86,7 +86,6 @@
     "luajit",
     "mako",
     "most",
-    "mpv",
     "msmtp",
     "ncdu",
     "neovim",
@@ -195,30 +194,6 @@
       "image/qoi",
       "image/x-farbfeld",
       "image/svg+xml"
-    ],
-    "mpv.desktop": [
-      "audio/aac",
-      "audio/flac",
-      "audio/mp4",
-      "audio/mpeg",
-      "audio/ogg",
-      "audio/opus",
-      "audio/wav",
-      "audio/webm",
-      "audio/x-m4a",
-      "audio/x-matroska",
-      "audio/x-ms-wma",
-      "audio/x-vorbis+ogg",
-      "audio/x-wav",
-      "video/3gpp",
-      "video/mp4",
-      "video/mpeg",
-      "video/ogg",
-      "video/quicktime",
-      "video/webm",
-      "video/x-flv",
-      "video/x-matroska",
-      "video/x-msvideo"
     ]
   }
 }
