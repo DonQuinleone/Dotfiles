@@ -8,5 +8,6 @@ get_packages\.sh
 opt\.sh
 packages\.json
 packages\.sh
+private\.sh
 etc
 ^/\.envrc

@@ -35,7 +35,7 @@ readonly OPT_VERSION_STAMP=.version
 # has stowed it.
 readonly PROTECTED_AGENTS_FILES=(
     "${XDG_CONFIG_HOME:-$HOME/.config}/packages/protected-agents"
-    "${HOME}/.dotfiles-priv/.config/packages/protected-agents"
+    "${PRIVATE_REPO}/.config/packages/protected-agents"
 )
 PROTECTED_AGENTS=()
 for agents_file in "${PROTECTED_AGENTS_FILES[@]}"; do

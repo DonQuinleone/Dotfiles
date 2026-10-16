@@ -3,7 +3,8 @@ set -euo pipefail
 
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 STOW_DIR="$(dirname "$REPO")"
-PRIVATE="$HOME/.dotfiles-priv"
+# shellcheck source=private.sh
+source "$REPO/private.sh"
 
 die() {
     printf 'bootstrap: %s\n' "$1" >&2
@@ -25,5 +26,5 @@ install -d -m 700 "$HOME/.local/share/gnupg"
 # there afterwards, rendered themes among them, lands in git.
 stow --dir "$REPO" --target "$HOME" --restow --no-folding --verbose .
 
-[ -d "$PRIVATE" ] || exit 0
-stow --dir "$PRIVATE" --target "$HOME" --restow --no-folding --verbose .
+[ -d "$PRIVATE_REPO" ] || exit 0
+stow --dir "$PRIVATE_REPO" --target "$HOME" --restow --no-folding --verbose .
