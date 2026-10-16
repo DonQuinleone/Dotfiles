@@ -31,7 +31,12 @@ readonly OPT_VERSION_STAMP=.version
 
 # Endpoint and remote-management agents are mandated on this
 # machine and are not the manifest's to remove.
-readonly PROTECTED_AGENTS=(endpoint-agent rmm-agent)
+readonly PACKAGES_CONFIG=${XDG_CONFIG_HOME:-$HOME/.config}/packages
+readonly PROTECTED_AGENTS_FILE=${PACKAGES_CONFIG}/protected-agents
+PROTECTED_AGENTS=()
+[[ -r "${PROTECTED_AGENTS_FILE}" ]] &&
+    mapfile -t PROTECTED_AGENTS <"${PROTECTED_AGENTS_FILE}"
+readonly PROTECTED_AGENTS
 
 manifest_require() {
     command -v jq >/dev/null 2>&1 ||
