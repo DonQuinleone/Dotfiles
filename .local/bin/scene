@@ -20,8 +20,13 @@ usage() {
     exit 2
 }
 
+scene_path() {
+    printf '%s\n' "$SCENES/$1$SUFFIX"
+}
+
 path_for() {
-    local file=$SCENES/$1$SUFFIX
+    local file
+    file=$(scene_path "$1")
     [ -r "$file" ] || die "no scene called $1"
     printf '%s\n' "$file"
 }
@@ -161,7 +166,8 @@ place() {
 }
 
 optional_into() {
-    local file=$SCENES/$1$SUFFIX
+    local file
+    file=$(scene_path "$1")
     [ -r "$file" ] || return 0
     parse_into "$file"
 }
