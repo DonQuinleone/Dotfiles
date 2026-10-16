@@ -1,17 +1,11 @@
-local COMMANDS = {
-    "sh -c 'systemctl --user import-environment WAYLAND_DISPLAY"
-        .. " DISPLAY HYPRLAND_INSTANCE_SIGNATURE"
-        .. " XDG_CURRENT_DESKTOP XDG_SESSION_TYPE"
-        .. " && systemctl --user reset-failed"
-        .. " && systemctl --user start desktop-session.target'",
-    "gsettings set org.gnome.desktop.interface "
-        .. "toolkit-accessibility true",
-}
+local SESSION_START = "sh -c 'systemctl --user import-environment"
+    .. " WAYLAND_DISPLAY DISPLAY HYPRLAND_INSTANCE_SIGNATURE"
+    .. " XDG_CURRENT_DESKTOP XDG_SESSION_TYPE"
+    .. " && systemctl --user reset-failed"
+    .. " && systemctl --user start desktop-session.target'"
 
 hl.on("hyprland.start", function()
-    for _, command in ipairs(COMMANDS) do
-        hl.exec_cmd(command)
-    end
+    hl.exec_cmd(SESSION_START)
 end)
 
 hl.on("hyprland.shutdown", function()

@@ -23,9 +23,6 @@ local envs = {
     { "GNUPGHOME", home .. "/.local/share/gnupg" },
     { "CLAUDE_CONFIG_DIR", home .. "/.local/share/claude" },
     { "NPM_CONFIG_CACHE", home .. "/.cache/npm" },
-    { "QT_ACCESSIBILITY", "1" },
-    { "QT_LINUX_ACCESSIBILITY_ALWAYS_ON", "1" },
-    { "GNOME_ACCESSIBILITY", "1" },
 }
 
 for _, variable in ipairs(envs) do
