@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+usage() {
+    printf 'usage: %s TIME COMMAND [ARG...]\n' "${0##*/}" >&2
+    printf "  e.g. %s 03:53 notify-send hi\n" "${0##*/}" >&2
+    printf "       %s 'now + 20 minutes' sh -c 'a | b'\n" \
+        "${0##*/}" >&2
+    exit 2
+}
+
+die() {
+    printf 'later: %s\n' "$1" >&2
+    exit 1
+}
+
+[ "$#" -ge 2 ] || usage
+
+when=$(date -d "$1" +%s 2>/dev/null) || die "cannot read the time '$1'"
+[ "$when" -gt "$(date +%s)" ] \
+    || die "$(date -d "@$when" '+%F %T') has passed; try 'tomorrow $1'"
+shift
+
+exec systemd-run --user --collect \
+    --on-calendar="$(date -d "@$when" '+%F %T')" \
+    --timer-property=AccuracySec=1s \
+    -- "$@"
