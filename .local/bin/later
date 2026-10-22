@@ -21,7 +21,7 @@ when=$(date -d "$1" +%s 2>/dev/null) || die "cannot read the time '$1'"
     || die "$(date -d "@$when" '+%F %T') has passed; try 'tomorrow $1'"
 shift
 
-exec systemd-run --user --collect \
-    --on-calendar="$(date -d "@$when" '+%F %T')" \
+exec systemd-run --user --collect --same-dir \
+    --on-calendar="$(date -u -d "@$when" '+%F %T UTC')" \
     --timer-property=AccuracySec=1s \
     -- "$@"
