@@ -7,13 +7,9 @@ export PAGER=most
 export GNUPGHOME="$XDG_DATA_HOME/gnupg"
 export NPM_CONFIG_CACHE="$XDG_CACHE_HOME/npm"
 
-# gpg-agent serves SSH too, and a terminal started by the
-# compositor never sees ~/.config/environment.d. The socket
-# path derives from GNUPGHOME, so that has to be set first.
-if command -v gpgconf >/dev/null 2>&1; then
-    SSH_AUTH_SOCK="$(gpgconf --list-dirs agent-ssh-socket)"
-    export SSH_AUTH_SOCK
-fi
+# A terminal started by the compositor never sees
+# ~/.config/environment.d.
+export SSH_AUTH_SOCK="$XDG_RUNTIME_DIR/ssh-agent.socket"
 
 export GOPATH="$XDG_DATA_HOME/go"
 export PATH="$GOPATH/bin:$PATH:$HOME/.local/bin"

@@ -21,6 +21,8 @@ local envs = {
     { "QT_WAYLAND_DISABLE_WINDOWDECORATION", "1" },
     { "MOZ_DISABLE_LANGPACKS", "1" },
     { "GNUPGHOME", home .. "/.local/share/gnupg" },
+    { "SSH_AUTH_SOCK",
+        os.getenv("XDG_RUNTIME_DIR") .. "/ssh-agent.socket" },
     { "CLAUDE_CONFIG_DIR", home .. "/.local/share/claude" },
     { "NPM_CONFIG_CACHE", home .. "/.cache/npm" },
 }
