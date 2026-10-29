@@ -20,4 +20,8 @@
 [includeIf "gitdir:~/repos/personal/"]
 	path = personal.inc
 [alias]
-	gone = !git branch -vv | awk \"/: gone]/{print \\$1}\" | xargs git branch -d
+	# usage: git fetch --prune && git gone
+	# Deletes local branches whose upstream was removed; -d keeps
+	# any with unmerged work, so remove those with git branch -D.
+	gone = !git branch -vv | awk \"/: gone]/{print \\$1}\" \
+		| xargs git branch -d
