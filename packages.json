@@ -137,8 +137,8 @@
     "clickup": {
       "format": "appimage",
       "url": "https://desktop.clickup.com/linux",
-      "version": "3.5.262",
-      "sha256": "f2cb66101a6f53be4948c0590a370e6cb9ddabee756ea4d86f43cad58ca9b9d7",
+      "version": "3.5.402",
+      "sha256": "baa1fbf68da593dba1056cf1402addb8de3090faf2af8b3eeb0201785941674d",
       "flags": [
         "--ozone-platform-hint=auto",
         "--enable-wayland-ime"
