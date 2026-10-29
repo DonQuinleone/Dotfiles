@@ -171,9 +171,18 @@ repo_render() {
         --arg key "${REPO_EXPIRY_KEY}" \
         --arg expiry "${REPO_EXPIRY_VALUE}" '
         "[" + $name + "]",
-        (.repos[$name] | to_entries[] | "\(.key)=\(.value)"),
+        (.repos[$name] | del(.managed) | to_entries[]
+            | "\(.key)=\(.value)"),
         ($key + "=" + $expiry)
     ' "${MANIFEST}"
+}
+
+# A package that rewrites its own repo file on every upgrade owns
+# it once installed; marked unmanaged, the manifest only seeds it
+# so the package can be installed in the first place.
+repo_managed() {
+    jq -e --arg name "$1" '.repos[$name].managed != false' \
+        "${MANIFEST}" >/dev/null
 }
 
 package_installed() {

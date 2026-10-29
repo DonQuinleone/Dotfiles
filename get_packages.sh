@@ -120,11 +120,16 @@ plan_repos() {
     local name path
     while read -r name; do
         path=/etc/yum.repos.d/${name}.repo
-        [[ -f "${path}" ]] &&
-            [[ "$(cat "${path}")" == "$(repo_render "${name}")" ]] &&
-            continue
+        repo_in_sync "${name}" "${path}" && continue
         REPO_WRITE+=("${name}")
     done < <(repo_names)
+}
+
+repo_in_sync() {
+    local name=$1 path=$2
+    [[ -f "${path}" ]] || return 1
+    repo_managed "${name}" || return 0
+    [[ "$(cat "${path}")" == "$(repo_render "${name}")" ]]
 }
 
 plan_coprs() {
