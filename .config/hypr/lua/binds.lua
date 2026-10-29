@@ -72,6 +72,7 @@ local rows = {
     { "SUPER",                "i",                     run(LLM),                                      "Open Claude Code"       },
     { "SUPER",                "s",                     run("flatpak run com.slack.Slack"),            "Open Slack"             },
     { "SUPER",                "t",                     run("ts3"),                                    "Open TeamSpeak 3"       },
+    { "SUPER",                "u",                     run("clickup"),                                "Open ClickUp"           },
     PRIVATE_ROWS,
     { "SUPER",                "a",                     run(ACTIVITY),                                 "Open activity monitor"  },
     { "SUPER",                "v",                     run("clipboard-history"),                      "Open clipboard history" },
