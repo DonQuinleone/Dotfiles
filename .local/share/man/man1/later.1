@@ -1,0 +1,132 @@
+.TH LATER 1 2026-10-30 dotfiles
+.ds AD l
+.ad l
+.ss 12 0
+.SH NAME
+later \- run a command once at a given time
+.SH SYNOPSIS
+.B later
+.RB [ \-\- ]
+.I time command
+.RI [ arg ]...
+.br
+.B later \-l
+.br
+.BI "later \-c " id
+.br
+.B later \-h
+.SH DESCRIPTION
+.B later
+runs
+.I command
+with its
+.I arg
+operands once at
+.IR time ,
+as a transient systemd user timer,
+and prints the job's
+.I id
+(six hexadecimal digits)
+and the time it will run.
+.PP
+.I time
+is any date string that
+.BR date (1)
+accepts, given as one argument,
+so it must be quoted when it contains spaces.
+It must lie in the future.
+For example:
+.TP 20
+.B 09:00
+today at 09:00
+.TP
+.B "\[aq]tomorrow 09:00\[aq]"
+tomorrow at 09:00
+.TP
+.B "\[aq]fri 09:00\[aq]"
+the coming Friday, or today on a Friday
+.TP
+.B "\[aq]next fri 09:00\[aq]"
+the same, but a week later on a Friday
+.TP
+.B "\[aq]2026\-11\-03 14:30\[aq]"
+3 November 2026 at 14:30
+.TP
+.B "\[aq]nov 3 14:30\[aq]"
+the same;
+.B "\[aq]3 nov 14:30\[aq]"
+is not accepted
+.TP
+.B "\[aq]now + 20 minutes\[aq]"
+20 minutes from now
+.PP
+.I command
+runs in the current directory,
+with the environment of the systemd user manager
+rather than that of the calling shell.
+Its standard output and standard error go to the user journal.
+.PP
+Each job is the systemd unit
+.BI later\- id\c
+\&.
+A job that falls due while the system is suspended
+runs when the system resumes.
+Queued jobs do not survive a reboot.
+.SH OPTIONS
+.TP
+.BR \-l ", " \-\-list
+List queued jobs, soonest first:
+the
+.IR id ,
+the time each will run, and its command.
+The headings are underlined when standard output is a terminal.
+Print nothing when no job is queued.
+A job whose command is running is no longer queued.
+.TP
+.BR \-c ", " \-\-cancel =\c
+.I id
+Cancel the queued job
+.IR id .
+.TP
+.BR \-h ", " \-\-help
+Display a summary of usage and exit.
+.TP
+.B \-\-
+End the options;
+the next argument is
+.I time
+even if it begins with a hyphen.
+.SH EXIT STATUS
+.TP
+.B 0
+The job was scheduled, listed or cancelled.
+.TP
+.B 1
+.I time
+could not be read or has passed,
+no job
+.I id
+is queued,
+or systemd failed.
+.TP
+.B 2
+The command line is invalid.
+.SH EXAMPLES
+Send a reminder at nine tomorrow morning:
+.PP
+.EX
+later \[aq]tomorrow 09:00\[aq] notify\-send standup
+.EE
+.PP
+Run a pipeline in twenty minutes as job 4f2a9c,
+then read its output once it has run:
+.PP
+.EX
+later \[aq]now + 20 minutes\[aq] sh \-c \[aq]make 2>&1 | tail \-n 1\[aq]
+journalctl \-\-user \-u later\-4f2a9c
+.EE
+.SH SEE ALSO
+.BR date (1),
+.BR journalctl (1),
+.BR systemd\-run (1),
+.BR systemd.timer (5)

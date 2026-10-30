@@ -1,27 +1,203 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+readonly UNIT_PREFIX="later-"
+readonly ID_LENGTH=6
+readonly ID_PATTERN="^[0-9a-f]+$"
+readonly TIMER_ACCURACY=1s
+readonly TIME_FORMAT='%a %F %T %Z'
+readonly WHEN_WIDTH=27
+readonly UNSCHEDULED=-
+readonly SHORT_OPTIONS=+lc:h
+readonly LONG_OPTIONS=list,cancel:,help
+
+underline=""
+reset=""
+if [ -t 1 ]; then
+    underline=$'\e[4m'
+    reset=$'\e[0m'
+fi
+readonly underline reset
+
 usage() {
-    printf 'usage: %s TIME COMMAND [ARG...]\n' "${0##*/}" >&2
-    printf "  e.g. %s 03:53 notify-send hi\n" "${0##*/}" >&2
-    printf "       %s 'now + 20 minutes' sh -c 'a | b'\n" \
-        "${0##*/}" >&2
-    exit 2
+    cat <<EOF
+Usage: later [--] TIME COMMAND [ARG]...
+  or:  later OPTION
+Run COMMAND once at TIME as a systemd user timer.
+
+  -l, --list         list queued jobs, soonest first
+  -c, --cancel=ID    cancel the queued job ID
+  -h, --help         display this help and exit
+
+See later(1) for TIME formats, examples and exit status.
+EOF
+}
+
+complain() {
+    printf 'later: %s\n' "$1" >&2
 }
 
 die() {
-    printf 'later: %s\n' "$1" >&2
+    complain "$1"
     exit 1
 }
 
-[ "$#" -ge 2 ] || usage
+suggest_help() {
+    printf "Try 'later --help' for more information.\n" >&2
+    exit 2
+}
 
-when=$(date -d "$1" +%s 2>/dev/null) || die "cannot read the time '$1'"
-[ "$when" -gt "$(date +%s)" ] \
-    || die "$(date -d "@$when" '+%F %T') has passed; try 'tomorrow $1'"
+usage_error() {
+    complain "$1"
+    suggest_help
+}
+
+reject_extra_operands() {
+    if [ "$#" -gt 0 ]; then
+        usage_error "extra operand '$1'"
+    fi
+}
+
+format_time() {
+    date -d "@$1" "+$TIME_FORMAT"
+}
+
+parse_time() {
+    local phrase=$1
+    local due
+    if ! due=$(date -d "$phrase" +%s 2>/dev/null); then
+        die "invalid time '$phrase'"
+    fi
+    if (( due <= $(date +%s) )); then
+        die "$(format_time "$due") has passed"
+    fi
+    printf '%s\n' "$due"
+}
+
+new_job_id() {
+    date +%s%N | sha256sum | cut -c "1-$ID_LENGTH"
+}
+
+queued_jobs() {
+    local fields id
+    while read -ra fields; do
+        if [ "${fields[0]}" = "$UNSCHEDULED" ]; then
+            continue
+        fi
+        id=${fields[-2]#"$UNIT_PREFIX"}
+        id=${id%.timer}
+        if [[ $id =~ $ID_PATTERN ]]; then
+            printf '%s\n' "$id"
+        fi
+    done < <(systemctl --user list-timers "${UNIT_PREFIX}*" \
+        --no-legend --plain)
+}
+
+is_queued() {
+    queued_jobs | grep -xF -- "$1" >/dev/null
+}
+
+job_property() {
+    systemctl --user show "${UNIT_PREFIX}$1.timer" -p "$2" --value
+}
+
+print_cell() {
+    local width=$1 text=$2 style=$3
+    printf '%s%s%s%*s  ' "$style" "$text" "$reset" \
+        "$(( width - ${#text} ))" ''
+}
+
+print_row() {
+    local style=$1
+    print_cell "$ID_LENGTH" "$2" "$style"
+    print_cell "$WHEN_WIDTH" "$3" "$style"
+    printf '%s%s%s\n' "$style" "$4" "$reset"
+}
+
+schedule() {
+    if [ "$#" -eq 0 ]; then
+        usage_error "missing operand"
+    fi
+    if [ "$#" -eq 1 ]; then
+        usage_error "missing COMMAND after '$1'"
+    fi
+
+    local due id
+    due=$(parse_time "$1")
+    shift
+    id=$(new_job_id)
+    systemd-run --user --quiet --collect --same-dir \
+        --unit="${UNIT_PREFIX}${id}" --description="$*" \
+        --on-calendar="$(date -u -d "@$due" '+%F %T UTC')" \
+        --timer-property="AccuracySec=$TIMER_ACCURACY" \
+        -- "$@"
+    printf 'job %s at %s: %s\n' "$id" "$(format_time "$due")" "$*"
+}
+
+list_jobs() {
+    reject_extra_operands "$@"
+
+    local jobs
+    jobs=$(queued_jobs)
+    if [ -z "$jobs" ]; then
+        return
+    fi
+
+    local id
+    print_row "$underline" ID WHEN COMMAND
+    while read -r id; do
+        print_row "" "$id" \
+            "$(job_property "$id" NextElapseUSecRealtime)" \
+            "$(job_property "$id" Description)"
+    done <<< "$jobs"
+}
+
+cancel_job() {
+    local id=$1
+    shift
+    reject_extra_operands "$@"
+
+    if ! is_queued "$id"; then
+        die "no job '$id' is queued"
+    fi
+    systemctl --user stop "${UNIT_PREFIX}${id}.timer"
+}
+
+if ! options=$(getopt -o "$SHORT_OPTIONS" -l "$LONG_OPTIONS" \
+    -n later -- "$@"); then
+    suggest_help
+fi
+eval set -- "$options"
+
+action=schedule
+job=""
+while [ "$1" != -- ]; do
+    case "$1" in
+        -l|--list)
+            action=list
+            ;;
+        -c|--cancel)
+            action=cancel
+            job=$2
+            shift
+            ;;
+        -h|--help)
+            usage
+            exit 0
+            ;;
+    esac
+    shift
+done
 shift
 
-exec systemd-run --user --collect --same-dir \
-    --on-calendar="$(date -u -d "@$when" '+%F %T UTC')" \
-    --timer-property=AccuracySec=1s \
-    -- "$@"
+case "$action" in
+    list)
+        list_jobs "$@"
+        ;;
+    cancel)
+        cancel_job "$job" "$@"
+        ;;
+    schedule)
+        schedule "$@"
+        ;;
+esac
